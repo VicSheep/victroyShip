@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PKH/Http/HttpActor.h"
@@ -22,6 +22,7 @@ void AHttpActor::BeginPlay()
 	GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 }
 
+#pragma region NPC conversation
 void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendSpeech;
@@ -33,7 +34,7 @@ void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& Speech
 	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendSpeechComplete);
 
-	// ¾ç½Ä ÁÖÀÇÇÒ °Í(À¥ ¼­¹öÂÊÀÇ ¾ç½Ä°ú Á¤È®ÇÏ°Ô ÀÏÄ¡ÇØ¾ß ÇÔ)
+	// ì–‘ì‹ ì£¼ì˜í•  ê²ƒ(ì›¹ ì„œë²„ìª½ì˜ ì–‘ì‹ê³¼ ì •í™•í•˜ê²Œ ì¼ì¹˜í•´ì•¼ í•¨)
 	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
 	HttpRequest->SetContentAsString(JsonBody);
 
@@ -88,3 +89,74 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 		}
 	}
 }
+#pragma endregion
+
+#pragma region Talk to Plant
+
+void AHttpActor::TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath)
+{
+	const FString& FullURL = BaseURL + EndPoint_TalkToPlant;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::TalkToPlantComplete);
+
+	// ì–‘ì‹ ì£¼ì˜í•  ê²ƒ(ì›¹ ì„œë²„ìª½ì˜ ì–‘ì‹ê³¼ ì •í™•í•˜ê²Œ ì¼ì¹˜í•´ì•¼ í•¨)
+	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Talk to plant : %s"), *FullURL);
+}
+
+void AHttpActor::TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant Complete"));
+		ReqScore();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::ReqScore()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetScore;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::ReqScoreComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion

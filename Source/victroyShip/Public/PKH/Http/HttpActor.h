@@ -18,7 +18,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-// Request & Response
+// NPC conversation
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class AFarmLifeGameMode> GameMode;
@@ -30,7 +30,7 @@ protected:
 	FString EndPoint_SendSpeech = TEXT("/post-speech");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetText = TEXT("/get-text");
+	FString EndPoint_GetText = TEXT("/get-speech");
 
 public:
 	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
@@ -38,4 +38,19 @@ public:
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+// Talk to plant
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_TalkToPlant = TEXT("/post-talk2plant");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetScore = TEXT("/get-talk2plant");
+
+public:
+	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqScore();
+	void ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };

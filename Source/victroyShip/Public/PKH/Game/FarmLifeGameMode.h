@@ -31,15 +31,39 @@ protected:
 // STT
 protected:
 	FString LatestSpeech;
+	int32 TalkScore;
 
 public:
+	// NPC conversation
 	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
 
 	void SetLatestSpeech(const FString& SpeechText);
 	FString& GetLatestSpeech();
 
+	// Talk to plant
+	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
+
+	void SetTalkScore(int32 Score);
+	int32 GetTalkScore();
 
 // time flow
 protected:
+	FTimerHandle TimerHandle;
 
+	int32 Hours = 8;
+	int32 Minutes = 0;
+	int32 Date = 1;
+	bool Paused = false;
+
+	UFUNCTION()
+	void UpdateMinutes();
+
+	void UpdateHours();
+	void UpdateDate();
+
+public:
+	FORCEINLINE bool IsPausedNow() const { return Paused; }
+
+	void StartTime();
+	void StopTime();
 };
