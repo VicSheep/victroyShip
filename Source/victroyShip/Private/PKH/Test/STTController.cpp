@@ -5,7 +5,7 @@
 
 ASTTController::ASTTController()
 {
-
+	
 }
 
 void ASTTController::BeginPlay()
