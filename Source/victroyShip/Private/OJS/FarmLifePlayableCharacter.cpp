@@ -82,6 +82,15 @@ void AFarmLifePlayableCharacter::SetupPlayerInputComponent(UInputComponent* Play
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFarmLifePlayableCharacter::Look);
+
+		// Jumping
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFarmLifePlayableCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFarmLifePlayableCharacter::StopJumping);
+
+		// Jumping
+		EnhancedInputComponent->BindAction(IntractAction, ETriggerEvent::Started, this, &AFarmLifePlayableCharacter::BeginInteract);
+		EnhancedInputComponent->BindAction(IntractAction, ETriggerEvent::Completed, this, &AFarmLifePlayableCharacter::EndInteract);
+		
 	}
 	else
 	{
@@ -126,9 +135,9 @@ void AFarmLifePlayableCharacter::PerformInteractionCheck()
 		{
 			if(TraceHit.GetActor()->GetClass()->ImplementsInterface(UInteractionInterface::StaticClass()))
 			{
-				const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
-
-				if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+				//const float Distance = (TraceStart - TraceHit.ImpactPoint).Size();
+				//if(TraceHit.GetActor() != InteractionData.CurrentInteractable && Distance <= InteractionCheckDistance)
+				if(TraceHit.GetActor() != InteractionData.CurrentInteractable)
 				{
 					FoundInteractable(TraceHit.GetActor());
 					return;
@@ -226,7 +235,7 @@ void AFarmLifePlayableCharacter::Interact()
 
 	if(IsValid(TargetInteractable.GetObject()))
 	{
-		TargetInteractable->Interact();
+		TargetInteractable->Interact(this);
 	}
 }
 

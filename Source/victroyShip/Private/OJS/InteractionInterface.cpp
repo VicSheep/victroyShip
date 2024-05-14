@@ -2,6 +2,7 @@
 
 
 #include "OJS/InteractionInterface.h"
+#include "OJS/FarmLifePlayableCharacter.h"
 
 // Add default functionality here for any IInteractionInterface functions that are not pure virtual.
 void IInteractionInterface::BeginFocus()
@@ -20,6 +21,6 @@ void IInteractionInterface::EndInteract()
 {
 }
 
-void IInteractionInterface::Interact()
+void IInteractionInterface::Interact(AFarmLifePlayableCharacter* PlayerCharacter)
 {
 }
