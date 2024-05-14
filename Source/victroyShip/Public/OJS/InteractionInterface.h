@@ -58,9 +58,7 @@ class UInteractionInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
+
 class VICTROYSHIP_API IInteractionInterface
 {
 	GENERATED_BODY()

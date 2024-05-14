@@ -8,6 +8,8 @@
 #include "Logging/LogMacros.h"
 #include "FarmLifePlayableCharacter.generated.h"
 
+
+class AFarmLifeHUD;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -62,6 +64,8 @@ protected:
 	//-----------------------------------------------------------------------------
 	// PROPERTIES & VARIABLES
 	//-----------------------------------------------------------------------------
+	UPROPERTY()
+	AFarmLifeHUD* HUD;
 	
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

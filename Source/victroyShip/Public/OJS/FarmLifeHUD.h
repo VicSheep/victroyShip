@@ -3,12 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractionInterface.h"
-#include "InteractionWidget.h"
-#include "MainMenuWidget.h"
 #include "GameFramework/HUD.h"
 #include "FarmLifeHUD.generated.h"
 
+struct FInteractableData;
+class UInteractionWidget;
 class UMainMenuWidget;
 
 UCLASS()
@@ -36,9 +35,9 @@ public:
 	void DisplayMenu();
 	void HideMenu();
 
-	void ShowInteractionWidget();
-	void HideInteractionWidget();
-	void UpdateInteractionWidget(const FInteractableData* InteractableData);
+	void ShowInteractionWidget() const;
+	void HideInteractionWidget() const;
+	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
 
 	
 protected:

@@ -2,6 +2,7 @@
 
 //game
 #include "OJS/FarmLifePlayableCharacter.h"
+#include "DrawDebugHelpers.h"
 
 //engine
 #include "Engine/LocalPlayer.h"
@@ -14,7 +15,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 
-#include "DrawDebugHelpers.h"
+#include "OJS/FarmLifeHUD.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter1);
 
@@ -102,7 +103,8 @@ void AFarmLifePlayableCharacter::SetupPlayerInputComponent(UInputComponent* Play
 void AFarmLifePlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	HUD = Cast<AFarmLifeHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 }
 
 void AFarmLifePlayableCharacter::Tick(float DeltaSeconds)
@@ -170,6 +172,9 @@ void AFarmLifePlayableCharacter::FoundInteractable(AActor* NewInteractable)
 	InteractionData.CurrentInteractable = NewInteractable;
 	TargetInteractable = NewInteractable;
 
+	//UPDATE interaction widget
+	HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+
 	TargetInteractable->BeginFocus();
 }
 
@@ -187,6 +192,7 @@ void AFarmLifePlayableCharacter::NoInteractableFound()
 		}
 
 		//hide interaction widget on the HUD
+		HUD->HideInteractionWidget();
 
 		InteractionData.CurrentInteractable = nullptr;
 		TargetInteractable = nullptr;
