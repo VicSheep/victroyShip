@@ -21,7 +21,7 @@ protected:
 // NPC conversation
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class AFarmLifeGameMode> GameMode;
+	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString BaseURL = TEXT("http://127.0.0.1:8000");
@@ -33,7 +33,7 @@ protected:
 	FString EndPoint_GetText = TEXT("/get-speech");
 
 public:
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();

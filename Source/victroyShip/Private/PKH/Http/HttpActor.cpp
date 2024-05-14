@@ -19,11 +19,11 @@ void AHttpActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 }
 
 #pragma region NPC conversation
-void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath)
+void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendSpeech;
 
@@ -35,7 +35,7 @@ void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& Speech
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendSpeechComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
+	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\",\"npc_name\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath, *NPCName);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -79,7 +79,7 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("ReqTest Complete : %s"), *ResultText);
+		MyGameMode->SetLatestSpeech(ResultText);
 	}
 	else
 	{
@@ -150,6 +150,7 @@ void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Resp
 	{
 		const FString& ResultText = Response->GetContentAsString();
 		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
+		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
 	}
 	else
 	{

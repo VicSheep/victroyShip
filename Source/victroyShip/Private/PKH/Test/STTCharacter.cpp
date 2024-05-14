@@ -126,7 +126,4 @@ void ASTTCharacter::RecordStop(const FInputActionValue& Value)
 void ASTTCharacter::StartSTT()
 {
 	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
-	MyGameMode->SendSpeech(SpeechFileName, FullPath); UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *SpeechFileName, *FullPath);
-	//MyGameMode->TalkToPlant(SpeechFileName, FullPath); UE_LOG(LogTemp, Warning, TEXT("%s : %s"), *SpeechFileName, *FullPath);
 }
-

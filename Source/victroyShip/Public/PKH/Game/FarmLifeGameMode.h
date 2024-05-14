@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "FarmLifeGameMode.generated.h"
 
+class UNPCConversationWidget;
 /**
  * 
  */
@@ -33,15 +34,21 @@ protected:
 	FString LatestSpeech;
 	int32 TalkScore;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class ANPCBase> CurNPC;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<TObjectPtr<AActor>> CurPlants;
+
 public:
 	// NPC conversation
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<class ANPCBase>& NewNPC);
 
 	void SetLatestSpeech(const FString& SpeechText);
 	FString& GetLatestSpeech();
 
 	// Talk to plant
-	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants);
 
 	void SetTalkScore(int32 Score);
 	int32 GetTalkScore();
@@ -66,4 +73,26 @@ public:
 
 	void StartTime();
 	void StopTime();
+
+// TTS
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class USoundWave> SpeechSound;
+
+	UPROPERTY(VisibleAnywhere)
+	FString SpeechFilePath;
+
+// UI
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UNPCConversationWidget> ConversationUIClass;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UNPCConversationWidget> ConversationUI;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UTimerWidget> TimerUIClass;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UTimerWidget> TimerUI;
 };
