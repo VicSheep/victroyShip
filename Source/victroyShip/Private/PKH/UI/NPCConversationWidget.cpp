@@ -5,6 +5,7 @@
 
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "PKH/Game/FarmLifeGameMode.h"
 
 UNPCConversationWidget::UNPCConversationWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -15,11 +16,13 @@ void UNPCConversationWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 	Btn_Exit->OnClicked.AddDynamic(this, &UNPCConversationWidget::OnClicked_Exit);
 }
 
 void UNPCConversationWidget::OnClicked_Exit()
 {
+	MyGameMode->EndConversation();
 	SetVisibility(ESlateVisibility::Hidden);
 }
 

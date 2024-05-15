@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "NPCBase.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
+
 UCLASS()
 class VICTROYSHIP_API ANPCBase : public ACharacter
 {
@@ -19,6 +21,14 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class ANPCController> NPCController;
+
+public:
+	void StartConversation();
+	void EndConversation();
 
 // TTS Ãâ·Â
 protected:
@@ -52,7 +62,9 @@ protected:
 	int32 MaxLikeability = 5;
 
 public:
-	void LikeabilityUp(int32 InLikeability);
+	FOnLikeabilityChanged OnLikeabilityChanged;
+
+	void LikeabilityChange(int32 InLikeability);
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }

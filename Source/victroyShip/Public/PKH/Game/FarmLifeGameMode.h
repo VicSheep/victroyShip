@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -40,12 +40,23 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<TObjectPtr<AActor>> CurPlants;
 
+// Initialize
+protected:
+	const FString& InitialName = TEXT("Speech");
+	const FString& InitialPath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Speech.wav");
+	const FString& InitialNPC = TEXT("미라");
+
+	void Initialize();
+
+// Conversation
 public:
 	// NPC conversation
 	void SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<class ANPCBase>& NewNPC);
 
-	void SetLatestSpeech(const FString& SpeechText);
+	void SetLatestSpeech(const FString& Response, const FString& FilePath);
 	FString& GetLatestSpeech();
+
+	void EndConversation();
 
 	// Talk to plant
 	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants);
@@ -53,7 +64,7 @@ public:
 	void SetTalkScore(int32 Score);
 	int32 GetTalkScore();
 
-// time flow
+// Time flow
 protected:
 	FTimerHandle TimerHandle;
 
@@ -61,6 +72,13 @@ protected:
 	int32 Minutes = 0;
 	int32 Date = 1;
 	bool Paused = false;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class ADirectionalLight> SunLight;
+
+	const FRotator SunBeginRot = FRotator(200, 0, 0);
+	const FRotator SunEndRot = FRotator(350, 0, 0);
+	const FRotator SunDeltaRot = FRotator(2.5f, 0, 0);
 
 	UFUNCTION()
 	void UpdateMinutes();
@@ -78,9 +96,6 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class USoundWave> SpeechSound;
-
-	UPROPERTY(VisibleAnywhere)
-	FString SpeechFilePath;
 
 // UI
 protected:

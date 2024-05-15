@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "PKH/BT/BTNPCKey.h"
 
 UBTTask_SetTargetLoc::UBTTask_SetTargetLoc()
 {
@@ -35,11 +36,11 @@ EBTNodeResult::Type UBTTask_SetTargetLoc::ExecuteTask(UBehaviorTreeComponent& Ow
 	}
 
 	const FVector Origin = OwnerPawn->GetActorLocation();
-	float PatrolRadius = BBComp->GetValueAsFloat(TEXT("PatrolDistance"));
+	float PatrolRadius = BBComp->GetValueAsFloat(KEY_PATROL_DIST);
 	FNavLocation NextNav;
 	if (NavSystem->GetRandomPointInNavigableRadius(Origin, PatrolRadius, NextNav))
 	{
-		BBComp->SetValueAsVector(TEXT("TargetLoc"), NextNav.Location);
+		BBComp->SetValueAsVector(KEY_TARGET_LOC, NextNav.Location);
 		return EBTNodeResult::Succeeded;
 	}
 

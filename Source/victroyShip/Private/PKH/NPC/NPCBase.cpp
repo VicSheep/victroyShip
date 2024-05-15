@@ -6,6 +6,14 @@
 #include "MediaPlayer.h"
 #include "PKH/NPC/NPCController.h"
 #include "MediaSoundComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+#include "Microsoft/AllowMicrosoftPlatformTypes.h"
+#include "Misc/FileHelper.h"
+#include "Sound/SoundWave.h"
+#include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Sound/SoundWave.h"
 
 ANPCBase::ANPCBase()
 {
@@ -13,6 +21,8 @@ ANPCBase::ANPCBase()
 
 	AIControllerClass = ANPCController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 
 	// Mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT(""));
@@ -22,7 +32,7 @@ ANPCBase::ANPCBase()
 	}
 
 	// Animation
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT(""));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPCAnimInstance.ABP_NPCAnimInstance_C"));
 	if (AnimRef.Class)
 	{
 		GetMesh()->SetAnimClass(AnimRef.Class);
@@ -38,17 +48,35 @@ void ANPCBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	NPCController = CastChecked<ANPCController>(GetController());
+
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
-	const FString& FilePath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Speech.wav");
-	LoadSpeechFileAndPlay(FilePath);
+	LoadSpeechFileAndPlay(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
 }
 
 void ANPCBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ANPCBase::StartConversation()
+{
+	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		const FVector TargetDirection = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		const FRotator TargetRotation = TargetDirection.ToOrientationRotator();
+		SetActorRotation(TargetRotation);
+
+		NPCController->StartConversation();
+	}
+}
+
+void ANPCBase::EndConversation()
+{
+	NPCController->EndConversation();
 }
 
 #pragma region TTS
@@ -72,9 +100,14 @@ void ANPCBase::OnPlayEnded()
 #pragma endregion
 
 #pragma region 호감도
-void ANPCBase::LikeabilityUp(int32 InLikeability)
+void ANPCBase::LikeabilityChange(int32 InLikeability)
 {
 	CurLikeability = FMath::Clamp(CurLikeability + InLikeability, 0, MaxLikeability);
+
+	if(OnLikeabilityChanged.IsBound())
+	{
+		OnLikeabilityChanged.Broadcast();
+	}
 }
 
 bool ANPCBase::IsMaxLikeability()

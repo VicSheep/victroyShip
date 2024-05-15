@@ -1,8 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PKH/Game/FarmLifeGameMode.h"
 
+#include "Engine/DirectionalLight.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Http/HttpActor.h"
 #include "PKH/Interface/DateUpdate.h"
@@ -52,6 +53,10 @@ void AFarmLifeGameMode::BeginPlay()
 		HttpActor = GetWorld()->SpawnActor<AHttpActor>(HttpActorClass);
 	}
 
+	// Time flow
+	SunLight = Cast<ADirectionalLight>(UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass()));
+	SunLight->SetActorRotation(SunBeginRot);
+
 	StartTime();
 
 	// UI
@@ -64,38 +69,62 @@ void AFarmLifeGameMode::BeginPlay()
 	ensure(ConversationUI);
 	ConversationUI->AddToViewport();
 	ConversationUI->SetVisibility(ESlateVisibility::Hidden);
+
+	// Initialize
+	Initialize();
+}
+
+// ëª¨ë¸ ë¡œë”©ì„ ìœ„í•´ ìµœì´ˆ 1íšŒ í†µì‹ 
+void AFarmLifeGameMode::Initialize()
+{
+	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC);
 }
 
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
 	CurNPC = NewNPC;
-	SpeechFilePath = FilePath;
+	CurNPC->StartConversation();
 
 	HttpActor->SendSpeech(FileName, FilePath, CurNPC->GetNPCName());
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AFarmLifeGameMode::SetLatestSpeech(const FString& SpeechText)
+void AFarmLifeGameMode::SetLatestSpeech(const FString& Response, const FString& FilePath)
 {
-	LatestSpeech = SpeechText;
+	// ì´ˆê¸°í™”ìš© í˜¸ì¶œì´ë¼ë©´ ë°”ë¡œ ì¢…ë£Œ
+	if(nullptr == CurNPC)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Initialize Complete"));
+		return;
+	}
+
+	LatestSpeech = Response;
 	UE_LOG(LogTemp, Warning, TEXT("ReqText Complete : [%s] %s"), *CurNPC->GetNPCName(), *LatestSpeech);
 
-	// UI °»½Å
+	// UI ê°±ì‹ 
 	if(ConversationUI->IsVisible())
 	{
 		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech);
-		CurNPC->LoadSpeechFileAndPlay(SpeechFilePath);
+		CurNPC->LoadSpeechFileAndPlay(FilePath);
 	}
 
-	// È£°¨µµ °»½Å
+	// í˜¸ê°ë„ ê°±ì‹ 
 
 }
 
 FString& AFarmLifeGameMode::GetLatestSpeech()
 {
 	return LatestSpeech;
+}
+
+void AFarmLifeGameMode::EndConversation()
+{
+	if(CurNPC)
+	{
+		CurNPC->EndConversation();
+	}
 }
 #pragma endregion
 
@@ -111,7 +140,7 @@ void AFarmLifeGameMode::SetTalkScore(int32 Score)
 	TalkScore = Score;
 	for(AActor* P : CurPlants)
 	{
-		// Á¡¼ö ¹İÀÀ
+		// ì ìˆ˜ ë°˜ì‘
 
 	}
 }
@@ -136,6 +165,7 @@ void AFarmLifeGameMode::StopTime()
 void AFarmLifeGameMode::UpdateMinutes()
 {
 	Minutes += TEN_MINUTES;
+	SunLight->AddActorWorldRotation(SunDeltaRot);
 	if(Minutes == SIXTY_MINUTES)
 	{
 		UpdateHours();
@@ -148,7 +178,7 @@ void AFarmLifeGameMode::UpdateHours()
 	Minutes = 0;
 	++Hours;
 
-	// ½Ã°£ ¾÷µ¥ÀÌÆ® ÀÏ°ıÃ³¸®
+	// ì‹œê°„ ì—…ë°ì´íŠ¸ ì¼ê´„ì²˜ë¦¬
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UHourUpdate::StaticClass(), OutActors);
 	for(AActor* Actor : OutActors)
@@ -165,14 +195,15 @@ void AFarmLifeGameMode::UpdateHours()
 
 void AFarmLifeGameMode::UpdateDate()
 {
-	// ÇÃ·¹ÀÌ¾î°¡ ´ëÈ­ÁßÀÌ¶ó¸é º¸·ù
+	// í”Œë ˆì´ì–´ê°€ ëŒ€í™”ì¤‘ì´ë¼ë©´ ë³´ë¥˜
 
 
 	Hours = START_HOUR;
 	Minutes = 0;
 	++Date;
+	SunLight->SetActorRotation(SunBeginRot);
 
-	// ³¯Â¥ ¾÷µ¥ÀÌÆ® ÀÏ°ıÃ³¸®
+	// ë‚ ì§œ ì—…ë°ì´íŠ¸ ì¼ê´„ì²˜ë¦¬
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UDateUpdate::StaticClass(), OutActors);
 	for (AActor* Actor : OutActors)

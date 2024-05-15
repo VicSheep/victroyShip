@@ -21,4 +21,5 @@ protected:
 	virtual void BeginPlay() override;
 
 	FInputModeGameOnly InputMode_Game;
+	FInputModeGameAndUI InputMode_Both;
 };

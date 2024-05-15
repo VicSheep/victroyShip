@@ -6,6 +6,7 @@
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "PKH/Game/FarmLifeGameMode.h"
+#include "PKH/Library/JsonParserLibrary.h"
 
 // Sets default values
 AHttpActor::AHttpActor()
@@ -79,7 +80,10 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		MyGameMode->SetLatestSpeech(ResultText);
+		FString OutResponse;
+		FString OutFilePath;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, OutResponse, OutFilePath);
+		MyGameMode->SetLatestSpeech(OutResponse, OutFilePath);
 	}
 	else
 	{

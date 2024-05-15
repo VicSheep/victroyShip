@@ -21,16 +21,20 @@ protected:
 	virtual void NativeConstruct() override;
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
+
+protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UTextBlock> Txt_NPCName;
 
-	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UTextBlock> Txt_Conversation;
 
-	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UImage> Img_Portrait;
 
-	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UButton> Btn_Exit;
 
 public:

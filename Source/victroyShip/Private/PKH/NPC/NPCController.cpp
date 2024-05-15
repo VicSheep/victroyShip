@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 ANPCController::ANPCController()
 {
@@ -31,13 +32,13 @@ void ANPCController::OnPossess(APawn* InPawn)
 
 void ANPCController::RunAI()
 {
-	UBlackboardComponent* BBComp = Blackboard;
+	BBComp = Blackboard;
 	if(UseBlackboard(BBData, BBComp))
 	{
 		bool result = RunBehaviorTree(BTData);
 
 		// ÃÊ±âÈ­
-		
+
 	}
 }
 
@@ -48,4 +49,24 @@ void ANPCController::StopAI()
 	{
 		BTComp->StopTree();
 	}
+}
+
+void ANPCController::StartConversation()
+{
+	BBComp->SetValueAsBool(TEXT("InConversation"), true);
+}
+
+void ANPCController::EndConversation()
+{
+	BBComp->SetValueAsBool(TEXT("InConversation"), false);
+}
+
+void ANPCController::MoveToTargetLoc()
+{
+	BBComp->SetValueAsBool(TEXT("IsMoving"), true);
+}
+
+void ANPCController::ReachTargetLoc()
+{
+	BBComp->SetValueAsBool(TEXT("IsMoving"), false);
 }

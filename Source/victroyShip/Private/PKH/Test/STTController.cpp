@@ -12,5 +12,6 @@ void ASTTController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetInputMode(InputMode_Game);
+	SetInputMode(InputMode_Both);
+	SetShowMouseCursor(true);
 }

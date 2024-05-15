@@ -24,10 +24,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UBehaviorTree> BTData;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UBlackboardComponent* BBComp;
+
 	virtual void OnPossess(APawn* InPawn) override;
 
 public:
 	void RunAI();
 	void StopAI();
+
+	void StartConversation();
+	void EndConversation();
+
+	void MoveToTargetLoc();
+	void ReachTargetLoc();
 
 };
