@@ -79,7 +79,7 @@ void APickupActor::EndFocus()
 {
 	if(PickupMesh)
 	{
-		PickupMesh->SetRenderCustomDepth(true);
+		PickupMesh->SetRenderCustomDepth(false);
 	}
 }
 
@@ -103,6 +103,24 @@ void APickupActor::TakePickup(const AFarmLifePlayableCharacter* Taker)
 			// based on result of the add operation
 			//abjust or destroy the pickup
 			
+		}
+	}
+}
+
+void APickupActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	const FName ChangedPropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+
+	if(ChangedPropertyName == GET_MEMBER_NAME_CHECKED(APickupActor, DesiredItemID))
+	{
+		if(ItemDataTable)
+		{
+			if(const FITemData* ItemData = ItemDataTable->FindRow<FITemData>(DesiredItemID, DesiredItemID.ToString()))
+			{
+				PickupMesh->SetStaticMesh(ItemData->AssetData.Mesh);
+			}
 		}
 	}
 }
