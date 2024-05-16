@@ -15,6 +15,7 @@
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "victroyShip/victroyShipCharacter.h"
 #include "PKH/Test/STTController.h"
+#include "PKH/Test/TextInputComponent.h"
 
 ASTTCharacter::ASTTCharacter()
 {
@@ -49,6 +50,8 @@ ASTTCharacter::ASTTCharacter()
 	// Audio Capture
 	RecordComp = CreateDefaultSubobject<UAudioCaptureComponent>(TEXT("RecordComp"));
 
+	ChatComp = CreateDefaultSubobject<UTextInputComponent>(TEXT("ChatComp"));
+
 	// Speech File
 	SpeechFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Saved/BouncedWavFiles/");
 }
@@ -81,7 +84,9 @@ void ASTTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASTTCharacter::Look);
 
 	EnhancedInputComponent->BindAction(RecordAction, ETriggerEvent::Started, this, &ASTTCharacter::RecordStart);
-	EnhancedInputComponent->BindAction(RecordAction, ETriggerEvent::Completed, this, &ASTTCharacter::RecordStop); 
+	EnhancedInputComponent->BindAction(RecordAction, ETriggerEvent::Completed, this, &ASTTCharacter::RecordStop);
+
+	EnhancedInputComponent->BindAction(ChatAction, ETriggerEvent::Started, this, &ASTTCharacter::Chat);
 }
 
 void ASTTCharacter::Move(const FInputActionValue& Value)
@@ -121,6 +126,11 @@ void ASTTCharacter::RecordStart(const FInputActionValue& Value)
 void ASTTCharacter::RecordStop(const FInputActionValue& Value)
 {
 	
+}
+
+void ASTTCharacter::Chat(const FInputActionValue& Value)
+{
+	ChatComp->Chat();
 }
 
 void ASTTCharacter::StartSTT()

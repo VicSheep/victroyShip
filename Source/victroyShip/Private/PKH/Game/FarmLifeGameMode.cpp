@@ -126,6 +126,17 @@ void AFarmLifeGameMode::EndConversation()
 		CurNPC->EndConversation();
 	}
 }
+
+// By Text
+void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
+{
+	CurNPC = NewNPC;
+	CurNPC->StartConversation();
+
+	HttpActor->SendText(CurNPC->GetNPCName(), InputText);
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
+	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
 #pragma endregion
 
 #pragma region Talk to plant

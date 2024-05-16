@@ -30,7 +30,13 @@ protected:
 	FString EndPoint_SendSpeech = TEXT("/post-speech");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetText = TEXT("/get-speech");
+	FString EndPoint_GetSpeech = TEXT("/get-speech");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_SendText = TEXT("/post-text");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetText = TEXT("/get-text");
 
 public:
 	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName);
@@ -38,6 +44,15 @@ public:
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void SendText(const FString& NPCName, const FString& InputText);
+	void SendTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetText();
+	void GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	//void GetSpeechFile();
+	//void GetSpeechFileComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 // Talk to plant
 protected:

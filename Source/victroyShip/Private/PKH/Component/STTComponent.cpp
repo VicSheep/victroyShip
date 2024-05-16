@@ -28,15 +28,26 @@ void USTTComponent::BeginPlay()
 
 void USTTComponent::CheckNearbyObjects()
 {
+	const FString Input = TEXT("");
+	SearchNearby(Input);
+}
+
+void USTTComponent::CheckNearbyObjects(const FString& InputText)
+{
+	SearchNearby(InputText);
+}
+
+void USTTComponent::SearchNearby(const FString& InputText)
+{
 	TArray<FOverlapResult> NPCResults;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
 	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"),
-															  FCollisionShape::MakeSphere(300.0f), Params);
+		FCollisionShape::MakeSphere(300.0f), Params);
 	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f); UE_LOG(LogTemp, Log, TEXT("NPC Overlap : %d"), NPCOverlapped);
 
-	if(NPCOverlapped)
+	if (NPCOverlapped)
 	{
 		ANPCBase* TargetNPC = nullptr;
 		float MinDistance = 500.0f;
@@ -49,16 +60,23 @@ void USTTComponent::CheckNearbyObjects()
 			}
 
 			const float CurDistance = FVector::Dist(Origin, NPC->GetActorLocation());
-			if(MinDistance > CurDistance)
+			if (MinDistance > CurDistance)
 			{
 				TargetNPC = NPC;
 				MinDistance = CurDistance;
 			}
 		}
 
-		if(nullptr != TargetNPC)
+		if (nullptr != TargetNPC)
 		{
-			ConversationWithNPC(TargetNPC);
+			if(InputText.IsEmpty())
+			{
+				ConversationWithNPC(TargetNPC);
+			}
+			else
+			{
+				ConversationWithNPC(TargetNPC);
+			}
 		}
 		return;
 	}
@@ -75,7 +93,14 @@ void USTTComponent::CheckNearbyObjects()
 			// TArray¿¡ ÀúÀå 
 			Plants.Add(Res.GetActor());
 		}
-		TalkToPlant(Plants);
+		if(InputText.IsEmpty())
+		{
+			TalkToPlant(Plants);
+		}
+		else
+		{
+			TalkToPlantByText(Plants, InputText);
+		}
 	}
 }
 
@@ -85,9 +110,19 @@ void USTTComponent::ConversationWithNPC(ANPCBase* NewNPC)
 	MyGameMode->SendSpeech(SpeechFileName, FullPath, NewNPC);
 }
 
+void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& InputText)
+{
+	MyGameMode->SendText(InputText, NewNPC);
+}
+
 void USTTComponent::TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants)
 {
 	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
 	MyGameMode->TalkToPlant(SpeechFileName, FullPath, NewPlants);
+}
+
+void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText)
+{
+	//MyGameMode->SendSpeech();
 }
 

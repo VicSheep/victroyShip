@@ -33,13 +33,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString SpeechFileDir;
 
+protected:
+	void SearchNearby(const FString& InputText);
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void CheckNearbyObjects();
 
+	void CheckNearbyObjects(const FString& InputText);
+
 protected:
 	void ConversationWithNPC(class ANPCBase* NewNPC);
-	void TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants);
+	void ConversationWithNPCByText(class ANPCBase* NewNPC, const FString& InputText);
 
+	void TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants);
+	void TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText);
 		
 };

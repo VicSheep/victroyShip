@@ -58,6 +58,9 @@ public:
 
 	void EndConversation();
 
+	// NPC conversation by text
+	void SendText(const FString& InputText, const TObjectPtr<class ANPCBase>& NewNPC);
+
 	// Talk to plant
 	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants);
 
