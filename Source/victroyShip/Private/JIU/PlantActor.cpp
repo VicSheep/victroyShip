@@ -135,15 +135,18 @@ void APlantActor::HavestPlant()
 {
 	if (state == 0)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Success");
+
 		switch (PlantType)
 		{
 		case EPlantType::Grape:
 		{
-			
+			state = 1;
+			MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
 		}
 		case EPlantType::Sunflower:
 		{
-			
+			Destroyed();
 		}
 		default:
 			UE_LOG(LogTemp, Warning, TEXT("Plant type error."));
