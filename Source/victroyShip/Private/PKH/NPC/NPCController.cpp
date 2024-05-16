@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "PKH/BT/BTNPCKey.h"
 
 ANPCController::ANPCController()
 {
@@ -53,20 +54,28 @@ void ANPCController::StopAI()
 
 void ANPCController::StartConversation()
 {
-	BBComp->SetValueAsBool(TEXT("InConversation"), true);
+	BBComp->SetValueAsBool(KEY_IN_CONV, true);
 }
 
 void ANPCController::EndConversation()
 {
-	BBComp->SetValueAsBool(TEXT("InConversation"), false);
+	BBComp->SetValueAsBool(KEY_IN_CONV, false);
 }
 
-void ANPCController::MoveToTargetLoc()
+void ANPCController::SetHomeLoc(const FVector& HomeLoc)
 {
-	BBComp->SetValueAsBool(TEXT("IsMoving"), true);
+	BBComp->SetValueAsVector(KEY_HOME_LOC, HomeLoc);
 }
 
-void ANPCController::ReachTargetLoc()
+void ANPCController::MoveToTargetLoc(const FVector& TargetLoc)
 {
-	BBComp->SetValueAsBool(TEXT("IsMoving"), false);
+	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
+	BBComp->SetValueAsVector(KEY_TARGET_LOC, TargetLoc);
+}
+
+void ANPCController::MoveToHome()
+{
+	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
+	const FVector& HomeLoc = BBComp->GetValueAsVector(KEY_HOME_LOC);
+	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
 }

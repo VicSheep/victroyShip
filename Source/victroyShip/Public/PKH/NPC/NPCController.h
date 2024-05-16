@@ -36,7 +36,9 @@ public:
 	void StartConversation();
 	void EndConversation();
 
-	void MoveToTargetLoc();
-	void ReachTargetLoc();
+	void SetHomeLoc(const FVector& HomeLoc);
+
+	void MoveToTargetLoc(const FVector& TargetLoc);
+	void MoveToHome();
 
 };

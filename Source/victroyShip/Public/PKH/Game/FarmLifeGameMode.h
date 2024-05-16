@@ -21,6 +21,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	virtual void Tick(float DeltaSeconds) override;
+
 // Http
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -81,7 +84,7 @@ protected:
 
 	const FRotator SunBeginRot = FRotator(200, 0, 0);
 	const FRotator SunEndRot = FRotator(350, 0, 0);
-	const FRotator SunDeltaRot = FRotator(2.5f, 0, 0);
+	const FRotator SunDeltaRot = FRotator(0.5f, 0, 0);
 
 	UFUNCTION()
 	void UpdateMinutes();

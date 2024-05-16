@@ -9,11 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Microsoft/AllowMicrosoftPlatformTypes.h"
-#include "Misc/FileHelper.h"
-#include "Sound/SoundWave.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
-#include "Runtime/Engine/Classes/Sound/SoundWave.h"
 
 ANPCBase::ANPCBase()
 {

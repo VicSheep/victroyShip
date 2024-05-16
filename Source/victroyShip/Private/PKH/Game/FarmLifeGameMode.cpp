@@ -21,6 +21,7 @@
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	// Default Pawn & Controller
 
 
@@ -78,6 +79,13 @@ void AFarmLifeGameMode::BeginPlay()
 void AFarmLifeGameMode::Initialize()
 {
 	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC);
+}
+
+void AFarmLifeGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
 }
 
 #pragma region NPC conversation
@@ -176,7 +184,7 @@ void AFarmLifeGameMode::StopTime()
 void AFarmLifeGameMode::UpdateMinutes()
 {
 	Minutes += TEN_MINUTES;
-	SunLight->AddActorWorldRotation(SunDeltaRot);
+	
 	if(Minutes == SIXTY_MINUTES)
 	{
 		UpdateHours();
