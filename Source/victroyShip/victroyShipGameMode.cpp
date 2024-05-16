@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "victroyShipGameMode.h"
-#include "victroyShipCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AvictroyShipGameMode::AvictroyShipGameMode()
