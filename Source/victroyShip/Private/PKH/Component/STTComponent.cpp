@@ -5,6 +5,7 @@
 
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
+#include "JIU/PlantActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/NPC/NPCBase.h"
@@ -40,12 +41,12 @@ void USTTComponent::CheckNearbyObjects(const FString& InputText)
 void USTTComponent::SearchNearby(const FString& InputText)
 {
 	TArray<FOverlapResult> NPCResults;
-	FCollisionQueryParams Params;
+	FCollisionQueryParams Params; 
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
-	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"),
+	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("OverlapAllDynamic"),
 		FCollisionShape::MakeSphere(300.0f), Params);
-	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f); UE_LOG(LogTemp, Log, TEXT("NPC Overlap : %d"), NPCOverlapped);
+	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f);
 
 	if (NPCOverlapped)
 	{
@@ -53,6 +54,7 @@ void USTTComponent::SearchNearby(const FString& InputText)
 		float MinDistance = 500.0f;
 		for (FOverlapResult& Res : NPCResults)
 		{
+			UE_LOG(LogTemp, Log, TEXT("%s"), *Res.GetActor()->GetName());
 			ANPCBase* NPC = Cast<ANPCBase>(Res.GetActor());
 			if (nullptr == NPC)
 			{
@@ -77,22 +79,27 @@ void USTTComponent::SearchNearby(const FString& InputText)
 			{
 				ConversationWithNPC(TargetNPC);
 			}
+			return;
 		}
-		return;
 	}
 
 	TArray<FOverlapResult> PlantResults;
-	bool PlantOverlapped = GetWorld()->OverlapMultiByProfile(PlantResults, Origin, FQuat::Identity, TEXT("SearchPlant"),
+	bool PlantOverlapped = GetWorld()->OverlapMultiByProfile(PlantResults, Origin, FQuat::Identity, TEXT("OverlapAllDynamic"),
 		FCollisionShape::MakeSphere(300.0f), Params);
 
 	if (PlantOverlapped)
 	{
-		TArray<TObjectPtr<AActor>> Plants;
+		TArray<TObjectPtr<APlantActor>> Plants;
 		for (FOverlapResult& Res : PlantResults)
 		{
-			// TArray에 저장 
-			Plants.Add(Res.GetActor());
+			// TArray에 저장
+			APlantActor* Plant = Cast<APlantActor>(Res.GetActor());
+			if(Plant)
+			{
+				Plants.Add(Plant);
+			}
 		}
+
 		if(InputText.IsEmpty())
 		{
 			TalkToPlant(Plants);
@@ -115,14 +122,14 @@ void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& I
 	MyGameMode->SendText(InputText, NewNPC);
 }
 
-void USTTComponent::TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants)
+void USTTComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
 	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
-	MyGameMode->TalkToPlant(SpeechFileName, FullPath, NewPlants);
+	MyGameMode->TalkToPlant(SpeechFileName, FullPath, NewPlants); UE_LOG(LogTemp, Warning, TEXT("TalkToPlant"));
 }
 
-void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText)
+void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& NewPlants, const FString& InputText)
 {
-	//MyGameMode->SendSpeech();
+	MyGameMode->TalkToPlantWithText(InputText, NewPlants);
 }
 

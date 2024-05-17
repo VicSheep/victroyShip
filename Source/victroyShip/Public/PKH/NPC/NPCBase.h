@@ -19,9 +19,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
@@ -29,6 +26,11 @@ protected:
 public:
 	void StartConversation();
 	void EndConversation();
+
+// Animation
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNPCAnimInstance> AnimInstance;
 
 // TTS 출력
 protected:
@@ -68,4 +70,11 @@ public:
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
+
+// 회전
+protected:
+	float TurnSpeed = 3.5f;
+
+public:
+	FORCEINLINE float GetTurnSpeed() const { return TurnSpeed; }
 };

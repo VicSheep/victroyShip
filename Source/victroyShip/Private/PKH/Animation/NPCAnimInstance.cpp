@@ -8,7 +8,11 @@
 
 UNPCAnimInstance::UNPCAnimInstance()
 {
-
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Conversation.AM_Conversation'"));
+	if(Montage_ConvRef.Object)
+	{
+		Montage_Conv = Montage_ConvRef.Object;
+	}
 }
 
 void UNPCAnimInstance::NativeInitializeAnimation()
@@ -35,4 +39,10 @@ void UNPCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsWalking = MoveComp->Velocity.Size2D() > WalkThreshold;
 	bIsRunning = MoveComp->Velocity.Size2D() > RunThreshold;
 	bIsFalling = MoveComp->IsFalling();
+}
+
+void UNPCAnimInstance::PlayMontage_Conv()
+{
+	StopAllMontages(0);
+	Montage_Play(Montage_Conv, 1.0f);
 }

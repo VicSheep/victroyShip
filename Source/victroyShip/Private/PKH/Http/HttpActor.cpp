@@ -257,7 +257,7 @@ void AHttpActor::TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr R
 
 void AHttpActor::ReqScore()
 {
-	const FString& FullURL = BaseURL + EndPoint_GetScore;
+	const FString& FullURL = BaseURL + EndPoint_GetSpeechScore;
 
 	// HTTP Request
 	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
@@ -271,6 +271,78 @@ void AHttpActor::ReqScore()
 }
 
 void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
+		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Talk to Plant with Text
+void AHttpActor::TalkToPlantWithText(const FString& InputText)
+{
+	const FString& FullURL = BaseURL + EndPoint_TextToPlant;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::TalkToPlantWithTextComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"none\",\"chat_text\" : \"%s\"}"), *InputText);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Talk to plant : %s"), *FullURL);
+}
+
+void AHttpActor::TalkToPlantWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response,
+	bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant Complete"));
+		ReqScoreWithText();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::ReqScoreWithText()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetTextScore;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::ReqScoreWithTextComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response,
+	bool bConnectedSuccessfully)
 {
 	if (bConnectedSuccessfully)
 	{

@@ -46,7 +46,7 @@ protected:
 	void ConversationWithNPC(class ANPCBase* NewNPC);
 	void ConversationWithNPCByText(class ANPCBase* NewNPC, const FString& InputText);
 
-	void TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants);
-	void TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText);
+	void TalkToPlant(const TArray<TObjectPtr<class APlantActor>>& NewPlants);
+	void TalkToPlantByText(const TArray<TObjectPtr<class APlantActor>>& NewPlants, const FString& InputText);
 		
 };

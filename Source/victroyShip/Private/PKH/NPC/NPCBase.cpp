@@ -11,10 +11,11 @@
 #include "Microsoft/AllowMicrosoftPlatformTypes.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
+#include "PKH/Animation/NPCAnimInstance.h"
 
 ANPCBase::ANPCBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	AIControllerClass = ANPCController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -29,7 +30,7 @@ ANPCBase::ANPCBase()
 	}
 
 	// Animation
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPCAnimInstance.ABP_NPCAnimInstance_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPC_Blacksmith.ABP_NPC_Blacksmith_C"));
 	if (AnimRef.Class)
 	{
 		GetMesh()->SetAnimClass(AnimRef.Class);
@@ -47,27 +48,21 @@ void ANPCBase::BeginPlay()
 
 	NPCController = CastChecked<ANPCController>(GetController());
 
+	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
+	ensure(AnimInstance);
+
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
 	LoadSpeechFileAndPlay(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
 }
 
-void ANPCBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
-		const FVector TargetDirection = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		const FRotator TargetRotation = TargetDirection.ToOrientationRotator();
-		SetActorRotation(TargetRotation);
-
 		NPCController->StartConversation();
+		AnimInstance->PlayMontage_Conv();
 	}
 }
 

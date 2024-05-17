@@ -39,12 +39,14 @@ protected:
 	FString EndPoint_GetText = TEXT("/get-text");
 
 public:
+	// STT
 	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
+	// Text
 	void SendText(const FString& NPCName, const FString& InputText);
 	void SendTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
@@ -60,12 +62,26 @@ protected:
 	FString EndPoint_TalkToPlant = TEXT("/post-talk2plant");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetScore = TEXT("/get-talk2plant");
+	FString EndPoint_GetSpeechScore = TEXT("/get-talk2plant");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_TextToPlant = TEXT("/post-text2plant");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetTextScore = TEXT("/get-text2plant");
 
 public:
+	// STT
 	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
 	void TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqScore();
 	void ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Text
+	void TalkToPlantWithText(const FString& InputText);
+	void TalkToPlantWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqScoreWithText();
+	void ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };

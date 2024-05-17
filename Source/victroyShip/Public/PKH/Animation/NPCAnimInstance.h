@@ -43,4 +43,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsFalling : 1;
+
+// Montage
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Conv;
+
+public:
+	void PlayMontage_Conv();
 };

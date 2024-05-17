@@ -24,6 +24,7 @@ void UNPCConversationWidget::OnClicked_Exit()
 {
 	MyGameMode->EndConversation();
 	SetVisibility(ESlateVisibility::Hidden);
+	MyGameMode->CheckDateUpdate();
 }
 
 void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation)

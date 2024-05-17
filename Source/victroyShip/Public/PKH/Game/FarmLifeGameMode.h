@@ -41,7 +41,7 @@ protected:
 	TObjectPtr<class ANPCBase> CurNPC;
 
 	UPROPERTY(VisibleAnywhere)
-	TArray<TObjectPtr<AActor>> CurPlants;
+	TArray<TObjectPtr<class APlantActor>> CurPlants;
 
 // Initialize
 protected:
@@ -65,10 +65,12 @@ public:
 	void SendText(const FString& InputText, const TObjectPtr<class ANPCBase>& NewNPC);
 
 	// Talk to plant
-	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants);
+	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
 	void SetTalkScore(int32 Score);
 	int32 GetTalkScore();
+
+	void TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
 // Time flow
 protected:
@@ -97,6 +99,14 @@ public:
 
 	void StartTime();
 	void StopTime();
+
+	UFUNCTION()
+	void OnNextDay();
+
+	UFUNCTION()
+	void OnFadeOutFinished();
+
+	void CheckDateUpdate();
 
 // TTS
 protected:
