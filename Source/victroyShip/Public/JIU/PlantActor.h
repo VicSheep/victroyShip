@@ -3,14 +3,33 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
 #include "PlantActor.generated.h"
+
+class AGroundActor;
 
 UENUM()
 enum class EPlantType
 {
 	Grape,
 	Sunflower,
+};
+
+UENUM()
+enum class EGrowType
+{
+	Onetime,
+	Manytimes,
+};
+
+UENUM()
+enum class EPlantState
+{
+	Seed,
+	Childish,
+	Mature,
+	Havested,
 };
 
 UCLASS()
@@ -39,12 +58,23 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
+
+	///* Plant State *///
+	UPROPERTY()
+	EPlantType PlantType;
+
+	UPROPERTY()
+	EGrowType GrowType;
+
+	UPROPERTY()
+	EPlantState PlantState;
+
+	UPROPERTY()
+	int level;
+
 	///* Plant Seed *///
 	UFUNCTION()
 	void SetPlant(int id, AGroundActor* _ground);
-
-	UPROPERTY()
-	EPlantType PlantType;
 
 	UPROPERTY()
 	class AGroundActor* Ground;
@@ -53,8 +83,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GrowPlant();
 
+	UFUNCTION()
+	void StartScaling();
+
+	UFUNCTION()
+	void HandleProgress(float Value);
+
+	UFUNCTION()
+	void OnTimelineFinished();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* FloatCurve;
+
+	FTimeline MyTimeline;
+
+	FVector InitialScale = FVector(1.0f, 1.0f, 1.0f);
+	FVector MaxScale = FVector(1.0f, 1.0f, 1.0f);
+
 	UPROPERTY()
-	int state;
+	UStaticMesh* NewMesh;
+	bool isChanged = true;
+
+	void SetupTimeline();
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
@@ -70,4 +120,5 @@ public:
 	FString SunflowerPath1 = "/Game/UltimateFarming/Meshes/SM_Sunflower_Starter.SM_Sunflower_Starter";
 	FString SunflowerPath2 = "/Game/UltimateFarming/Meshes/SM_Sunflower_C.SM_Sunflower_C";
 	FString SunflowerPath3 = "/Game/UltimateFarming/Meshes/SM_Sunflower_A.SM_Sunflower_A";
+
 };

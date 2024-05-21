@@ -10,9 +10,7 @@ void UToolWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	APlayerController* pc = GetWorld()->GetFirstPlayerController();
-
-    if (pc)
+    if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
     {
         PP = Cast<ATestCharacter>(pc->GetPawn());
     }
@@ -27,6 +25,8 @@ void UToolWidget::NativeConstruct()
 
 void UToolWidget::ClickButton(int index)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("equip %d"), index));
+
     if (PP)
     {
 	    PP->SwitchTool(index);

@@ -19,12 +19,39 @@ AGroundActor::AGroundActor()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
 	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *PlanterPath));
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DryMaterialAsset(*DryMaterialPath);
+	if (DryMaterialAsset.Succeeded())
+	{
+		DryMaterialInterface = DryMaterialAsset.Object;
+		MeshComponent->SetMaterial(0, DryMaterialInterface); // Set Dry Material
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WetMaterialAsset(*WetMaterialPath);
+	if (WetMaterialAsset.Succeeded())
+	{
+		WetMaterialInterface = WetMaterialAsset.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void AGroundActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (DryMaterialInterface)
+	{
+		UMaterialInterface* MaterialInstance = Cast<UMaterialInstance>(DryMaterialInterface);
+		DryMaterialInstanceDynamic = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+
+		MeshComponent->SetMaterial(0, DryMaterialInstanceDynamic);
+	}
+
+	if (WetMaterialInterface)
+	{
+		UMaterialInterface* MaterialInstance = Cast<UMaterialInstance>(WetMaterialInterface);
+		WetMaterialInstanceDynamic = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+	}
 
 	WaterFigure = 0.f;
 	FertilizerFigure = 0.f;
@@ -54,9 +81,9 @@ void AGroundActor::Tick(float DeltaTime)
 
 void AGroundActor::PlantingSeed(int id)
 {
-	if (Plant == nullptr)
+	if (Plant == nullptr && GroundState != EGroundState::Default)
 	{
-		Plant = GetWorld()->SpawnActor<APlantActor>(APlantActor::StaticClass(), BoxComponent->GetComponentLocation(), FRotator(0.f));
+		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation(), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
 }
@@ -66,13 +93,30 @@ void AGroundActor::WaterPlant()
 	if (Plant)
 	{
 		WaterFigure = 100.f;
+		if (WetMaterialInterface)
+		{
+			MeshComponent->SetMaterial(0, WetMaterialInterface);
+		}
 	}
 }
 
-void AGroundActor::fertilizePlant()
+void AGroundActor::FertilizePlant()
 {
 	if (Plant)
 	{
 		FertilizerFigure = 100.f;
+	}
+}
+
+void AGroundActor::ProwGround()
+{
+	if (GroundState == EGroundState::Default)
+	{
+		GroundState  = EGroundState::DryPlanter;
+
+		if (DryMaterialInstanceDynamic)
+		{
+			DryMaterialInstanceDynamic->SetScalarParameterValue(FName("Transparency"), 1.f);
+		}
 	}
 }

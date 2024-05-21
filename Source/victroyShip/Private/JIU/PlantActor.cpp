@@ -4,6 +4,8 @@
 #include "JIU/PlantActor.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/TimelineComponent.h"
+#include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
 
@@ -32,7 +34,7 @@ void APlantActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// UE_LOG(LogTemp, Warning, TEXT("%f"), WaterFigure);
+	MyTimeline.TickTimeline(DeltaTime);
 }
 
 void APlantActor::Destroyed()
@@ -50,7 +52,7 @@ void APlantActor::Destroyed()
 
 void APlantActor::SetPlant(int id, AGroundActor* _ground)
 {
-	state = 0;
+	level = 0;
 	this->Ground = _ground;
 
 	switch (id)
@@ -58,11 +60,11 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 	case 0:
 		MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
 		PlantType = EPlantType::Grape;
-		state = 4;
+		level = 4;
 		break;
 	case 1:
 		PlantType = EPlantType::Sunflower;
-		state = 3;
+		level = 3;
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Mesh not set."));
@@ -71,31 +73,39 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 
 void APlantActor::GrowPlant()
 {
-	if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
+	// if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
 
 	switch (PlantType)
 	{
 	case EPlantType::Grape:
 		{
-			if (state == 4)
+			if (level == 4)
 			{
-				state = 3;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath1));
+				level = 3;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath1);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath1));
 			}
-			else if (state == 3)
+			else if (level == 3)
 			{
-				state = 2;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath2));
+				level = 2;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath2);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath2));
 			}
-			else if (state == 2)
+			else if (level == 2)
 			{
-				state = 1;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
+				level = 1;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath3);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
 			}
-			else if (state == 1)
+			else if (level == 1)
 			{
-				state = 0;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath4));
+				level = 0;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath4);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath4));
 			}
 			else
 			{
@@ -105,19 +115,19 @@ void APlantActor::GrowPlant()
 		}
 	case EPlantType::Sunflower:
 		{
-			if (state == 3)
+			if (level == 3)
 			{
-				state = 2;
+				level = 2;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath1));
 			}
-			else if (state == 2)
+			else if (level == 2)
 			{
-				state = 1;
+				level = 1;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath2));
 			}
-			else if (state == 1)
+			else if (level == 1)
 			{
-				state = 0;
+				level = 0;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath3));
 			}
 			else
@@ -131,9 +141,60 @@ void APlantActor::GrowPlant()
 	}
 }
 
+void APlantActor::StartScaling()
+{
+	MeshComponent->SetWorldScale3D(InitialScale);
+
+	if (FloatCurve)
+	{
+		SetupTimeline();
+		MyTimeline.PlayFromStart();
+	}
+}
+
+void APlantActor::HandleProgress(float Value)
+{
+	// 일시적인 스케일 변화 설정
+	FVector TempMaxScale = (MaxScale == InitialScale) ? InitialScale + FVector(0.3f, 0.3f, 0.3f) : MaxScale;
+
+	FVector NewScale = FMath::Lerp(InitialScale, TempMaxScale, Value);
+
+	if (Value >= 0.85f && isChanged)
+	{
+		if (NewMesh)
+		{
+			MeshComponent->SetStaticMesh(NewMesh);
+			isChanged = false;
+		}
+	}
+
+	MeshComponent->SetWorldScale3D(NewScale);
+}
+
+void APlantActor::OnTimelineFinished()
+{
+	NewMesh = nullptr;
+	isChanged = true;
+}
+
+void APlantActor::SetupTimeline()
+{
+	FOnTimelineFloat ProgressFunction;
+	ProgressFunction.BindUFunction(this, FName("HandleProgress"));
+
+	FOnTimelineEvent TimelineFinished;
+	TimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
+	MyTimeline.SetTimelineFinishedFunc(TimelineFinished);
+
+	MyTimeline.AddInterpFloat(FloatCurve, ProgressFunction);
+	MyTimeline.SetLooping(false);
+	MyTimeline.SetTimelineLengthMode(TL_TimelineLength);
+	MyTimeline.SetTimelineLength(0.5f);
+}
+
 void APlantActor::HavestPlant()
 {
-	if (state == 0)
+	if (level == 0)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Success");
 
@@ -141,7 +202,7 @@ void APlantActor::HavestPlant()
 		{
 		case EPlantType::Grape:
 		{
-			state = 1;
+			level = 1;
 			MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
 		}
 		case EPlantType::Sunflower:

@@ -39,10 +39,14 @@ public:
 
 	void ClickButton(int index);
 
+	UFUNCTION()
 	void Onclick0();
+	UFUNCTION()
 	void Onclick1();
+	UFUNCTION()
 	void Onclick2();
+	UFUNCTION()
 	void Onclick3();
+	UFUNCTION()
 	void Onclick4();
-
 };
