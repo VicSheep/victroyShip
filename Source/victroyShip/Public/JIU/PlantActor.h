@@ -3,14 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlantStructure.h"
+#include "Components/TimelineComponent.h"
+#include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "PlantActor.generated.h"
+
+class AGroundActor;
 
 UENUM()
 enum class EPlantType
 {
 	Grape,
 	Sunflower,
+};
+
+UENUM()
+enum class EPlantState
+{
+	Seed,
+	Childish,
+	Mature,
+	Havested,
 };
 
 UCLASS()
@@ -39,12 +53,21 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
-	///* Plant Seed *///
-	UFUNCTION()
-	void SetPlant(int id, AGroundActor* _ground);
+	///* Plant State *///
+	FPlantStruct PlantInfo;
 
 	UPROPERTY()
 	EPlantType PlantType;
+
+	UPROPERTY()
+	EPlantState PlantState;
+
+	UPROPERTY()
+	int level;
+
+	///* Plant Seed *///
+	UFUNCTION()
+	void SetPlant(int id, AGroundActor* _ground);
 
 	UPROPERTY()
 	class AGroundActor* Ground;
@@ -53,12 +76,41 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GrowPlant();
 
+	UFUNCTION()
+	void StartScaling();
+
+	UFUNCTION()
+	void HandleProgress(float Value);
+
+	UFUNCTION()
+	void OnTimelineFinished();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* FloatCurve;
+
+	FTimeline MyTimeline;
+
+	FVector InitialScale = FVector(1.0f, 1.0f, 1.0f);
+	FVector MaxScale = FVector(1.0f, 1.0f, 1.0f);
+
 	UPROPERTY()
-	int state;
+	UStaticMesh* NewMesh;
+	bool isChanged = true;
+
+	void SetupTimeline();
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
+
+	///* Data Table *///
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* PlantDataTable;
+
+	UFUNCTION()
+	FPlantStruct GetPlantData(FName RowName);
+
+	FString PlantDataTablePath = "/Game/JIU/Others/Datatable_Plant.Datatable_Plant";
 
 	///* Mesh pathes *///
 	FString GrapePath0 = "/Game/UltimateFarming/Meshes/SM_BambooHatch_B.SM_BambooHatch_B";

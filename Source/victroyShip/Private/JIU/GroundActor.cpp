@@ -3,8 +3,12 @@
 
 #include "JIU/GroundActor.h"
 
+#include "TimerManager.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
 #include "JIU/PlantActor.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 AGroundActor::AGroundActor()
@@ -19,12 +23,37 @@ AGroundActor::AGroundActor()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
 	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *PlanterPath));
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
+	if (DefaultMaterialAsset.Succeeded())
+	{
+		DefaultMaterialInterface = DefaultMaterialAsset.Object;
+		// MeshComponent->SetMaterial(0, DefaultMaterialInterface);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DryMaterialAsset(*DryMaterialPath);
+	if (DryMaterialAsset.Succeeded())
+	{
+		DryMaterialInterface = DryMaterialAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WetMaterialAsset(*WetMaterialPath);
+	if (WetMaterialAsset.Succeeded())
+	{
+		WetMaterialInterface = WetMaterialAsset.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void AGroundActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (DefaultMaterialInterface)
+	{
+		MeshComponent->SetMaterial(0, DefaultMaterialInterface);
+		GroundState = EGroundState::Default;
+	}
 
 	WaterFigure = 0.f;
 	FertilizerFigure = 0.f;
@@ -41,6 +70,8 @@ void AGroundActor::BeginPlay()
 			{
 				FertilizerFigure -= 1.f;
 			}
+
+			SetGroundMaterial();
 		}
 	}, 1.f, true);
 }
@@ -54,25 +85,67 @@ void AGroundActor::Tick(float DeltaTime)
 
 void AGroundActor::PlantingSeed(int id)
 {
-	if (Plant == nullptr)
+	if (Plant == nullptr && GroundState != EGroundState::Default)
 	{
-		Plant = GetWorld()->SpawnActor<APlantActor>(APlantActor::StaticClass(), BoxComponent->GetComponentLocation(), FRotator(0.f));
+		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation(), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
 }
 
 void AGroundActor::WaterPlant()
 {
-	if (Plant)
+	if (GroundState != EGroundState::Default)
 	{
 		WaterFigure = 100.f;
+		SetGroundMaterial();
 	}
 }
 
-void AGroundActor::fertilizePlant()
+void AGroundActor::FertilizePlant()
 {
-	if (Plant)
+	if (GroundState != EGroundState::Default)
 	{
 		FertilizerFigure = 100.f;
+		SetGroundMaterial();
+	}
+}
+
+void AGroundActor::ProwGround()
+{
+	if (GroundState == EGroundState::Default)
+	{
+		GroundState = EGroundState::DryPlanter;
+
+		if (DryMaterialInterface)
+		{
+			MeshComponent->SetMaterial(0, DryMaterialInterface);
+		}
+	}
+}
+
+void AGroundActor::SetGroundMaterial()
+{
+	if (GroundState == EGroundState::DryPlanter)
+	{
+		if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
+		{
+			if (WetMaterialInterface)
+			{
+				MeshComponent->SetMaterial(0, WetMaterialInterface);
+				GroundState = EGroundState::WetPlanter;
+			}
+		}
+	}
+
+	else if (GroundState == EGroundState::WetPlanter)
+	{
+		if (WaterFigure < figureLimit || FertilizerFigure < figureLimit)
+		{
+			if (DryMaterialInterface)
+			{
+				MeshComponent->SetMaterial(0, DryMaterialInterface);
+				GroundState = EGroundState::DryPlanter;
+			}
+		}
 	}
 }

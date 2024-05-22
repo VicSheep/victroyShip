@@ -4,8 +4,12 @@
 #include "JIU/PlantActor.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/TimelineComponent.h"
+#include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 APlantActor::APlantActor()
@@ -18,13 +22,18 @@ APlantActor::APlantActor()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(*PlantDataTablePath);
+	if (DataTable.Succeeded())
+	{
+		PlantDataTable = DataTable.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void APlantActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -32,7 +41,7 @@ void APlantActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// UE_LOG(LogTemp, Warning, TEXT("%f"), WaterFigure);
+	MyTimeline.TickTimeline(DeltaTime);
 }
 
 void APlantActor::Destroyed()
@@ -50,23 +59,32 @@ void APlantActor::Destroyed()
 
 void APlantActor::SetPlant(int id, AGroundActor* _ground)
 {
-	state = 0;
+	level = 0;
 	this->Ground = _ground;
 
-	switch (id)
+	if (PlantDataTable)
+	{
+		PlantInfo = GetPlantData(FName(FString::FromInt(id)));
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("You Seed '%s'"), *PlantInfo.Name);
+
+	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
+
+	/*switch (id)
 	{
 	case 0:
 		MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
 		PlantType = EPlantType::Grape;
-		state = 4;
+		level = 4;
 		break;
 	case 1:
 		PlantType = EPlantType::Sunflower;
-		state = 3;
+		level = 3;
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Mesh not set."));
-	}
+	}*/
 }
 
 void APlantActor::GrowPlant()
@@ -77,25 +95,33 @@ void APlantActor::GrowPlant()
 	{
 	case EPlantType::Grape:
 		{
-			if (state == 4)
+			if (level == 4)
 			{
-				state = 3;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath1));
+				level = 3;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath1);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath1));
 			}
-			else if (state == 3)
+			else if (level == 3)
 			{
-				state = 2;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath2));
+				level = 2;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath2);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath2));
 			}
-			else if (state == 2)
+			else if (level == 2)
 			{
-				state = 1;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
+				level = 1;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath3);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
 			}
-			else if (state == 1)
+			else if (level == 1)
 			{
-				state = 0;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath4));
+				level = 0;
+				StartScaling();
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath4);
+				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath4));
 			}
 			else
 			{
@@ -105,19 +131,19 @@ void APlantActor::GrowPlant()
 		}
 	case EPlantType::Sunflower:
 		{
-			if (state == 3)
+			if (level == 3)
 			{
-				state = 2;
+				level = 2;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath1));
 			}
-			else if (state == 2)
+			else if (level == 2)
 			{
-				state = 1;
+				level = 1;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath2));
 			}
-			else if (state == 1)
+			else if (level == 1)
 			{
-				state = 0;
+				level = 0;
 				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath3));
 			}
 			else
@@ -131,22 +157,98 @@ void APlantActor::GrowPlant()
 	}
 }
 
+void APlantActor::StartScaling()
+{
+	MeshComponent->SetWorldScale3D(InitialScale);
+
+	if (FloatCurve)
+	{
+		SetupTimeline();
+		MyTimeline.PlayFromStart();
+	}
+}
+
+void APlantActor::HandleProgress(float Value)
+{
+	// 일시적인 스케일 변화 설정
+	FVector TempMaxScale = (MaxScale == InitialScale) ? InitialScale + FVector(0.3f, 0.3f, 0.3f) : MaxScale;
+
+	FVector NewScale = FMath::Lerp(InitialScale, TempMaxScale, Value);
+
+	if (Value >= 0.85f && isChanged)
+	{
+		if (NewMesh)
+		{
+			MeshComponent->SetStaticMesh(NewMesh);
+			isChanged = false;
+		}
+	}
+
+	MeshComponent->SetWorldScale3D(NewScale);
+}
+
+void APlantActor::OnTimelineFinished()
+{
+	NewMesh = nullptr;
+	isChanged = true;
+}
+
+void APlantActor::SetupTimeline()
+{
+	FOnTimelineFloat ProgressFunction;
+	ProgressFunction.BindUFunction(this, FName("HandleProgress"));
+
+	FOnTimelineEvent TimelineFinished;
+	TimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
+	MyTimeline.SetTimelineFinishedFunc(TimelineFinished);
+
+	MyTimeline.AddInterpFloat(FloatCurve, ProgressFunction);
+	MyTimeline.SetLooping(false);
+	MyTimeline.SetTimelineLengthMode(TL_TimelineLength);
+	MyTimeline.SetTimelineLength(0.5f);
+}
+
 void APlantActor::HavestPlant()
 {
-	if (state == 0)
+	if (level == 0)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Success");
+
 		switch (PlantType)
 		{
 		case EPlantType::Grape:
 		{
-			
+			level = 1;
+			MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
 		}
 		case EPlantType::Sunflower:
 		{
-			
+			Destroyed();
 		}
 		default:
 			UE_LOG(LogTemp, Warning, TEXT("Plant type error."));
 		}
 	}
+}
+
+FPlantStruct APlantActor::GetPlantData(FName RowName)
+{
+	if (PlantDataTable)
+	{
+		static const FString ContextString(TEXT("Plant Data Context"));
+
+		// RowName을 사용하여 특정 행을 가져옵니다.
+		FPlantStruct* Row = PlantDataTable->FindRow<FPlantStruct>(RowName, ContextString);
+
+		if (!Row)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
+			return FPlantStruct();
+		}
+
+		return *Row;
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("Data Table Error"));
+	return FPlantStruct();
 }
