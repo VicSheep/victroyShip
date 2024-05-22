@@ -19,9 +19,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
@@ -30,7 +27,12 @@ public:
 	void StartConversation();
 	void EndConversation();
 
-// TTS 출력
+// Animation
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNPCAnimInstance> AnimInstance;
+
+// TTS 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<class UMediaSoundComponent> MediaComp;
@@ -42,9 +44,11 @@ protected:
 	void OnPlayEnded();
 
 public:
-	void LoadSpeechFileAndPlay(const FString& FilePath);
+	void ResponseSpeech(const FString& Emotion);
 
-// 이름
+	void PlayTTS(const FString& FilePath);
+
+// Name
 protected:
 	UPROPERTY(EditAnywhere)
 	FString NPCName;
@@ -53,19 +57,29 @@ public:
 	FORCEINLINE void SetNPCName(const FString& NewName) { NPCName = NewName; }
 	FORCEINLINE FString GetNPCName() const { return NPCName; }
 
-// 호감도
+// Likeability
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	int32 CurLikeability = 0;
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 MaxLikeability = 5;
+	int32 MaxLikeability = 100;
 
 public:
 	FOnLikeabilityChanged OnLikeabilityChanged;
 
-	void LikeabilityChange(int32 InLikeability);
+	void UpdateLikeability(int32 InLikeability);
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
+
+// Present
+protected:
+	int32 PreferItemId = 0;
+
+	int32 NormalItemValue = 3;
+	int32 PreferItemValue = 10;
+
+public:
+	void GivePresent(int32 NewItemId);
 };

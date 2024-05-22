@@ -27,9 +27,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<class UTextBlock> Txt_Hour;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<class UImage> Img_Fade;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidgetAnim), Transient)
+	TObjectPtr<class UWidgetAnimation> FadeOut;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidgetAnim), Transient)
+	TObjectPtr<class UWidgetAnimation> FadeIn;
+
 	UPROPERTY(VisibleAnywhere)
 	TMap<int32, FString> DayMap;
 
 public:
 	void UpdateTimerUI(int32 Date, int32 Hours, int32 Minutes);
+
+	void StartFadeOutAnim();
+	void StartFadeInAnim();
+
+	// Delegate
+	FWidgetAnimationDynamicEvent FadeOutFinished;
+	FWidgetAnimationDynamicEvent FadeInFinished;
+
+	void BindOnFinished();
 };

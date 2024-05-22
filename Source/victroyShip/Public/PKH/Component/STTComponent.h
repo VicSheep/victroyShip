@@ -28,10 +28,16 @@ protected:
 // Directory
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString SpeechFileName = TEXT("Speech");
+	FString RecordFileName = TEXT("Record");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString SpeechFileDir;
+	FString RecordFileDir;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString RecordFilePath;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString DefaultFilePath;
 
 protected:
 	void SearchNearby(const FString& InputText);
@@ -46,7 +52,7 @@ protected:
 	void ConversationWithNPC(class ANPCBase* NewNPC);
 	void ConversationWithNPCByText(class ANPCBase* NewNPC, const FString& InputText);
 
-	void TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants);
-	void TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText);
+	void TalkToPlant(const TArray<TObjectPtr<class APlantActor>>& NewPlants);
+	void TalkToPlantByText(const TArray<TObjectPtr<class APlantActor>>& NewPlants, const FString& InputText);
 		
 };

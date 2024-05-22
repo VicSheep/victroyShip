@@ -10,9 +10,8 @@
 
 #include "Sound/SoundWave.h"
 #include "Audio.h"
-#include "Kismet/GameplayStatics.h"
+#include "PKH/NPC/NPCBase.h"
 #include "Serialization/EditorBulkData.h"
-#include "Sound/SoundWaveProcedural.h"
 
 // Sets default values
 AHttpActor::AHttpActor()
@@ -30,7 +29,7 @@ void AHttpActor::BeginPlay()
 }
 
 #pragma region NPC conversation
-void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName)
+void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendSpeech;
 
@@ -42,7 +41,7 @@ void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& Speech
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendSpeechComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\",\"npc_name\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath, *NPCName);
+	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -56,7 +55,6 @@ void AHttpActor::SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Re
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Send Speech Complete"));
 		ReqTextFromSpeech();
-		//GetSpeechFile();
 	}
 	else
 	{
@@ -87,10 +85,9 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		FString OutResponse;
-		FString OutFilePath;
-		UJsonParserLibrary::ParseNPCResponse(ResultText, OutResponse, OutFilePath);
-		MyGameMode->SetLatestSpeech(OutResponse, OutFilePath);
+		MyGameMode->ShowPlayerText(ResultText.Mid(1, ResultText.Len() - 2));
+
+		SendConv(MyGameMode->GetCurNPC()->GetNPCName(), MyGameMode->GetCurNPC()->GetLikeability());
 	}
 	else
 	{
@@ -100,53 +97,10 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 		}
 	}
 }
-
-//void AHttpActor::GetSpeechFile()
-//{
-//	const FString& FullURL = BaseURL + EndPoint_GetSpeech;
-//
-//	// HTTP Request
-//	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-//	HttpRequest->SetVerb(TEXT("GET"));
-//	HttpRequest->SetURL(FullURL);
-//	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetSpeechFileComplete);
-//
-//	HttpRequest->ProcessRequest();
-//	UE_LOG(LogTemp, Warning, TEXT("Get speech from %s"), *FullURL);
-//}
-//
-//void AHttpActor::GetSpeechFileComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-//{
-//	if (bConnectedSuccessfully)
-//	{
-//		TArray<uint8> WavData = Response->GetContent(); UE_LOG(LogTemp, Warning, TEXT("Get speech Complete"));
-//
-//		USoundWaveProcedural* SoundWave = NewObject<USoundWaveProcedural>();
-//
-//		constexpr uint32 SampleRate = 44100;
-//		constexpr uint32 NumChannels = 2;
-//
-//		// 사운드웨이브 설정
-//		SoundWave->SetSampleRate(SampleRate);
-//		SoundWave->NumChannels = 1;
-//		SoundWave->Duration = static_cast<float>(WavData.Num()) / (SampleRate * NumChannels * sizeof(int16));
-//
-//		SoundWave->QueueAudio(WavData.GetData(), WavData.Num());
-//
-//		UGameplayStatics::PlaySound2D(GetWorld(), SoundWave);
-//	}
-//	else
-//	{
-//		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
-//		{
-//			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
-//		}
-//	}
-//}
 #pragma endregion
 
 #pragma region NPC Conversation by Text
-void AHttpActor::SendText(const FString& NPCName, const FString& InputText)
+void AHttpActor::SendText(const FString& NPCName, const FString& InputText, int32 Preference)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendText;
 
@@ -158,7 +112,7 @@ void AHttpActor::SendText(const FString& NPCName, const FString& InputText)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\"}"), *NPCName, *InputText);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"preference\" : \"%d\"}"), *NPCName, *InputText, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -202,10 +156,152 @@ void AHttpActor::GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Respo
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		FString OutResponse;
-		FString OutFilePath;
-		UJsonParserLibrary::ParseNPCResponse(ResultText, OutResponse, OutFilePath);
-		MyGameMode->SetLatestSpeech(OutResponse, OutFilePath);
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+		MyGameMode->SetLatestSpeech(NPCResponse);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region ChatBot Response
+void AHttpActor::SendConv(const FString& NPCName, int32 Preference)
+{
+	const FString& FullURL = BaseURL + EndPoint_SendConv;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendConvComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"preference\": \"%d\"}"), *NPCName, Preference);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Send speech to %s"), *FullURL);
+}
+
+void AHttpActor::SendConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Send Conv Complete"));
+		GetConv();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::GetConv()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetConv;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetConvComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::GetConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+
+		MyGameMode->SetLatestSpeech(NPCResponse);
+		GetTTS();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region TTS
+void AHttpActor::GetTTS()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetTTS;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetTTSComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		MyGameMode->PlayTTS(ResultText.Mid(1, ResultText.Len() - 2));
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region End Chat
+void AHttpActor::EndChat(const FString& NPCName)
+{
+	const FString& FullURL = BaseURL + EndPoint_EndChat;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::EndChatComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\"}"), *NPCName);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Request End Chat: %s"), *FullURL);
+}
+
+void AHttpActor::EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Request End Chat Complete"));
 	}
 	else
 	{
@@ -257,7 +353,7 @@ void AHttpActor::TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr R
 
 void AHttpActor::ReqScore()
 {
-	const FString& FullURL = BaseURL + EndPoint_GetScore;
+	const FString& FullURL = BaseURL + EndPoint_GetSpeechScore;
 
 	// HTTP Request
 	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
@@ -271,6 +367,78 @@ void AHttpActor::ReqScore()
 }
 
 void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
+		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Talk to Plant with Text
+void AHttpActor::TalkToPlantWithText(const FString& InputText)
+{
+	const FString& FullURL = BaseURL + EndPoint_TextToPlant;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::TalkToPlantWithTextComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"chat_text\" : \"%s\"}"), *InputText);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Talk to plant : %s"), *FullURL);
+}
+
+void AHttpActor::TalkToPlantWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response,
+	bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant Complete"));
+		ReqScoreWithText();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::ReqScoreWithText()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetTextScore;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::ReqScoreWithTextComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response,
+	bool bConnectedSuccessfully)
 {
 	if (bConnectedSuccessfully)
 	{

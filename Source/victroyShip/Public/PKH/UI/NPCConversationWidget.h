@@ -41,6 +41,23 @@ public:
 	UFUNCTION()
 	void OnClicked_Exit();
 
-	void UpdateConversationUI(const FString& NPCName, const FString& NewConversation);
+	void UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream = false);
+
+// Stream
+protected:
+	const float StreamDeltaTime = 0.1f;
+	bool IsStreaming = false;
+	FTimerHandle StreamHandle;
+
+	int32 CurLen = 1;
+	FString CurText = TEXT("");
+	FString NextText = TEXT("");
+
+	const float MaxWaitTime = 2.0f;
+	float CurWaitTime = 0.0f;
+
+	UFUNCTION()
+	void StreamText();
+
 	
 };

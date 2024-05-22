@@ -3,7 +3,7 @@
 
 #include "PKH/Library/JsonParserLibrary.h"
 
-void UJsonParserLibrary::ParseNPCResponse(const FString& Data, FString& OutResponse, FString& OutPath)
+void UJsonParserLibrary::ParseNPCResponse(const FString& Data, FNPCResponse& Response)
 {
 	TSharedRef<TJsonReader<TCHAR>> JsonReader = TJsonReaderFactory<TCHAR>::Create(Data);
 	TSharedPtr<FJsonObject> JsonObj = MakeShareable(new FJsonObject());
@@ -11,7 +11,9 @@ void UJsonParserLibrary::ParseNPCResponse(const FString& Data, FString& OutRespo
 	// Deserialize JsonGetObjectField
 	if (FJsonSerializer::Deserialize(JsonReader, JsonObj))
 	{
-		OutResponse = JsonObj->GetStringField(TEXT("response"));
-		OutPath = JsonObj->GetStringField(TEXT("wavPath"));
+		Response.Answer = JsonObj->GetStringField(TEXT("answer"));
+		Response.Emotion = JsonObj->GetStringField(TEXT("emotion"));
+		Response.FilePath = JsonObj->GetStringField(TEXT("file_path"));
+		Response.Likeability = JsonObj->GetIntegerField(TEXT("likability"));
 	}
 }

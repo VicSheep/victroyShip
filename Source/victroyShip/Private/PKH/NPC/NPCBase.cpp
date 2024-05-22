@@ -9,15 +9,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Microsoft/AllowMicrosoftPlatformTypes.h"
-#include "Misc/FileHelper.h"
-#include "Sound/SoundWave.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
-#include "Runtime/Engine/Classes/Sound/SoundWave.h"
+#include "PKH/Animation/NPCAnimInstance.h"
+#include "PKH/Game/FarmLifeGameMode.h"
 
 ANPCBase::ANPCBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	AIControllerClass = ANPCController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -32,7 +31,7 @@ ANPCBase::ANPCBase()
 	}
 
 	// Animation
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPCAnimInstance.ABP_NPCAnimInstance_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPC.ABP_NPC_C"));
 	if (AnimRef.Class)
 	{
 		GetMesh()->SetAnimClass(AnimRef.Class);
@@ -50,37 +49,46 @@ void ANPCBase::BeginPlay()
 
 	NPCController = CastChecked<ANPCController>(GetController());
 
+	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
+	ensure(AnimInstance);
+
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
-	LoadSpeechFileAndPlay(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
-}
-
-void ANPCBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	PlayTTS(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
 }
 
 void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
-		const FVector TargetDirection = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		const FRotator TargetRotation = TargetDirection.ToOrientationRotator();
-		SetActorRotation(TargetRotation);
+		// Turn to player
+		FVector DirectionVec = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		DirectionVec.Z = 0;
+		const FRotator TargetRot= DirectionVec.ToOrientationRotator();
+		SetActorRotation(TargetRot);
 
 		NPCController->StartConversation();
+		AnimInstance->PlayMontage_Conv();
 	}
 }
 
 void ANPCBase::EndConversation()
 {
 	NPCController->EndConversation();
+	AnimInstance->StopAllMontages(0);
 }
 
 #pragma region TTS
-void ANPCBase::LoadSpeechFileAndPlay(const FString& FilePath)
+void ANPCBase::ResponseSpeech(const FString& Emotion)
+{
+	if(false == Emotion.IsEmpty())
+	{
+		AnimInstance->PlayMontage_Emotion(Emotion);
+	}
+}
+
+void ANPCBase::PlayTTS(const FString& FilePath)
 {
 	if (MediaPlayer->OpenFile(FilePath))
 	{
@@ -95,12 +103,15 @@ void ANPCBase::LoadSpeechFileAndPlay(const FString& FilePath)
 
 void ANPCBase::OnPlayEnded()
 {
-	MediaPlayer->Close();
+	if(false == MediaPlayer->IsClosed())
+	{
+		MediaPlayer->Close();
+	}
 }
 #pragma endregion
 
 #pragma region 호감도
-void ANPCBase::LikeabilityChange(int32 InLikeability)
+void ANPCBase::UpdateLikeability(int32 InLikeability)
 {
 	CurLikeability = FMath::Clamp(CurLikeability + InLikeability, 0, MaxLikeability);
 
@@ -113,5 +124,14 @@ void ANPCBase::LikeabilityChange(int32 InLikeability)
 bool ANPCBase::IsMaxLikeability()
 {
 	return CurLikeability == MaxLikeability;
+}
+
+void ANPCBase::GivePresent(int32 NewItemId)
+{
+	UpdateLikeability(NewItemId == PreferItemId ? PreferItemValue : NormalItemValue);
+
+	// 통신
+	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+	GameMode->SendText(TEXT("이거 선물이야, 받아줘!"), this);
 }
 #pragma endregion

@@ -5,6 +5,7 @@
 
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
+#include "JIU/PlantActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/NPC/NPCBase.h"
@@ -15,17 +16,21 @@ USTTComponent::USTTComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// Speech File
-	SpeechFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Saved/BouncedWavFiles/");
+	RecordFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Saved/BouncedWavFiles/");
+	RecordFilePath = RecordFileDir + RecordFileName + TEXT(".wav");
+
+	DefaultFilePath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav");
 }
 
 void USTTComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Player = Cast<ACharacter>(GetOwner());
+	Player = CastChecked<ACharacter>(GetOwner());
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 }
 
+#pragma region Check Nearby
 void USTTComponent::CheckNearbyObjects()
 {
 	const FString Input = TEXT("");
@@ -39,13 +44,28 @@ void USTTComponent::CheckNearbyObjects(const FString& InputText)
 
 void USTTComponent::SearchNearby(const FString& InputText)
 {
+	// 이미 NPC와 대화중이라면 바로 통신
+	ANPCBase* CurNPC = MyGameMode->GetCurNPC();
+	if(CurNPC)
+	{
+		if (InputText.IsEmpty())
+		{
+			ConversationWithNPC(CurNPC);
+		}
+		else
+		{
+			ConversationWithNPCByText(CurNPC, InputText);
+		}
+		return;
+	}
+
 	TArray<FOverlapResult> NPCResults;
-	FCollisionQueryParams Params;
+	FCollisionQueryParams Params; 
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
 	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"),
-		FCollisionShape::MakeSphere(300.0f), Params);
-	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f); UE_LOG(LogTemp, Log, TEXT("NPC Overlap : %d"), NPCOverlapped);
+															  FCollisionShape::MakeSphere(300.0f), Params);
+	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f);
 
 	if (NPCOverlapped)
 	{
@@ -53,6 +73,7 @@ void USTTComponent::SearchNearby(const FString& InputText)
 		float MinDistance = 500.0f;
 		for (FOverlapResult& Res : NPCResults)
 		{
+			UE_LOG(LogTemp, Log, TEXT("%s"), *Res.GetActor()->GetName());
 			ANPCBase* NPC = Cast<ANPCBase>(Res.GetActor());
 			if (nullptr == NPC)
 			{
@@ -75,24 +96,29 @@ void USTTComponent::SearchNearby(const FString& InputText)
 			}
 			else
 			{
-				ConversationWithNPC(TargetNPC);
+				ConversationWithNPCByText(TargetNPC, InputText);
 			}
+			return;
 		}
-		return;
 	}
 
 	TArray<FOverlapResult> PlantResults;
-	bool PlantOverlapped = GetWorld()->OverlapMultiByProfile(PlantResults, Origin, FQuat::Identity, TEXT("SearchPlant"),
+	bool PlantOverlapped = GetWorld()->OverlapMultiByProfile(PlantResults, Origin, FQuat::Identity, TEXT("OverlapAllDynamic"),
 		FCollisionShape::MakeSphere(300.0f), Params);
 
 	if (PlantOverlapped)
 	{
-		TArray<TObjectPtr<AActor>> Plants;
+		TArray<TObjectPtr<APlantActor>> Plants;
 		for (FOverlapResult& Res : PlantResults)
 		{
-			// TArray에 저장 
-			Plants.Add(Res.GetActor());
+			// TArray에 저장
+			APlantActor* Plant = Cast<APlantActor>(Res.GetActor());
+			if(Plant)
+			{
+				Plants.Add(Plant);
+			}
 		}
+
 		if(InputText.IsEmpty())
 		{
 			TalkToPlant(Plants);
@@ -103,11 +129,12 @@ void USTTComponent::SearchNearby(const FString& InputText)
 		}
 	}
 }
+#pragma endregion
 
+#pragma region Communication
 void USTTComponent::ConversationWithNPC(ANPCBase* NewNPC)
 {
-	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
-	MyGameMode->SendSpeech(SpeechFileName, FullPath, NewNPC);
+	MyGameMode->SendSpeech(RecordFileName, RecordFilePath, NewNPC);
 }
 
 void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& InputText)
@@ -115,14 +142,13 @@ void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& I
 	MyGameMode->SendText(InputText, NewNPC);
 }
 
-void USTTComponent::TalkToPlant(const TArray<TObjectPtr<AActor>>& NewPlants)
+void USTTComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
-	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
-	MyGameMode->TalkToPlant(SpeechFileName, FullPath, NewPlants);
+	MyGameMode->TalkToPlant(RecordFileName, RecordFilePath, NewPlants);
 }
 
-void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<AActor>>& NewPlants, const FString& InputText)
+void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& NewPlants, const FString& InputText)
 {
-	//MyGameMode->SendSpeech();
+	MyGameMode->TalkToPlantWithText(InputText, NewPlants);
 }
-
+#pragma endregion
