@@ -40,21 +40,19 @@ public:
 
 	///* Mesh or Material *///
 	UPROPERTY()
+	UMaterialInterface* DefaultMaterialInterface;
+
+	UPROPERTY()
 	UMaterialInterface* DryMaterialInterface;
 
 	UPROPERTY()
 	UMaterialInterface* WetMaterialInterface;
-	
-	UPROPERTY()
-	UMaterialInstanceDynamic* DryMaterialInstanceDynamic;
-
-	UPROPERTY()
-	UMaterialInstanceDynamic* WetMaterialInstanceDynamic;
 
 	///* Path *///
 	FString PlanterPath = "/Game/UltimateFarming/Meshes/SM_Planter_D_02.SM_Planter_D_02";
-	FString DryMaterialPath = "/Game/JIU/Others/MI_Planter_Dry.MI_Planter_Dry";
-	FString WetMaterialPath = "/Game/JIU/Others/MI_Planter_Wet.MI_Planter_Wet";
+	FString DefaultMaterialPath = "/Game/UltimateFarming/Materials/MI_FertileGround.MI_FertileGround";
+	FString DryMaterialPath = "/Game/JIU/Materials/MI_Planter_Dry.MI_Planter_Dry";
+	FString WetMaterialPath = "/Game/JIU/Materials/MI_Planter_Wet.MI_Planter_Wet";
 
 	///* Variable *///
 	EGroundState GroundState = EGroundState::Default;
@@ -67,6 +65,8 @@ public:
 
 	UPROPERTY()
 	float FertilizerFigure;
+
+	float figureLimit = 20.f;
 
 	///* Planting Seed *///
 	UFUNCTION(BlueprintCallable)
@@ -84,4 +84,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ProwGround();
+
+	UFUNCTION()
+	void SetGroundMaterial();
 };

@@ -4,10 +4,12 @@
 #include "JIU/PlantActor.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 APlantActor::APlantActor()
@@ -20,13 +22,18 @@ APlantActor::APlantActor()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(*PlantDataTablePath);
+	if (DataTable.Succeeded())
+	{
+		PlantDataTable = DataTable.Object;
+	}
 }
 
 // Called when the game starts or when spawned
 void APlantActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -55,7 +62,16 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 	level = 0;
 	this->Ground = _ground;
 
-	switch (id)
+	if (PlantDataTable)
+	{
+		PlantInfo = GetPlantData(FName(FString::FromInt(id)));
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("You Seed '%s'"), *PlantInfo.Name);
+
+	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
+
+	/*switch (id)
 	{
 	case 0:
 		MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
@@ -68,12 +84,12 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Mesh not set."));
-	}
+	}*/
 }
 
 void APlantActor::GrowPlant()
 {
-	// if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
+	if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
 
 	switch (PlantType)
 	{
@@ -213,4 +229,26 @@ void APlantActor::HavestPlant()
 			UE_LOG(LogTemp, Warning, TEXT("Plant type error."));
 		}
 	}
+}
+
+FPlantStruct APlantActor::GetPlantData(FName RowName)
+{
+	if (PlantDataTable)
+	{
+		static const FString ContextString(TEXT("Plant Data Context"));
+
+		// RowName을 사용하여 특정 행을 가져옵니다.
+		FPlantStruct* Row = PlantDataTable->FindRow<FPlantStruct>(RowName, ContextString);
+
+		if (!Row)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
+			return FPlantStruct();
+		}
+
+		return *Row;
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("Data Table Error"));
+	return FPlantStruct();
 }

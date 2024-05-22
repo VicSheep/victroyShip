@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlantStructure.h"
 #include "Components/TimelineComponent.h"
+#include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "PlantActor.generated.h"
 
@@ -14,13 +16,6 @@ enum class EPlantType
 {
 	Grape,
 	Sunflower,
-};
-
-UENUM()
-enum class EGrowType
-{
-	Onetime,
-	Manytimes,
 };
 
 UENUM()
@@ -58,13 +53,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
-
 	///* Plant State *///
+	FPlantStruct PlantInfo;
+
 	UPROPERTY()
 	EPlantType PlantType;
-
-	UPROPERTY()
-	EGrowType GrowType;
 
 	UPROPERTY()
 	EPlantState PlantState;
@@ -110,6 +103,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
 
+	///* Data Table *///
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* PlantDataTable;
+
+	UFUNCTION()
+	FPlantStruct GetPlantData(FName RowName);
+
+	FString PlantDataTablePath = "/Game/JIU/Others/Datatable_Plant.Datatable_Plant";
+
 	///* Mesh pathes *///
 	FString GrapePath0 = "/Game/UltimateFarming/Meshes/SM_BambooHatch_B.SM_BambooHatch_B";
 	FString GrapePath1 = "/Game/UltimateFarming/Meshes/SM_Grape_Starter.SM_Grape_Starter";
@@ -120,5 +122,4 @@ public:
 	FString SunflowerPath1 = "/Game/UltimateFarming/Meshes/SM_Sunflower_Starter.SM_Sunflower_Starter";
 	FString SunflowerPath2 = "/Game/UltimateFarming/Meshes/SM_Sunflower_C.SM_Sunflower_C";
 	FString SunflowerPath3 = "/Game/UltimateFarming/Meshes/SM_Sunflower_A.SM_Sunflower_A";
-
 };
