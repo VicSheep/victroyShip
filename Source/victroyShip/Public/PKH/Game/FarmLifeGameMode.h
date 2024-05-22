@@ -6,6 +6,17 @@
 #include "GameFramework/GameModeBase.h"
 #include "FarmLifeGameMode.generated.h"
 
+USTRUCT()
+struct FNPCResponse
+{
+	GENERATED_BODY()
+
+	FString Answer;
+	FString Emotion;
+	FString FilePath;
+	int32 Likeability;
+};
+
 class UNPCConversationWidget;
 /**
  * 
@@ -43,6 +54,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<TObjectPtr<class APlantActor>> CurPlants;
 
+public:
+	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
+
 // Initialize
 protected:
 	const FString& InitialName = TEXT("Speech");
@@ -56,9 +70,10 @@ public:
 	// NPC conversation
 	void SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<class ANPCBase>& NewNPC);
 
-	void SetLatestSpeech(const FString& Response, const FString& FilePath);
+	void SetLatestSpeech(const FNPCResponse& Response);
 	FString& GetLatestSpeech();
 
+	void StartConversation();
 	void EndConversation();
 
 	// NPC conversation by text

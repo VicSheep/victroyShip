@@ -37,8 +37,11 @@ public:
 	void EndConversation();
 
 	void SetHomeLoc(const FVector& HomeLoc);
+	FVector GetHomeLoc() const;
 
 	void MoveToTargetLoc(const FVector& TargetLoc);
 	void MoveToHome();
+
+	
 
 };

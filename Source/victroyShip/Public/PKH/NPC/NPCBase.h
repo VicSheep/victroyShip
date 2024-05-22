@@ -24,6 +24,7 @@ protected:
 	TObjectPtr<class ANPCController> NPCController;
 
 public:
+	void StartWait();
 	void StartConversation();
 	void EndConversation();
 
@@ -32,7 +33,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UNPCAnimInstance> AnimInstance;
 
-// TTS 출력
+// TTS 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<class UMediaSoundComponent> MediaComp;
@@ -44,9 +45,9 @@ protected:
 	void OnPlayEnded();
 
 public:
-	void LoadSpeechFileAndPlay(const FString& FilePath);
+	void ResponseSpeech(const FString& FilePath, const FString& Emotion);
 
-// 이름
+// Name
 protected:
 	UPROPERTY(EditAnywhere)
 	FString NPCName;
@@ -55,26 +56,29 @@ public:
 	FORCEINLINE void SetNPCName(const FString& NewName) { NPCName = NewName; }
 	FORCEINLINE FString GetNPCName() const { return NPCName; }
 
-// 호감도
+// Likeability
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	int32 CurLikeability = 0;
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 MaxLikeability = 5;
+	int32 MaxLikeability = 100;
 
 public:
 	FOnLikeabilityChanged OnLikeabilityChanged;
 
-	void LikeabilityChange(int32 InLikeability);
+	void UpdateLikeability(int32 InLikeability);
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
 
-// 회전
+// Present
 protected:
-	float TurnSpeed = 3.5f;
+	int32 PreferItemId = 0;
+
+	int32 NormalItemValue = 3;
+	int32 PreferItemValue = 10;
 
 public:
-	FORCEINLINE float GetTurnSpeed() const { return TurnSpeed; }
+	void GivePresent(int32 NewItemId);
 };

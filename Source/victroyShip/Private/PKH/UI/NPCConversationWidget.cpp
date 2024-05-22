@@ -30,7 +30,5 @@ void UNPCConversationWidget::OnClicked_Exit()
 void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation)
 {
 	Txt_NPCName->SetText(FText::FromString(NPCName));
-
-	const FString& ConversationText = NewConversation.IsEmpty() ? TEXT("AI 답변을 기다리는 중입니다...") : NewConversation;
-	Txt_Conversation->SetText(FText::FromString(ConversationText));
+	Txt_Conversation->SetText(FText::FromString(NewConversation));
 }

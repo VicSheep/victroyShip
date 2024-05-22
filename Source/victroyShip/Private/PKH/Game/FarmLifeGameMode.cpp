@@ -82,7 +82,7 @@ void AFarmLifeGameMode::BeginPlay()
 // 모델 로딩을 위해 최초 1회 통신
 void AFarmLifeGameMode::Initialize()
 {
-	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC);
+	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC, 0);
 }
 
 void AFarmLifeGameMode::Tick(float DeltaSeconds)
@@ -96,34 +96,34 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
 	CurNPC = NewNPC;
-	CurNPC->StartConversation();
-
-	HttpActor->SendSpeech(FileName, FilePath, CurNPC->GetNPCName());
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
-	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+	CurNPC->StartWait();
+	HttpActor->SendSpeech(FileName, FilePath, CurNPC->GetNPCName(), CurNPC->GetLikeability());
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *CurNPC->GetNPCName()));
 }
 
-void AFarmLifeGameMode::SetLatestSpeech(const FString& Response, const FString& FilePath)
+void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
 	// 초기화용 호출이라면 바로 종료
 	if(nullptr == CurNPC)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Initialize Complete"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, TEXT("Initialize Complete"));
 		return;
 	}
 
-	LatestSpeech = Response;
+	LatestSpeech = Response.Answer;
 	UE_LOG(LogTemp, Warning, TEXT("ReqText Complete : [%s] %s"), *CurNPC->GetNPCName(), *LatestSpeech);
 
 	// UI 갱신
 	if(ConversationUI->IsVisible())
 	{
 		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech);
-		CurNPC->LoadSpeechFileAndPlay(FilePath);
+		CurNPC->ResponseSpeech(Response.FilePath, Response.Emotion);
 	}
 
 	// 호감도 갱신
-
+	CurNPC->UpdateLikeability(Response.Likeability);
+	UE_LOG(LogTemp, Warning, TEXT("[%s's likeability] : %d"), *CurNPC->GetNPCName(), CurNPC->GetLikeability());
+	UE_LOG(LogTemp, Warning, TEXT("[%s's emotion] : %s"), *CurNPC->GetNPCName(), *Response.Emotion);
 }
 
 FString& AFarmLifeGameMode::GetLatestSpeech()
@@ -131,22 +131,36 @@ FString& AFarmLifeGameMode::GetLatestSpeech()
 	return LatestSpeech;
 }
 
-void AFarmLifeGameMode::EndConversation()
+void AFarmLifeGameMode::StartConversation()
 {
 	if(CurNPC)
 	{
-		CurNPC->EndConversation();
+		CurNPC->StartConversation();
+		ConversationUI->SetVisibility(ESlateVisibility::Visible);
 	}
+}
+
+void AFarmLifeGameMode::EndConversation()
+{
+	if(nullptr == CurNPC)
+	{
+		return;
+	}
+
+	CurNPC->EndConversation();
+	HttpActor->EndChat(CurNPC->GetNPCName());
+	CurNPC = nullptr;
 }
 
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
 	CurNPC = NewNPC;
+	CurNPC->StartWait();
 	CurNPC->StartConversation();
 
-	HttpActor->SendText(CurNPC->GetNPCName(), InputText);
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
+	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *CurNPC->GetNPCName()));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 #pragma endregion
@@ -279,8 +293,4 @@ void AFarmLifeGameMode::UpdateDate()
 	// 페이드아웃
 	TimerUI->StartFadeOutAnim();
 }
-#pragma endregion
-
-#pragma region TTS
-
 #pragma endregion

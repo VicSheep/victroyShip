@@ -79,3 +79,8 @@ void ANPCController::MoveToHome()
 	const FVector& HomeLoc = BBComp->GetValueAsVector(KEY_HOME_LOC);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
 }
+
+FVector ANPCController::GetHomeLoc() const
+{
+	return BBComp->GetValueAsVector(KEY_HOME_LOC);
+}

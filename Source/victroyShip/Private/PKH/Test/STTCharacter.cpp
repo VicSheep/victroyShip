@@ -132,8 +132,3 @@ void ASTTCharacter::Chat(const FInputActionValue& Value)
 {
 	ChatComp->Chat();
 }
-
-void ASTTCharacter::StartSTT()
-{
-	const FString& FullPath = SpeechFileDir + SpeechFileName + TEXT(".wav");
-}

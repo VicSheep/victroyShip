@@ -78,7 +78,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString SpeechFileDir;
-
-	UFUNCTION(BlueprintCallable)
-	void StartSTT();
 };

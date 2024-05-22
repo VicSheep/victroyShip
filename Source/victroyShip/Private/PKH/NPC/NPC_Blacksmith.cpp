@@ -34,3 +34,8 @@ void ANPC_Blacksmith::OnHourUpdated(int32 NewHour)
 		return;
 	}
 }
+
+void ANPC_Blacksmith::OnDateUpdated(int32 NewDate)
+{
+	SetActorLocation(HomeLoc);
+}

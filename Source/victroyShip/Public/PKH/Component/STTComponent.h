@@ -28,13 +28,32 @@ protected:
 // Directory
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString SpeechFileName = TEXT("Speech");
+	FString RecordFileName = TEXT("Record");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString SpeechFileDir;
+	FString RecordFileDir;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString RecordFilePath;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString DefaultFilePath;
 
 protected:
 	void SearchNearby(const FString& InputText);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<class UMediaSoundComponent> MediaComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<class UMediaPlayer> MediaPlayer;
+
+	UFUNCTION()
+	void PlayVoice(const FString& FilePath);
+
+	UFUNCTION()
+	void OnPlayEnded();
 
 public:
 	UFUNCTION(BlueprintCallable)

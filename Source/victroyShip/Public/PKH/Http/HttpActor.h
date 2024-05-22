@@ -38,23 +38,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetText = TEXT("/get-text");
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_EndChat = TEXT("/end-chat");
+
 public:
 	// STT
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName);
+	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName, int32 Preference);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Text
-	void SendText(const FString& NPCName, const FString& InputText);
+	void SendText(const FString& NPCName, const FString& InputText, int32 Preference);
 	void SendTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetText();
 	void GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	//void GetSpeechFile();
-	//void GetSpeechFileComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	// End Chat
+	void EndChat(const FString& NPCName);
+	void EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 // Talk to plant
 protected:

@@ -30,7 +30,7 @@ void AHttpActor::BeginPlay()
 }
 
 #pragma region NPC conversation
-void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName)
+void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName, int32 Preference)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendSpeech;
 
@@ -42,7 +42,7 @@ void AHttpActor::SendSpeech(const FString& SpeechFileName, const FString& Speech
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendSpeechComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\",\"npc_name\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath, *NPCName);
+	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\",\"npc_name\" : \"%s\",\"preference\" : \"%d\"}"), *SpeechFileName, *SpeechFilePath, *NPCName, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -87,10 +87,9 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		FString OutResponse;
-		FString OutFilePath;
-		UJsonParserLibrary::ParseNPCResponse(ResultText, OutResponse, OutFilePath);
-		MyGameMode->SetLatestSpeech(OutResponse, OutFilePath);
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+		MyGameMode->SetLatestSpeech(NPCResponse);
 	}
 	else
 	{
@@ -146,7 +145,7 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 #pragma endregion
 
 #pragma region NPC Conversation by Text
-void AHttpActor::SendText(const FString& NPCName, const FString& InputText)
+void AHttpActor::SendText(const FString& NPCName, const FString& InputText, int32 Preference)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendText;
 
@@ -158,7 +157,7 @@ void AHttpActor::SendText(const FString& NPCName, const FString& InputText)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\"}"), *NPCName, *InputText);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"preference\" : \"%d\"}"), *NPCName, *InputText, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -202,10 +201,46 @@ void AHttpActor::GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Respo
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		FString OutResponse;
-		FString OutFilePath;
-		UJsonParserLibrary::ParseNPCResponse(ResultText, OutResponse, OutFilePath);
-		MyGameMode->SetLatestSpeech(OutResponse, OutFilePath);
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+		MyGameMode->SetLatestSpeech(NPCResponse);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region End Chat
+void AHttpActor::EndChat(const FString& NPCName)
+{
+	const FString& FullURL = BaseURL + EndPoint_EndChat;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::EndChatComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\"}"), *NPCName);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Request End Chat: %s"), *FullURL);
+}
+
+void AHttpActor::EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Request End Chat Complete"));
 	}
 	else
 	{
@@ -301,7 +336,7 @@ void AHttpActor::TalkToPlantWithText(const FString& InputText)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::TalkToPlantWithTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"none\",\"chat_text\" : \"%s\"}"), *InputText);
+	FString JsonBody = FString::Printf(TEXT("{\"chat_text\" : \"%s\"}"), *InputText);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();

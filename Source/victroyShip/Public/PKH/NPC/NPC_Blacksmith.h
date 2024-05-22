@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
 #include "NPC_Blacksmith.generated.h"
@@ -11,7 +12,7 @@
  * 
  */
 UCLASS()
-class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate
+class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate, public IDateUpdate
 {
 	GENERATED_BODY()
 
@@ -31,5 +32,6 @@ protected:
 // Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;
+	virtual void OnDateUpdated(int32 NewDate) override;
 
 };
