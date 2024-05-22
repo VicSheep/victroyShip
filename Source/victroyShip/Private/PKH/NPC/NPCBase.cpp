@@ -55,12 +55,7 @@ void ANPCBase::BeginPlay()
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
-	ResponseSpeech(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"), TEXT(""));
-}
-
-void ANPCBase::StartWait()
-{
-	NPCController->StartConversation();
+	PlayTTS(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
 }
 
 void ANPCBase::StartConversation()
@@ -73,6 +68,7 @@ void ANPCBase::StartConversation()
 		const FRotator TargetRot= DirectionVec.ToOrientationRotator();
 		SetActorRotation(TargetRot);
 
+		NPCController->StartConversation();
 		AnimInstance->PlayMontage_Conv();
 	}
 }
@@ -84,7 +80,15 @@ void ANPCBase::EndConversation()
 }
 
 #pragma region TTS
-void ANPCBase::ResponseSpeech(const FString& FilePath, const FString& Emotion)
+void ANPCBase::ResponseSpeech(const FString& Emotion)
+{
+	if(false == Emotion.IsEmpty())
+	{
+		AnimInstance->PlayMontage_Emotion(Emotion);
+	}
+}
+
+void ANPCBase::PlayTTS(const FString& FilePath)
 {
 	if (MediaPlayer->OpenFile(FilePath))
 	{
@@ -94,11 +98,6 @@ void ANPCBase::ResponseSpeech(const FString& FilePath, const FString& Emotion)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Open File Failed : %s"), *FilePath);
-	}
-
-	if(false == Emotion.IsEmpty())
-	{
-		AnimInstance->PlayMontage_Emotion(Emotion);
 	}
 }
 

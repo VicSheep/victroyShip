@@ -24,7 +24,6 @@ protected:
 	TObjectPtr<class ANPCController> NPCController;
 
 public:
-	void StartWait();
 	void StartConversation();
 	void EndConversation();
 
@@ -45,7 +44,9 @@ protected:
 	void OnPlayEnded();
 
 public:
-	void ResponseSpeech(const FString& FilePath, const FString& Emotion);
+	void ResponseSpeech(const FString& Emotion);
+
+	void PlayTTS(const FString& FilePath);
 
 // Name
 protected:

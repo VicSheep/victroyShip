@@ -74,15 +74,6 @@ void AFarmLifeGameMode::BeginPlay()
 	ensure(ConversationUI);
 	ConversationUI->AddToViewport();
 	ConversationUI->SetVisibility(ESlateVisibility::Hidden);
-
-	// Initialize
-	Initialize();
-}
-
-// 모델 로딩을 위해 최초 1회 통신
-void AFarmLifeGameMode::Initialize()
-{
-	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC, 0);
 }
 
 void AFarmLifeGameMode::Tick(float DeltaSeconds)
@@ -96,28 +87,22 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
 	CurNPC = NewNPC;
-	CurNPC->StartWait();
-	HttpActor->SendSpeech(FileName, FilePath, CurNPC->GetNPCName(), CurNPC->GetLikeability());
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *CurNPC->GetNPCName()));
+	CurNPC->StartConversation();
+
+	HttpActor->SendSpeech(FileName, FilePath);
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
+	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
 void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
-	// 초기화용 호출이라면 바로 종료
-	if(nullptr == CurNPC)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, TEXT("Initialize Complete"));
-		return;
-	}
-
 	LatestSpeech = Response.Answer;
-	UE_LOG(LogTemp, Warning, TEXT("ReqText Complete : [%s] %s"), *CurNPC->GetNPCName(), *LatestSpeech);
 
 	// UI 갱신
 	if(ConversationUI->IsVisible())
 	{
-		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech);
-		CurNPC->ResponseSpeech(Response.FilePath, Response.Emotion);
+		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
+		CurNPC->ResponseSpeech(Response.Emotion);
 	}
 
 	// 호감도 갱신
@@ -129,15 +114,6 @@ void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 FString& AFarmLifeGameMode::GetLatestSpeech()
 {
 	return LatestSpeech;
-}
-
-void AFarmLifeGameMode::StartConversation()
-{
-	if(CurNPC)
-	{
-		CurNPC->StartConversation();
-		ConversationUI->SetVisibility(ESlateVisibility::Visible);
-	}
 }
 
 void AFarmLifeGameMode::EndConversation()
@@ -152,16 +128,28 @@ void AFarmLifeGameMode::EndConversation()
 	CurNPC = nullptr;
 }
 
+void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
+{
+	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true); UE_LOG(LogTemp, Error, TEXT("ShowPlayerText: %s"), *PlayerInputText);
+}
+
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
 	CurNPC = NewNPC;
-	CurNPC->StartWait();
 	CurNPC->StartConversation();
 
 	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *CurNPC->GetNPCName()));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
+{
+	if(CurNPC)
+	{
+		CurNPC->PlayTTS(FilePath);
+	}
 }
 #pragma endregion
 

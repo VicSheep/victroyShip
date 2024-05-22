@@ -42,19 +42,6 @@ public:
 protected:
 	void SearchNearby(const FString& InputText);
 
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TObjectPtr<class UMediaSoundComponent> MediaComp;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TObjectPtr<class UMediaPlayer> MediaPlayer;
-
-	UFUNCTION()
-	void PlayVoice(const FString& FilePath);
-
-	UFUNCTION()
-	void OnPlayEnded();
-
 public:
 	UFUNCTION(BlueprintCallable)
 	void CheckNearbyObjects();

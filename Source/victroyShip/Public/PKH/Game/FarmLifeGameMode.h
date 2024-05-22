@@ -57,14 +57,6 @@ protected:
 public:
 	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
 
-// Initialize
-protected:
-	const FString& InitialName = TEXT("Speech");
-	const FString& InitialPath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Speech.wav");
-	const FString& InitialNPC = TEXT("미라");
-
-	void Initialize();
-
 // Conversation
 public:
 	// NPC conversation
@@ -73,11 +65,16 @@ public:
 	void SetLatestSpeech(const FNPCResponse& Response);
 	FString& GetLatestSpeech();
 
-	void StartConversation();
 	void EndConversation();
+
+	// Player input text
+	void ShowPlayerText(const FString& PlayerInputText);
 
 	// NPC conversation by text
 	void SendText(const FString& InputText, const TObjectPtr<class ANPCBase>& NewNPC);
+
+	// TTS
+	void PlayTTS(const FString& FilePath);
 
 	// Talk to plant
 	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<class APlantActor>>& NewPlants);

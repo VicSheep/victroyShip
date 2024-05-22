@@ -3,8 +3,6 @@
 
 #include "PKH/Component/STTComponent.h"
 
-#include "MediaPlayer.h"
-#include "MediaSoundComponent.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
 #include "JIU/PlantActor.h"
@@ -30,19 +28,6 @@ void USTTComponent::BeginPlay()
 
 	Player = CastChecked<ACharacter>(GetOwner());
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-
-	MediaComp = Cast<UMediaSoundComponent>(Player->GetComponentByClass(UMediaSoundComponent::StaticClass()));
-	MediaPlayer = NewObject<UMediaPlayer>();
-	MediaPlayer->OnEndReached.AddDynamic(this, &USTTComponent::OnPlayEnded);
-
-	if(MediaComp)
-	{
-		if (MediaPlayer->OpenFile(DefaultFilePath))
-		{
-			MediaComp->SetMediaPlayer(MediaPlayer);
-			UE_LOG(LogTemp, Warning, TEXT("[STTComponent] Initialize Complete"));
-		}
-	}
 }
 
 #pragma region Check Nearby
@@ -146,44 +131,9 @@ void USTTComponent::SearchNearby(const FString& InputText)
 }
 #pragma endregion
 
-#pragma region Voice
-void USTTComponent::PlayVoice(const FString& FilePath)
-{
-	if(nullptr == MediaComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No MediaSoundComponent"));
-		return;
-	}
-
-	FTimerHandle Handle;
-	GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda([this, FilePath]()
-	{
-		if (MediaPlayer->OpenFile(FilePath))
-		{
-			MediaComp->SetMediaPlayer(MediaPlayer);
-			UE_LOG(LogTemp, Warning, TEXT("Open File Success : %s"), *FilePath);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Open File Failed : %s"), *FilePath);
-		}
-	}), 0.3f, false);
-}
-
-void USTTComponent::OnPlayEnded()
-{
-	if(false == MediaPlayer->IsClosed())
-	{
-		MediaPlayer->Close();
-		MyGameMode->StartConversation();
-	}
-}
-#pragma endregion
-
 #pragma region Communication
 void USTTComponent::ConversationWithNPC(ANPCBase* NewNPC)
 {
-	PlayVoice(RecordFilePath);
 	MyGameMode->SendSpeech(RecordFileName, RecordFilePath, NewNPC);
 }
 
@@ -194,7 +144,6 @@ void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& I
 
 void USTTComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
-	PlayVoice(RecordFilePath);
 	MyGameMode->TalkToPlant(RecordFileName, RecordFilePath, NewPlants);
 }
 

@@ -26,28 +26,49 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString BaseURL = TEXT("http://127.0.0.1:8000");
 
+	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_SendSpeech = TEXT("/post-speech");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetSpeech = TEXT("/get-speech");
 
+	// ChatBot response
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_SendConv = TEXT("/post-conv");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetConv = TEXT("/get-conv");
+
+	// Direct text
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_SendText = TEXT("/post-text");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetText = TEXT("/get-text");
 
+	// TTS
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetTTS = TEXT("/get-tts");
+
+	// End Chat
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_EndChat = TEXT("/end-chat");
 
 public:
 	// STT
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName, int32 Preference);
+	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// ChatBot response
+	void SendConv(const FString& NPCName, int32 Preference);
+	void SendConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetConv();
+	void GetConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Text
 	void SendText(const FString& NPCName, const FString& InputText, int32 Preference);
@@ -55,6 +76,10 @@ public:
 
 	void GetText();
 	void GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// TTS
+	void GetTTS();
+	void GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// End Chat
 	void EndChat(const FString& NPCName);
