@@ -36,7 +36,7 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 		}
 
 		// Name
-		switch (plant->PlantType)
+		/*switch (plant->PlantType)
 		{
 		case EPlantType::Grape:
 			text_type->SetText(FText::FromString("GRAPE"));
@@ -46,7 +46,7 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 			break;
 		default:
 			text_type->SetText(FText::FromString("ERROR"));
-		}
+		}*/
 	}
 }
 

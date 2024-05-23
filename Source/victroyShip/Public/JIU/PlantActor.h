@@ -5,24 +5,16 @@
 #include "CoreMinimal.h"
 #include "PlantStructure.h"
 #include "Components/TimelineComponent.h"
-#include "Engine/DataTable.h"
 #include "GameFramework/Actor.h"
 #include "PlantActor.generated.h"
 
 class AGroundActor;
 
 UENUM()
-enum class EPlantType
-{
-	Grape,
-	Sunflower,
-};
-
-UENUM()
 enum class EPlantState
 {
 	Seed,
-	Childish,
+	Growing,
 	Mature,
 	Havested,
 };
@@ -46,6 +38,8 @@ public:
 
 	virtual void Destroyed() override;
 
+	int stateInt;
+
 	///* Component *///
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* BoxComponent;
@@ -53,17 +47,27 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
-	///* Plant State *///
-	FPlantStruct PlantInfo;
+	///* Data Table *///
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* PlantDataTable;
 
+	UFUNCTION()
+	FPlantStruct GetPlantData(FName RowName);
+
+	FString PlantDataTablePath = "/Game/JIU/Others/Datatable_Plant.Datatable_Plant";
+
+	///* Plant *///
 	UPROPERTY()
-	EPlantType PlantType;
+	FPlantStruct PlantInfo;
 
 	UPROPERTY()
 	EPlantState PlantState;
 
-	UPROPERTY()
-	int level;
+	bool isRepeated = false;
+
+	int MaxGrowLevel = -1;
+	int MaxHavestLevel = -1;
+	int CurLevel = 0;
 
 	///* Plant Seed *///
 	UFUNCTION()
@@ -102,15 +106,6 @@ public:
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
-
-	///* Data Table *///
-	UPROPERTY(EditDefaultsOnly, Category = "Data")
-	UDataTable* PlantDataTable;
-
-	UFUNCTION()
-	FPlantStruct GetPlantData(FName RowName);
-
-	FString PlantDataTablePath = "/Game/JIU/Others/Datatable_Plant.Datatable_Plant";
 
 	///* Mesh pathes *///
 	FString GrapePath0 = "/Game/UltimateFarming/Meshes/SM_BambooHatch_B.SM_BambooHatch_B";
