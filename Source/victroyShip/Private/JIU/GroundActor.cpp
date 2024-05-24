@@ -8,6 +8,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "JIU/PlantActor.h"
+#include "JIU/WeedActor.h"
+#include "Math/UnrealMathUtility.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -23,6 +25,10 @@ AGroundActor::AGroundActor()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
 	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *PlanterPath));
+
+	ActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("ActorComponent"));
+	ActorComponent->SetupAttachment(RootComponent);
+	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -55,6 +61,12 @@ void AGroundActor::BeginPlay()
 		GroundState = EGroundState::Default;
 	}
 
+	WeedActor = Cast<AWeedActor>(ActorComponent->GetChildActor());
+	if (!WeedActor)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No Weed"));
+	}
+
 	WaterFigure = 0.f;
 	FertilizerFigure = 0.f;
 
@@ -70,8 +82,31 @@ void AGroundActor::BeginPlay()
 			{
 				FertilizerFigure -= 1.f;
 			}
-
 			SetGroundMaterial();
+		}
+		else
+		{
+			RandomNumber = FMath::RandRange(1, 100);
+
+			if (GroundState == EGroundState::DryPlanter)
+			{
+				if (RandomNumber <= 10)
+				{
+					GroundState = EGroundState::Default;
+					MeshComponent->SetMaterial(0, DefaultMaterialInterface);
+				}
+			}
+			else if (GroundState == EGroundState::Default && !isWeed)
+			{
+				if (RandomNumber <= 10)
+				{
+					isWeed = true;
+					if (WeedActor)
+					{
+						WeedActor->SetVisible(true);
+					}
+				}
+			}
 		}
 	}, 1.f, true);
 }
@@ -110,16 +145,37 @@ void AGroundActor::FertilizePlant()
 	}
 }
 
+void AGroundActor::RemovePlant()
+{
+	if (Plant)
+	{
+		Plant->Destroy();
+		Plant = nullptr;
+	}
+}
+
 void AGroundActor::ProwGround()
 {
-	if (GroundState == EGroundState::Default)
+	if (!isWeed)
 	{
-		GroundState = EGroundState::DryPlanter;
-
-		if (DryMaterialInterface)
+		if (GroundState == EGroundState::Default)
 		{
-			MeshComponent->SetMaterial(0, DryMaterialInterface);
+			GroundState = EGroundState::DryPlanter;
+
+			if (DryMaterialInterface)
+			{
+				MeshComponent->SetMaterial(0, DryMaterialInterface);
+			}
 		}
+	}
+}
+
+void AGroundActor::RemoveWeed()
+{
+	if (isWeed && WeedActor)
+	{
+		isWeed = false;
+		WeedActor->SetVisible(false);
 	}
 }
 

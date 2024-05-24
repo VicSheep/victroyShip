@@ -227,6 +227,10 @@ void APlantActor::HavestPlant()
 		CurLevel = 1;
 
 		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.HavestedPath1);
-		StartScaling();
+		if (NewMesh)
+		{
+			MeshComponent->SetStaticMesh(NewMesh);
+			NewMesh = nullptr;
+		}
 	}
 }

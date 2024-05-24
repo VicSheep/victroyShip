@@ -35,18 +35,10 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 			this->Ground = plant->Ground;
 		}
 
-		// Name
-		/*switch (plant->PlantType)
+		if (plant->PlantInfo.IsValid())
 		{
-		case EPlantType::Grape:
-			text_type->SetText(FText::FromString("GRAPE"));
-			break;
-		case EPlantType::Sunflower:
-			text_type->SetText(FText::FromString("SUNFLOWER"));
-			break;
-		default:
-			text_type->SetText(FText::FromString("ERROR"));
-		}*/
+			text_type->SetText(FText::FromString(plant->PlantInfo.Name));
+		}
 	}
 }
 

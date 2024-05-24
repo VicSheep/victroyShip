@@ -20,6 +20,7 @@ void UToolWidget::NativeConstruct()
     button_2->OnClicked.AddDynamic(this, &UToolWidget::Onclick2);
     button_3->OnClicked.AddDynamic(this, &UToolWidget::Onclick3);
     button_4->OnClicked.AddDynamic(this, &UToolWidget::Onclick4);
+    button_5->OnClicked.AddDynamic(this, &UToolWidget::Onclick5);
 
 }
 
@@ -56,4 +57,9 @@ void UToolWidget::Onclick3()
 void UToolWidget::Onclick4()
 {
     ClickButton(4);
+}
+
+void UToolWidget::Onclick5()
+{
+    ClickButton(5);
 }

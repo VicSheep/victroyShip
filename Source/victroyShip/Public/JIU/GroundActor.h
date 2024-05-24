@@ -38,6 +38,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
+	UPROPERTY(EditAnywhere)
+	class UChildActorComponent* ActorComponent;
+
 	///* Mesh or Material *///
 	UPROPERTY()
 	UMaterialInterface* DefaultMaterialInterface;
@@ -48,7 +51,6 @@ public:
 	UPROPERTY()
 	UMaterialInterface* WetMaterialInterface;
 
-	///* Path *///
 	FString PlanterPath = "/Game/UltimateFarming/Meshes/SM_Planter_D_02.SM_Planter_D_02";
 	FString DefaultMaterialPath = "/Game/UltimateFarming/Materials/MI_FertileGround.MI_FertileGround";
 	FString DryMaterialPath = "/Game/JIU/Materials/MI_Planter_Dry.MI_Planter_Dry";
@@ -83,8 +85,22 @@ public:
 	void FertilizePlant();
 
 	UFUNCTION(BlueprintCallable)
+	void RemovePlant();
+
+	UFUNCTION(BlueprintCallable)
 	void ProwGround();
 
+	///* Weed *///
+	UPROPERTY()
+	class AWeedActor* WeedActor;
+
+	int32 RandomNumber = 0;
+	bool isWeed = false;
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveWeed();
+
+	///* Oathers *///
 	UFUNCTION()
 	void SetGroundMaterial();
 };
