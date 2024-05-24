@@ -85,9 +85,13 @@ void AHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpRespons
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		MyGameMode->ShowPlayerText(ResultText.Mid(1, ResultText.Len() - 2));
 
-		SendConv(MyGameMode->GetCurNPC()->GetNPCName(), MyGameMode->GetCurNPC()->GetLikeability());
+		// STT 결과를 UI에 전달하고, 챗봇 답변 요청
+		MyGameMode->ShowPlayerText(ResultText.Mid(1, ResultText.Len() - 2));
+		if(MyGameMode->GetCurNPC())
+		{
+			SendConv(MyGameMode->GetCurNPC()->GetNPCName(), MyGameMode->GetCurNPC()->GetLikeability());
+		}
 	}
 	else
 	{
@@ -159,6 +163,8 @@ void AHttpActor::GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Respo
 		FNPCResponse NPCResponse;
 		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
 		MyGameMode->SetLatestSpeech(NPCResponse);
+
+		GetTTS();
 	}
 	else
 	{
@@ -230,6 +236,7 @@ void AHttpActor::GetConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Respo
 		FNPCResponse NPCResponse;
 		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
 
+		// 챗봇 답변을 UI에 전달하고, TTS 요청
 		MyGameMode->SetLatestSpeech(NPCResponse);
 		GetTTS();
 	}
@@ -264,6 +271,8 @@ void AHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Respon
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
+
+		// TTS 출력
 		MyGameMode->PlayTTS(ResultText.Mid(1, ResultText.Len() - 2));
 	}
 	else

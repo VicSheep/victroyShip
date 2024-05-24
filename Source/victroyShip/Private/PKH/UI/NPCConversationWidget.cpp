@@ -34,7 +34,7 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const 
 
 	if(DoStream)
 	{
-		if(IsStreaming) // 아직 스트리밍 중이라면 다음 텍스트로 저장
+		if(CurConvState != EConvState::None)
 		{
 			NextText = NewConversation;
 		}
@@ -42,19 +42,20 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const 
 		{
 			CurText = NewConversation;
 			CurLen = 1;
-			IsStreaming = true;
+			CurConvState = EConvState::Player; 
 			GetWorld()->GetTimerManager().SetTimer(StreamHandle, this, &UNPCConversationWidget::StreamText, StreamDeltaTime, true);
 		}
 	}
 	else
 	{
 		Txt_Conversation->SetText(FText::FromString(NewConversation));
+		CurConvState = EConvState::None;
 	}
 }
 
 void UNPCConversationWidget::StreamText()
 {
-	if(CurLen <= CurText.Len())
+	if(CurConvState != EConvState::Wait && CurLen <= CurText.Len())
 	{
 		Txt_Conversation->SetText(FText::FromString(CurText.Mid(0, CurLen)));
 		++CurLen;
@@ -66,20 +67,27 @@ void UNPCConversationWidget::StreamText()
 	{
 		return;
 	}
-	
-	if(NextText.IsEmpty())
+
+	CurWaitTime = 0;
+
+	switch(CurConvState)
 	{
-		CurWaitTime = 0;
-		IsStreaming = false;
-		GetWorld()->GetTimerManager().ClearTimer(StreamHandle);
-	}
-	else
-	{
+	case EConvState::Player:
+		CurConvState = EConvState::Wait;
+		Txt_Conversation->SetText(FText::FromString(FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *MyGameMode->GetCurNPC()->GetNPCName() )));
+		break;
+	case EConvState::Wait:
+		CurConvState = EConvState::NPC;
+		MyGameMode->PlayNPCEmotion();
 		CurText = NextText;
 		NextText = TEXT("");
-		Txt_Conversation->SetText(FText::FromString(FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *MyGameMode->GetCurNPC()->GetNPCName() )));
-
-		CurWaitTime = 0;
 		CurLen = 1;
+		break;
+	case EConvState::NPC:
+		CurConvState = EConvState::None;
+		GetWorld()->GetTimerManager().ClearTimer(StreamHandle);
+		break;
+	default:
+		break;
 	}
 }

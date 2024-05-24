@@ -32,16 +32,16 @@ void UTextInputComponent::BeginPlay()
 #pragma region 채팅 입력
 void UTextInputComponent::Chat()
 {
-	if(false == IsChatting)
+	if(false == InChatting)
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Visible);
 		ChatUI->Focus();
-		IsChatting = true;
+		InChatting = true;
 	}
 	else
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
-		IsChatting = false;
+		InChatting = false;
 
 		FString InputText = ChatUI->GetChatText();
 		if(InputText.IsEmpty())
@@ -55,5 +55,10 @@ void UTextInputComponent::Chat()
 			STTComp->CheckNearbyObjects(InputText);
 		}
 	}
+}
+
+bool UTextInputComponent::IsChatting() const
+{
+	return InChatting;
 }
 #pragma endregion

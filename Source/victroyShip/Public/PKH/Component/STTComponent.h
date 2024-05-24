@@ -36,9 +36,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString RecordFilePath;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString DefaultFilePath;
-
 protected:
 	void SearchNearby(const FString& InputText);
 

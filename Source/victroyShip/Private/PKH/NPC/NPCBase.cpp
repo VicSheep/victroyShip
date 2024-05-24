@@ -55,7 +55,8 @@ void ANPCBase::BeginPlay()
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
-	PlayTTS(TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav"));
+	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
+	PlayTTS(DefaultPath);
 }
 
 void ANPCBase::StartConversation()
@@ -80,11 +81,16 @@ void ANPCBase::EndConversation()
 }
 
 #pragma region TTS
-void ANPCBase::ResponseSpeech(const FString& Emotion)
+void ANPCBase::SetCurEmotion(const FString& NewEmotion)
 {
-	if(false == Emotion.IsEmpty())
+	CurEmotion = NewEmotion;
+}
+
+void ANPCBase::PlayEmotion()
+{
+	if(false == CurEmotion.IsEmpty())
 	{
-		AnimInstance->PlayMontage_Emotion(Emotion);
+		AnimInstance->PlayMontage_Emotion(CurEmotion);
 	}
 }
 

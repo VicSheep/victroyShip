@@ -16,10 +16,8 @@ USTTComponent::USTTComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// Speech File
-	RecordFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Saved/BouncedWavFiles/");
+	RecordFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/");
 	RecordFilePath = RecordFileDir + RecordFileName + TEXT(".wav");
-
-	DefaultFilePath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Default.wav");
 }
 
 void USTTComponent::BeginPlay()

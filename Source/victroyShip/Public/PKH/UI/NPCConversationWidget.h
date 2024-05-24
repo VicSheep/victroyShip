@@ -6,6 +6,15 @@
 #include "Blueprint/UserWidget.h"
 #include "NPCConversationWidget.generated.h"
 
+UENUM()
+enum class EConvState : uint8
+{
+	None = 0,
+	Player,
+	Wait,
+	NPC
+};
+
 /**
  * 
  */
@@ -45,8 +54,9 @@ public:
 
 // Stream
 protected:
+	EConvState CurConvState = EConvState::None;
+
 	const float StreamDeltaTime = 0.1f;
-	bool IsStreaming = false;
 	FTimerHandle StreamHandle;
 
 	int32 CurLen = 1;
@@ -59,5 +69,4 @@ protected:
 	UFUNCTION()
 	void StreamText();
 
-	
 };

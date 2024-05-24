@@ -73,6 +73,9 @@ public:
 	// NPC conversation by text
 	void SendText(const FString& InputText, const TObjectPtr<class ANPCBase>& NewNPC);
 
+	// Emotion
+	void PlayNPCEmotion();
+
 	// TTS
 	void PlayTTS(const FString& FilePath);
 

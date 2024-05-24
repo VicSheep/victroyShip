@@ -102,7 +102,7 @@ void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 	if(ConversationUI->IsVisible())
 	{
 		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
-		CurNPC->ResponseSpeech(Response.Emotion);
+		CurNPC->SetCurEmotion(Response.Emotion);
 	}
 
 	// 호감도 갱신
@@ -130,7 +130,7 @@ void AFarmLifeGameMode::EndConversation()
 
 void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 {
-	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true); UE_LOG(LogTemp, Error, TEXT("ShowPlayerText: %s"), *PlayerInputText);
+	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
 }
 
 // By Text
@@ -138,10 +138,18 @@ void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPC
 {
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
+	ShowPlayerText(InputText);
 
 	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *CurNPC->GetNPCName()));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::PlayNPCEmotion()
+{
+	if(CurNPC)
+	{
+		CurNPC->PlayEmotion();
+	}
 }
 
 void AFarmLifeGameMode::PlayTTS(const FString& FilePath)

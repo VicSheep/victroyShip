@@ -40,11 +40,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<class UMediaPlayer> MediaPlayer;
 
+	UPROPERTY()
+	FString CurEmotion;
+
 	UFUNCTION()
 	void OnPlayEnded();
 
 public:
-	void ResponseSpeech(const FString& Emotion);
+	void SetCurEmotion(const FString& NewEmotion);
+
+	void PlayEmotion();
 
 	void PlayTTS(const FString& FilePath);
 

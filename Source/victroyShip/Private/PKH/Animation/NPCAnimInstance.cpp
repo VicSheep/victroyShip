@@ -19,6 +19,9 @@ UNPCAnimInstance::UNPCAnimInstance()
 	EmotionMap.Add(TEXT("sadness"), 1);
 	EmotionMap.Add(TEXT("surprise"), 2);
 	EmotionMap.Add(TEXT("anger"), 3);
+	EmotionMap.Add(TEXT("neutral"), 1);
+	EmotionMap.Add(TEXT("indifference"), 2);
+	EmotionMap.Add(TEXT("curiosity"), 3);
 
 	// Emotion Montages
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_Joy(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Joyful.AM_Joyful'"));
