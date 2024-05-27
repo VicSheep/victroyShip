@@ -134,6 +134,7 @@ void ANPCBase::OnPlayEnded()
 void ANPCBase::InitGreeting()
 {
 	MyGameMode->InitGreeting(NPCName, GreetingText, CurLikeability);
+	HasIntendToGreeting = true;
 }
 
 void ANPCBase::GreetingToPlayer()
@@ -184,7 +185,7 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 {
 	if(CurLikeability >= FriendlyLikeability)
 	{
-		HasIntendToGreeting = false;
+		InitGreeting();
 	}
 
 	SetActorLocation(HomeLoc);

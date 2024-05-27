@@ -174,14 +174,14 @@ void AFarmLifeGameMode::SetTalkScore(int32 Score)
 	{
 		return;
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("Cur Plants Size: %d"), CurPlants.Num());
 	const bool IsPositive = Score > 0;
 	for(APlantActor* P : CurPlants)
 	{
 		// 긍정적이라면 작물 성장
 		if(IsPositive)
 		{
-			P->GrowPlant();
+			P->GrowPlant(); UE_LOG(LogTemp, Warning, TEXT("Grow Plant"));
 		}
 	}
 }

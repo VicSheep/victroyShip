@@ -302,7 +302,7 @@ void AHttpActor::InitGreeting(const FString& NPCName, const FString& NPCText, in
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::InitGreetingComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"npc_text\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, *NPCText, Likeability);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"text\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, *NPCText, Likeability);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -337,7 +337,7 @@ void AHttpActor::RequestGreeting(const FString& NPCName)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::RequestGreetingComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("%s"), *NPCName);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\"}"), *NPCName);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -385,6 +385,8 @@ void AHttpActor::GetGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr R
 		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
 		UE_LOG(LogTemp, Warning, TEXT("Get Greeting Complete: %s"), *NPCResponse.Answer);
 
+		// 경로 수정
+		NPCResponse.FilePath = ExtraPath + NPCResponse.FilePath.Mid(3, NPCResponse.FilePath.Len() - 3);
 		MyGameMode->GreetingToPlayer(NPCResponse);
 	}
 	else
@@ -564,8 +566,9 @@ void AHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponse
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
-		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+		int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %d"), Score);
+		MyGameMode->SetTalkScore(Score);
 	}
 	else
 	{

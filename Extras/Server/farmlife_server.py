@@ -181,14 +181,16 @@ def summarizeChat(npcName):#지금까지의 대화를 요약 후 저장함, 기�
     return SC.content
 
 
+eng_name = {'미라':'Mira', '이준호':'Junho', '새로만듦':'null', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
+
 def tts(response:NPC_Output, npc_name):
     begin_time = time.time()
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
-    voiceChange(wav_path, voice_dict[npc_name])#음성변조
-    response.file_path = wav_path
+    tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
+    voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
     end_time = time.time()
     print(f'tts: {end_time - begin_time: .5f} sec')
-    return response.file_path
+    return tts_path
 
 
 ### 목소리 변조
@@ -210,7 +212,7 @@ for voice in voice_ref_list:
 source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
 
 # src_path='outputs_v2/tmp.wav'
-def voiceChange(src_path:str,voiceRef:str):
+def voiceChange(src_path:str, out_path:str, voiceRef:str):
     # source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
     # Run the tone color converter
     target_se = voiceRefs[voiceRef][0]
@@ -219,7 +221,7 @@ def voiceChange(src_path:str,voiceRef:str):
         audio_src_path=src_path, #변조할 원본 음성
         src_se=source_se, #??
         tgt_se=target_se, #레퍼런스 음성
-        output_path=wav_path,#저장경로
+        output_path=out_path,#저장경로
         message=encode_message)
     
 ###한국어 특화 tts모델
@@ -360,9 +362,9 @@ async def init_greeting(data:NPC_Greeting_Input):
         raise HTTPException(status_code=400, detail=f"{str(e)}")
     
 @app.post("/post-greeting")
-async def post_greeting(npc_name:str):
+async def post_greeting(data:NPC_Name):
     global requested_npc_name
-    requested_npc_name = npc_name
+    requested_npc_name = data.npc_name
 
 @app.get("/get-greeting")
 async def get_greeting():

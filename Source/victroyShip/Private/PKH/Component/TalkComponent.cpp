@@ -61,8 +61,7 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 	FCollisionQueryParams Params; 
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
-	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"),
-															  FCollisionShape::MakeSphere(300.0f), Params);
+	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"), FCollisionShape::MakeSphere(300.0f), Params);
 	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f);
 
 	if (NPCOverlapped)
@@ -71,7 +70,6 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 		float MinDistance = 500.0f;
 		for (FOverlapResult& Res : NPCResults)
 		{
-			UE_LOG(LogTemp, Log, TEXT("%s"), *Res.GetActor()->GetName());
 			ANPCBase* NPC = Cast<ANPCBase>(Res.GetActor());
 			if (nullptr == NPC)
 			{
@@ -101,8 +99,7 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 	}
 
 	TArray<FOverlapResult> PlantResults;
-	bool PlantOverlapped = GetWorld()->OverlapMultiByProfile(PlantResults, Origin, FQuat::Identity, TEXT("OverlapAllDynamic"),
-		FCollisionShape::MakeSphere(300.0f), Params);
+	bool PlantOverlapped = GetWorld()->OverlapMultiByChannel(PlantResults, Origin, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(300.0f), Params);
 
 	if (PlantOverlapped)
 	{
@@ -113,7 +110,7 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 			APlantActor* Plant = Cast<APlantActor>(Res.GetActor());
 			if(Plant)
 			{
-				Plants.Add(Plant);
+				Plants.Add(Plant); UE_LOG(LogTemp, Log, TEXT("%s"), *Plant->GetName());
 			}
 		}
 
