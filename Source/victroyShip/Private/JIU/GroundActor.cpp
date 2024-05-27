@@ -11,6 +11,7 @@
 #include "JIU/PlantActor.h"
 #include "JIU/WeedActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -34,7 +35,7 @@ AGroundActor::AGroundActor()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(RootComponent);
-	CameraComponent->SetRelativeLocationAndRotation(FVector(-180.f, 0.f, 120.f), FRotator(-15.f, 0.f, 0.f));
+	CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -216,13 +217,41 @@ void AGroundActor::MoveCamera(bool zoomin)
 		// 카메라 전환
 		if (zoomin)
 		{
+			FVector MyLocation = this->GetActorLocation();
+			FVector TargetLocation = PP->GetActorLocation();
+			FVector DirectionToTarget = TargetLocation - MyLocation;
+
+			DirectionToTarget.Z = 0.0f;
+			DirectionToTarget = DirectionToTarget.GetSafeNormal();
+			FVector MyForward = GetActorForwardVector().GetSafeNormal();
+
+			float DotProduct = FVector::DotProduct(MyForward, DirectionToTarget);
+			float AngleRadians = FMath::Acos(DotProduct);
+
+			FVector CrossProduct = FVector::CrossProduct(MyForward, DirectionToTarget);
+			if (CrossProduct.Z < 0)
+			{
+				AngleRadians = -AngleRadians;
+			}
+
+			float SineOfAngle = FMath::Sin(AngleRadians);
+			float CosineOfAngle = FMath::Cos(AngleRadians);
+
+			float distance = 360.f;
+			CameraComponent->SetRelativeLocation(FVector(CosineOfAngle * distance, SineOfAngle * distance, 180.f));
+
+			DirectionToTarget = FVector(0.f, 0.f, 0.f) - FVector(CosineOfAngle * distance, SineOfAngle * distance, 180.f).GetSafeNormal();
+			FRotator LookAtRotation = UKismetMathLibrary::MakeRotFromX(DirectionToTarget);
+			LookAtRotation.Pitch = -15.f;
+			CameraComponent->SetRelativeRotation(LookAtRotation);
+
+			PP->SetActorRotation(LookAtRotation);
+
 			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
-			UE_LOG(LogTemp, Warning, TEXT("Zoom In"));
 		}
 		else
 		{
 			PC->SetViewTargetWithBlend(PP, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
-			UE_LOG(LogTemp, Warning, TEXT("Zoom Out"));
 		}
 	}
 	else

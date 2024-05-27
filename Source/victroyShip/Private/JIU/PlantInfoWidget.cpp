@@ -57,7 +57,8 @@ void UPlantInfoWidget::ClickGrowButton()
 	{
 		if (Ground->Plant)
 		{
-			Ground->Plant->GrowPlant();
+			Ground->MoveCamera(true);
+			// Ground->Plant->GrowPlant();
 		}
 	}
 

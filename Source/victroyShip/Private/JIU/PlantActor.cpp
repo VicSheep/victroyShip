@@ -9,6 +9,7 @@
 #include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -137,16 +138,8 @@ void APlantActor::GrowPlant()
 	}
 	else if (PlantState == EPlantState::Mature)
 	{
-		if (isRepeated)
-		{
-			HavestPlant();
-			return;
-		}
-		else
-		{
-			Destroyed();
-			return;
-		}
+		HavestPlant();
+		return;
 	}
 	else if (PlantState == EPlantState::Havested)
 	{
@@ -166,8 +159,6 @@ void APlantActor::GrowPlant()
 
 void APlantActor::StartScaling()
 {
-	Ground->MoveCamera(true);
-
 	MeshComponent->SetWorldScale3D(InitialScale);
 
 	if (FloatCurve)
@@ -201,7 +192,7 @@ void APlantActor::OnTimelineFinished()
 	NewMesh = nullptr;
 	isChanged = true;
 
-	Ground->MoveCamera(false);
+	// Ground->MoveCamera(false);
 }
 
 void APlantActor::SetupTimeline()
@@ -223,15 +214,23 @@ void APlantActor::HavestPlant()
 {
 	if (PlantState == EPlantState::Mature)
 	{
-		PlantState = EPlantState::Havested;
-
-		CurLevel = 1;
-
-		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.HavestedPath1);
-		if (NewMesh)
+		if (isRepeated)
 		{
-			MeshComponent->SetStaticMesh(NewMesh);
-			NewMesh = nullptr;
+
+			PlantState = EPlantState::Havested;
+
+			CurLevel = 1;
+
+			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.HavestedPath1);
+			if (NewMesh)
+			{
+				MeshComponent->SetStaticMesh(NewMesh);
+				NewMesh = nullptr;
+			}
+		}
+		else
+		{
+			Destroy();
 		}
 	}
 }
