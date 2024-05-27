@@ -33,6 +33,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UButton* button_4;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* button_5;
+
 	///* Player *///
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class ATestCharacter* PP;
@@ -49,4 +52,6 @@ public:
 	void Onclick3();
 	UFUNCTION()
 	void Onclick4();
+	UFUNCTION()
+	void Onclick5();
 };

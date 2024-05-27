@@ -38,6 +38,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
+	UPROPERTY(EditAnywhere)
+	class UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditAnywhere)
+	class UChildActorComponent* ActorComponent;
+
 	///* Mesh or Material *///
 	UPROPERTY()
 	UMaterialInterface* DefaultMaterialInterface;
@@ -48,11 +54,17 @@ public:
 	UPROPERTY()
 	UMaterialInterface* WetMaterialInterface;
 
-	///* Path *///
 	FString PlanterPath = "/Game/UltimateFarming/Meshes/SM_Planter_D_02.SM_Planter_D_02";
 	FString DefaultMaterialPath = "/Game/UltimateFarming/Materials/MI_FertileGround.MI_FertileGround";
 	FString DryMaterialPath = "/Game/JIU/Materials/MI_Planter_Dry.MI_Planter_Dry";
 	FString WetMaterialPath = "/Game/JIU/Materials/MI_Planter_Wet.MI_Planter_Wet";
+
+	///* Player *///
+	UPROPERTY()
+	class APlayerController* PC;
+
+	UPROPERTY()
+	class APawn* PP;
 
 	///* Variable *///
 	EGroundState GroundState = EGroundState::Default;
@@ -83,8 +95,28 @@ public:
 	void FertilizePlant();
 
 	UFUNCTION(BlueprintCallable)
+	void RemovePlant();
+
+	UFUNCTION(BlueprintCallable)
 	void ProwGround();
 
+	///* Weed *///
+	UPROPERTY()
+	class AWeedActor* WeedActor;
+
+	int32 RandomNumber = 0;
+	int32 Cushion = 0;
+	bool isWeed = false;
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveWeed();
+
+	///* Camera Blend *///
+	void MoveCamera(bool zoomin);
+
+	///* Others *///
 	UFUNCTION()
 	void SetGroundMaterial();
+
+	void SetGroundState(EGroundState state);
 };

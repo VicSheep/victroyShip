@@ -34,6 +34,7 @@ APlantActor::APlantActor()
 void APlantActor::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 // Called every frame
@@ -42,6 +43,8 @@ void APlantActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	MyTimeline.TickTimeline(DeltaTime);
+
+	// UE_LOG(LogTemp, Error, TEXT("Plant State : %d"), CurLevel);
 }
 
 void APlantActor::Destroyed()
@@ -57,108 +60,114 @@ void APlantActor::Destroyed()
 	}
 }
 
+FPlantStruct APlantActor::GetPlantData(FName RowName)
+{
+	if (PlantDataTable)
+	{
+		static const FString ContextString(TEXT("Plant Data Context"));
+
+		// RowName을 사용하여 특정 행을 가져옵니다.
+		FPlantStruct* Row = PlantDataTable->FindRow<FPlantStruct>(RowName, ContextString);
+
+		if (!Row)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
+			return FPlantStruct();
+		}
+
+		return *Row;
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("Data Table Error"));
+	return FPlantStruct();
+}
+
 void APlantActor::SetPlant(int id, AGroundActor* _ground)
 {
-	level = 0;
 	this->Ground = _ground;
+	PlantState = EPlantState::Seed;
 
 	if (PlantDataTable)
 	{
 		PlantInfo = GetPlantData(FName(FString::FromInt(id)));
 	}
-
-	UE_LOG(LogTemp, Error, TEXT("You Seed '%s'"), *PlantInfo.Name);
-
-	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
-
-	/*switch (id)
+	
+	if (PlantInfo.IsValid())
 	{
-	case 0:
-		MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath0));
-		PlantType = EPlantType::Grape;
-		level = 4;
-		break;
-	case 1:
-		PlantType = EPlantType::Sunflower;
-		level = 3;
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("Mesh not set."));
-	}*/
+		UE_LOG(LogTemp, Error, TEXT("You Seed '%s'"), *PlantInfo.Name);
+		MaxGrowLevel = PlantInfo.GrowLevel;
+
+		if (PlantInfo.Bamboo)
+		{
+			MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *PlantInfo.SeedPath));
+		}
+
+		if (PlantInfo.HavestType == EHavestType::Many)
+		{
+			isRepeated = true;
+			MaxHavestLevel = PlantInfo.HavestLevel;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Plant Data Table Error"));
+	}
 }
 
 void APlantActor::GrowPlant()
 {
 	if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
 
-	switch (PlantType)
+	CurLevel += 1;
+
+	if (PlantState == EPlantState::Seed)
 	{
-	case EPlantType::Grape:
-		{
-			if (level == 4)
-			{
-				level = 3;
-				StartScaling();
-				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath1);
-				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath1));
-			}
-			else if (level == 3)
-			{
-				level = 2;
-				StartScaling();
-				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath2);
-				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath2));
-			}
-			else if (level == 2)
-			{
-				level = 1;
-				StartScaling();
-				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath3);
-				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
-			}
-			else if (level == 1)
-			{
-				level = 0;
-				StartScaling();
-				NewMesh = LoadObject<UStaticMesh>(nullptr, *GrapePath4);
-				// MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath4));
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Grape");
-			}
-			break;
-		}
-	case EPlantType::Sunflower:
-		{
-			if (level == 3)
-			{
-				level = 2;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath1));
-			}
-			else if (level == 2)
-			{
-				level = 1;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath2));
-			}
-			else if (level == 1)
-			{
-				level = 0;
-				MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *SunflowerPath3));
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Sunflower");
-			}
-			break;
-		}
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("Plant type error."));
+		PlantState = EPlantState::Growing;
 	}
+	else if (PlantState == EPlantState::Growing)
+	{
+		if (CurLevel > MaxGrowLevel)
+		{
+			PlantState = EPlantState::Mature;
+
+			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
+			StartScaling();
+			return;
+		}
+	}
+	else if (PlantState == EPlantState::Mature)
+	{
+		if (isRepeated)
+		{
+			HavestPlant();
+			return;
+		}
+		else
+		{
+			Destroyed();
+			return;
+		}
+	}
+	else if (PlantState == EPlantState::Havested)
+	{
+		if (CurLevel > MaxHavestLevel)
+		{
+			PlantState = EPlantState::Mature;
+
+			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
+			StartScaling();
+			return;
+		}
+	}
+
+	NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+	StartScaling();
 }
 
 void APlantActor::StartScaling()
 {
+	Ground->MoveCamera(true);
+
 	MeshComponent->SetWorldScale3D(InitialScale);
 
 	if (FloatCurve)
@@ -191,6 +200,8 @@ void APlantActor::OnTimelineFinished()
 {
 	NewMesh = nullptr;
 	isChanged = true;
+
+	Ground->MoveCamera(false);
 }
 
 void APlantActor::SetupTimeline()
@@ -210,45 +221,17 @@ void APlantActor::SetupTimeline()
 
 void APlantActor::HavestPlant()
 {
-	if (level == 0)
+	if (PlantState == EPlantState::Mature)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, "Havest Success");
+		PlantState = EPlantState::Havested;
 
-		switch (PlantType)
+		CurLevel = 1;
+
+		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.HavestedPath1);
+		if (NewMesh)
 		{
-		case EPlantType::Grape:
-		{
-			level = 1;
-			MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *GrapePath3));
-		}
-		case EPlantType::Sunflower:
-		{
-			Destroyed();
-		}
-		default:
-			UE_LOG(LogTemp, Warning, TEXT("Plant type error."));
+			MeshComponent->SetStaticMesh(NewMesh);
+			NewMesh = nullptr;
 		}
 	}
-}
-
-FPlantStruct APlantActor::GetPlantData(FName RowName)
-{
-	if (PlantDataTable)
-	{
-		static const FString ContextString(TEXT("Plant Data Context"));
-
-		// RowName을 사용하여 특정 행을 가져옵니다.
-		FPlantStruct* Row = PlantDataTable->FindRow<FPlantStruct>(RowName, ContextString);
-
-		if (!Row)
-		{
-			UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
-			return FPlantStruct();
-		}
-
-		return *Row;
-	}
-
-	UE_LOG(LogTemp, Error, TEXT("Data Table Error"));
-	return FPlantStruct();
 }

@@ -54,6 +54,36 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plant")
     FString HavestedPath2;
+
+    bool IsValid() const
+    {
+	    return !Name.IsEmpty();
+    }
+
+    FString GetPath(bool bGrow, int index) const
+    {
+	    if (bGrow)
+	    {
+		    switch (index)
+		    {
+		    case 1: return GrowPath1;
+		    case 2: return GrowPath2;
+		    case 3: return GrowPath3;
+            case 4: return MaturePath;
+		    default: return "";
+		    }
+	    }
+        else
+        {
+            switch (index)
+            {
+            case 1: return HavestedPath1;
+            case 2: return HavestedPath2;
+            case 3: return MaturePath;
+            default: return "";
+            }
+        }
+    }
 };
 
 UCLASS()
