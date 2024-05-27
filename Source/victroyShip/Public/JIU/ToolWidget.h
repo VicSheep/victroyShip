@@ -37,9 +37,12 @@ public:
 	class UButton* button_5;
 
 	///* Player *///
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class ATestCharacter* PP;
+	UPROPERTY(EditAnywhere, Category = "Target")
+	class UFarmerComponent* FarmerComponent;
 
+	void SetToolWidget(UFarmerComponent* fc);
+
+	///* Button Click *///
 	void ClickButton(int index);
 
 	UFUNCTION()

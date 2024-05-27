@@ -37,7 +37,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetPlantInfo(APlantActor* plant);
 
-	class AGroundActor* Ground;
+	UPROPERTY()
+	class AGroundActor* ground;
+
+	UPROPERTY()
+	class UFarmerComponent* UFarmerComponent;
 
 	///* Update Info *///
 	UFUNCTION()

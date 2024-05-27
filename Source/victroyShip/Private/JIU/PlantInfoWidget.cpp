@@ -32,7 +32,7 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 	{
 		if (plant->Ground)
 		{
-			this->Ground = plant->Ground;
+			this->ground = plant->Ground;
 		}
 
 		if (plant->PlantInfo.IsValid())
@@ -44,20 +44,20 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 
 void UPlantInfoWidget::UpdatePlantInfo()
 {
-	if (Ground)
+	if (ground)
 	{
-		bar_water->SetPercent(Ground->WaterFigure / 100.f);
-		bar_fertilizer->SetPercent(Ground->FertilizerFigure / 100.f);
+		bar_water->SetPercent(ground->WaterFigure / 100.f);
+		bar_fertilizer->SetPercent(ground->FertilizerFigure / 100.f);
 	}
 }
 
 void UPlantInfoWidget::ClickGrowButton()
 {
-	if (Ground)
+	if (ground)
 	{
-		if (Ground->Plant)
+		if (ground->Plant)
 		{
-			Ground->MoveCamera(true);
+			ground->MoveCamera(true);
 			// Ground->Plant->GrowPlant();
 		}
 	}

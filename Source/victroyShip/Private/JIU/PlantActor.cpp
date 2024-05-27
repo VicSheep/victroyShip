@@ -9,7 +9,6 @@
 #include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
-#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values

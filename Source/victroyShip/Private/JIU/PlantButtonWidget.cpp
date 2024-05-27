@@ -24,9 +24,9 @@ void UPlantButtonWidget::ClickButton()
 {
 	if (panel)
 	{
-		if (panel->ground)
+		if (panel->Ground)
 		{
-			panel->ground->PlantingSeed(id);
+			panel->Ground->PlantingSeed(id);
 		}
 
 		panel->SetVisibility(ESlateVisibility::Hidden);

@@ -4,16 +4,11 @@
 #include "JIU/ToolWidget.h"
 
 #include "Components/Button.h"
-#include "JIU/TestCharacter.h"
+#include "JIU/FarmerComponent.h"
 
 void UToolWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-    if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
-    {
-        PP = Cast<ATestCharacter>(pc->GetPawn());
-    }
 
     button_0->OnClicked.AddDynamic(this, &UToolWidget::Onclick0);
     button_1->OnClicked.AddDynamic(this, &UToolWidget::Onclick1);
@@ -24,13 +19,18 @@ void UToolWidget::NativeConstruct()
 
 }
 
+void UToolWidget::SetToolWidget(UFarmerComponent* fc)
+{
+    FarmerComponent = fc;
+}
+
 void UToolWidget::ClickButton(int index)
 {
     GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("equip %d"), index));
 
-    if (PP)
+    if (FarmerComponent)
     {
-	    PP->SwitchTool(index);
+        FarmerComponent->SwitchTool(index);
     }
 }
 

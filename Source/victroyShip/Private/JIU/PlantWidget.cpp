@@ -31,3 +31,8 @@ void UPlantWidget::CreateButtons()
 		slot->SetVerticalAlignment(VAlign_Fill);
 	}
 }
+
+void UPlantWidget::SetPlantWidget(AGroundActor* gound)
+{
+	Ground = gound;
+}

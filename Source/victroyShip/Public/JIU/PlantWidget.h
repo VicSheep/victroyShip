@@ -20,6 +20,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UUniformGridPanel* grid;
 
+	///* Player *///
+	UPROPERTY(EditAnywhere, Category = "Target")
+	class UFarmerComponent* FarmerComponent;
+
 	///* Create Buttons *///
 	UPROPERTY()
 	TArray<class UPlantButtonWidget*> Buttons;
@@ -32,5 +36,8 @@ public:
 
 	///* Plant *///
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class AGroundActor* ground;
+	class AGroundActor* Ground;
+
+	UFUNCTION()
+	void SetPlantWidget(AGroundActor* gound);
 };
