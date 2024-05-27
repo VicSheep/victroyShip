@@ -42,7 +42,6 @@ void UTalkComponent::CheckNearbyObjects(const FString& InputText)
 
 void UTalkComponent::SearchNearby(const FString& InputText)
 {
-	// ÀÌ¹Ì NPC¿Í ´ëÈ­ÁßÀÌ¶ó¸é ¹Ù·Î Åë½Å
 	ANPCBase* CurNPC = MyGameMode->GetCurNPC();
 	if(CurNPC)
 	{
@@ -109,7 +108,7 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 		TArray<TObjectPtr<APlantActor>> Plants;
 		for (FOverlapResult& Res : PlantResults)
 		{
-			// TArray¿¡ ÀúÀå
+			// TArrayï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			APlantActor* Plant = Cast<APlantActor>(Res.GetActor());
 			if(Plant)
 			{
