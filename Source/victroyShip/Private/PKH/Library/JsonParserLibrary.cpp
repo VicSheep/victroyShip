@@ -14,6 +14,6 @@ void UJsonParserLibrary::ParseNPCResponse(const FString& Data, FNPCResponse& Res
 		Response.Answer = JsonObj->GetStringField(TEXT("answer"));
 		Response.Emotion = JsonObj->GetStringField(TEXT("emotion"));
 		Response.FilePath = JsonObj->GetStringField(TEXT("file_path"));
-		Response.Likeability = JsonObj->GetIntegerField(TEXT("likability"));
+		Response.Likeability = JsonObj->GetIntegerField(TEXT("likeability"));
 	}
 }

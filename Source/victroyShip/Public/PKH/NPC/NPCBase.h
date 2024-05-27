@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PKH/Game/FarmLifeGameMode.h"
+#include "PKH/Interface/DateUpdate.h"
 #include "NPCBase.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
@@ -17,7 +19,7 @@ enum class ENPCType : uint8
 };
 
 UCLASS()
-class VICTROYSHIP_API ANPCBase : public ACharacter
+class VICTROYSHIP_API ANPCBase : public ACharacter, public IDateUpdate
 {
 	GENERATED_BODY()
 
@@ -39,6 +41,12 @@ protected:
 
 	UPROPERTY()
 	TMap<FString, FString> NPCNameMap;
+
+	UPROPERTY(EditAnywhere)
+	FVector HomeLoc = FVector();
+
+	UPROPERTY(EditAnywhere)
+	FVector TargetLoc = FVector();
 
 public:
 	void StartConversation();
@@ -71,20 +79,15 @@ public:
 	void PlayTTS(const FString& FilePath);
 
 
-// Talk To Player
+// Greeting
 protected:
-	FString GreetingText = TEXT("안녕하세요!");
-	FString GreetingEmotion = TEXT("joy");
-
-	FString NPCTTSPath = TEXT("");
-	bool IsRequestingTTS = false;
+	FString GreetingText = TEXT("안녕하세요, 저한테 친절하게 인사해주세요!");
+	bool HasIntendToGreeting = false;
 
 public:
-	void RequestTTS();
-	void SetTTSPath(const FString& NewTTSPath);
+	void InitGreeting();
 
-	void TalkToPlayer();
-
+	void GreetingToPlayer();
 
 // Name
 protected:
@@ -101,6 +104,9 @@ protected:
 	int32 CurLikeability = 0;
 
 	UPROPERTY(EditDefaultsOnly)
+	int32 FriendlyLikeability = 50;
+
+	UPROPERTY(EditDefaultsOnly)
 	int32 MaxLikeability = 100;
 
 public:
@@ -110,6 +116,8 @@ public:
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
+	bool IsFriendly() const;
+
 
 // Present
 protected:
@@ -120,4 +128,13 @@ protected:
 
 public:
 	void GivePresent(int32 NewItemId);
+
+// Job
+public:
+	virtual void DoJob();
+
+// Interface
+public:
+	virtual void OnDateUpdated(int32 NewDate) override;
+
 };

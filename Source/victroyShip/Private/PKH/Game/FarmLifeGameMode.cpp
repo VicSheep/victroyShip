@@ -199,37 +199,27 @@ void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArr
 #pragma endregion
 
 #pragma region Talk From NPC
-void AFarmLifeGameMode::RequestTTS(ANPCBase* NewNPC, const FString& InputText)
+void AFarmLifeGameMode::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
 {
-	CurNPC = NewNPC;
-	HttpActor->SendNPCText(CurNPC->GetNPCName(), InputText);
+	HttpActor->InitGreeting(NPCName, NPCText, Likeability);
 }
 
-void AFarmLifeGameMode::SetNPCTTS(const FString& NewTTSPath)
+void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)
+{
+	CurNPC = NewNPC;
+	HttpActor->RequestGreeting(CurNPC->GetNPCName());
+	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 {
 	if(nullptr == CurNPC)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[SetNPCTTS] CurNPC is null"));
 		return;
 	}
 
-	CurNPC->SetTTSPath(NewTTSPath);
-}
-
-void AFarmLifeGameMode::TalkToPlayer(const FString& InputText, const FString& NewEmotion)
-{
-	if (nullptr == CurNPC)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[TalkToPlayer] CurNPC is null"));
-		return;
-	}
-
-	// UI 갱신
-	if (ConversationUI->IsVisible())
-	{
-		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
-		CurNPC->SetCurEmotion(NewEmotion);
-	}
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	CurNPC->PlayTTS(NPCResponse.FilePath);
 }
 #pragma endregion
 

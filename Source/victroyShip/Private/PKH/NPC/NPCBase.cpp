@@ -49,8 +49,10 @@ void ANPCBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NPCController = CastChecked<ANPCController>(GetController());
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+
+	NPCController = CastChecked<ANPCController>(GetController());
+	NPCController->SetHomeLoc(HomeLoc);
 
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
@@ -60,6 +62,11 @@ void ANPCBase::BeginPlay()
 	// Media Player Initialize
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
+
+	if(CurLikeability >= FriendlyLikeability)
+	{
+		InitGreeting();
+	}
 
 	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
 	PlayTTS(DefaultPath);
@@ -123,27 +130,21 @@ void ANPCBase::OnPlayEnded()
 #pragma endregion
 
 
-#pragma region Talk To Player
-void ANPCBase::RequestTTS()
+#pragma region Greeting
+void ANPCBase::InitGreeting()
 {
-	MyGameMode->RequestTTS(this, GreetingText);
-	IsRequestingTTS = true;
+	MyGameMode->InitGreeting(NPCName, GreetingText, CurLikeability);
 }
 
-void ANPCBase::SetTTSPath(const FString& NewTTSPath)
+void ANPCBase::GreetingToPlayer()
 {
-	NPCTTSPath = NewTTSPath;
-	IsRequestingTTS = false;
+	MyGameMode->RequestGreetingData(this);
+	HasIntendToGreeting = false;
 }
 
-void ANPCBase::TalkToPlayer()
+bool ANPCBase::IsFriendly() const
 {
-	StartConversation();
-	MyGameMode->TalkToPlayer(GreetingText, GreetingEmotion);
-	if(false == IsRequestingTTS)
-	{
-		PlayTTS(NPCTTSPath);
-	}
+	return (CurLikeability >= FriendlyLikeability) && HasIntendToGreeting;
 }
 #pragma endregion
 
@@ -173,3 +174,18 @@ void ANPCBase::GivePresent(int32 NewItemId)
 	GameMode->SendText(TEXT("이거 선물이야, 받아줘!"), this);
 }
 #pragma endregion
+
+void ANPCBase::DoJob()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Do Job"), *NPCName);
+}
+
+void ANPCBase::OnDateUpdated(int32 NewDate)
+{
+	if(CurLikeability >= FriendlyLikeability)
+	{
+		HasIntendToGreeting = false;
+	}
+
+	SetActorLocation(HomeLoc);
+}

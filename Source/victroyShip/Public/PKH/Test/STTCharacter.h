@@ -78,4 +78,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString SpeechFileDir;
+
+	///* Tool *///
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int CurrentTool = 0;
+
+	UFUNCTION()
+	void SwitchTool(int index);
 };

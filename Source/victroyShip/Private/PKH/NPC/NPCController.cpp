@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "PKH/BT/BTNPCKey.h"
+#include "PKH/NPC/NPCBase.h"
 #include "PKH/Test/STTCharacter.h"
 
 #define TIME_LIMIT 3.0f
@@ -49,7 +50,12 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 	if(Stimulus.WasSuccessfullySensed())
 	{
-		ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
+		ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+		if(nullptr == NPC || false == NPC->IsFriendly())
+		{
+			return;
+		}
+
 		NPC->GetCharacterMovement()->MaxWalkSpeed = FastWalkSpeed;
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);

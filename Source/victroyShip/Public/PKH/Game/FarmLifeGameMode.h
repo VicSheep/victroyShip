@@ -89,11 +89,11 @@ public:
 
 // TalkFromNPC
 public:
-	void RequestTTS(class ANPCBase* NewNPC, const FString& InputText);
+	void InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability);
 
-	void SetNPCTTS(const FString& NewTTSPath);
+	void RequestGreetingData(class ANPCBase* NewNPC);
 
-	void TalkToPlayer(const FString& InputText, const FString& NewEmotion);
+	void GreetingToPlayer(const FNPCResponse& NPCResponse);
 
 // Time flow
 protected:

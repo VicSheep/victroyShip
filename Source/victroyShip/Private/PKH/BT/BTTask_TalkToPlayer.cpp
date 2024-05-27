@@ -28,6 +28,6 @@ EBTNodeResult::Type UBTTask_TalkToPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 		return EBTNodeResult::Failed;
 	}
 
-	NPC->TalkToPlayer();
+	NPC->GreetingToPlayer();
 	return EBTNodeResult::Succeeded;
 }

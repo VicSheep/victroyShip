@@ -11,13 +11,23 @@
 ANPC_Blacksmith::ANPC_Blacksmith()
 {
 	NPCName = TEXT("이춘식");
+
+	HomeLoc = FVector(720, -330, 88);
+	TargetLoc = FVector(-220, -330, 88);
 }
 
 void ANPC_Blacksmith::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NPCController->SetHomeLoc(HomeLoc);
+	
+}
+
+void ANPC_Blacksmith::DoJob()
+{
+	Super::DoJob();
+
+
 }
 
 void ANPC_Blacksmith::OnHourUpdated(int32 NewHour)
@@ -33,9 +43,5 @@ void ANPC_Blacksmith::OnHourUpdated(int32 NewHour)
 		NPCController->MoveToHome(); UE_LOG(LogTemp, Warning, TEXT("Chunsick Back Home"));
 		return;
 	}
-}
 
-void ANPC_Blacksmith::OnDateUpdated(int32 NewDate)
-{
-	SetActorLocation(HomeLoc);
 }

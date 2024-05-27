@@ -51,12 +51,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetTTS = TEXT("/get-tts");
 
-	// Request From NPC
+	// Greeting
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_SendNPCText = TEXT("/post-npc_text");
+	FString EndPoint_InitGreeting = TEXT("/init-greeting");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetNPCTTS = TEXT("/get-npc_tts");
+	FString EndPoint_PostGreeting = TEXT("/post-greeting");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetGreeting = TEXT("/get-greeting");
 
 	// End Chat
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -95,12 +98,15 @@ public:
 	void GetTTS();
 	void GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	// Request From NPC
-	void SendNPCText(const FString& NPCName, const FString& NPCText);
-	void SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	// Greeting
+	void InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability);
+	void InitGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	void GetNPCTTS();
-	void GetNPCTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	void RequestGreeting(const FString& NPCName);
+	void RequestGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetGreeting();
+	void GetGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// End Chat
 	void EndChat(const FString& NPCName);

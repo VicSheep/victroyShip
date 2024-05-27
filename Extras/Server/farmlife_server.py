@@ -359,7 +359,7 @@ async def init_greeting(data:NPC_Greeting_Input):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
     
-@app.post("post-greeting")
+@app.post("/post-greeting")
 async def post_greeting(npc_name:str):
     global requested_npc_name
     requested_npc_name = npc_name

@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate, public IDateUpdate
+class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate
 {
 	GENERATED_BODY()
 
@@ -22,16 +22,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-protected:
-	UPROPERTY(EditAnywhere)
-	FVector HomeLoc = FVector(720, -330, 88);
-
-	UPROPERTY(EditAnywhere)
-	FVector TargetLoc = FVector(-220, -330, 88);
+	virtual void DoJob() override;
 
 // Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;
-	virtual void OnDateUpdated(int32 NewDate) override;
 
 };
