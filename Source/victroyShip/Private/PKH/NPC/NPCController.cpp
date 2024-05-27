@@ -7,7 +7,12 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "PKH/BT/BTNPCKey.h"
+#include "PKH/Test/STTCharacter.h"
+
+#define TIME_LIMIT 3.0f
 
 ANPCController::ANPCController()
 {
@@ -22,13 +27,49 @@ ANPCController::ANPCController()
 	{
 		BTData = BTDataRef.Object;
 	}
+
+	SightComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("SightComp"));
 }
 
 void ANPCController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
+	SightComp->OnTargetPerceptionUpdated.AddDynamic(this, &ANPCController::OnSightUpdated);
+
 	RunAI();
+}
+
+void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	if(false == Actor->IsA<ASTTCharacter>()) // 추후 수정할 것
+	{
+		return;
+	}
+
+	if(Stimulus.WasSuccessfullySensed())
+	{
+		ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
+		NPC->GetCharacterMovement()->MaxWalkSpeed = FastWalkSpeed;
+
+		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
+		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
+		
+		GetWorldTimerManager().ClearTimer(SightHandle);
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(SightHandle, this, &ANPCController::OnLostPlayer, TIME_LIMIT, false);
+	}
+}
+
+void ANPCController::OnLostPlayer()
+{
+	ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
+	NPC->GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
+
+	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
+	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);
 }
 
 void ANPCController::RunAI()

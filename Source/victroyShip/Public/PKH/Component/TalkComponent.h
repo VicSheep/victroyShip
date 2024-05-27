@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "STTComponent.generated.h"
+#include "TalkComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class VICTROYSHIP_API USTTComponent : public UActorComponent
+class VICTROYSHIP_API UTalkComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	USTTComponent();
+	UTalkComponent();
 
 protected:
 	virtual void BeginPlay() override;

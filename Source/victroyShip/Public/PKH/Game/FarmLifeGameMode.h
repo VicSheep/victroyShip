@@ -87,6 +87,14 @@ public:
 
 	void TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
+// TalkFromNPC
+public:
+	void RequestTTS(class ANPCBase* NewNPC, const FString& InputText);
+
+	void SetNPCTTS(const FString& NewTTSPath);
+
+	void TalkToPlayer(const FString& InputText, const FString& NewEmotion);
+
 // Time flow
 protected:
 	FTimerHandle TimerHandle;

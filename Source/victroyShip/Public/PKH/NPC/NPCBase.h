@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,6 +7,14 @@
 #include "NPCBase.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
+
+UENUM()
+enum class ENPCType : uint8
+{
+	Mira = 0,
+	Junho,
+	Chunsik
+};
 
 UCLASS()
 class VICTROYSHIP_API ANPCBase : public ACharacter
@@ -22,6 +30,15 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
+
+	UPROPERTY(EditAnywhere)
+	ENPCType NPCType;
+
+	UPROPERTY()
+	TMap<FString, FString> NPCNameMap;
 
 public:
 	void StartConversation();
@@ -53,6 +70,22 @@ public:
 
 	void PlayTTS(const FString& FilePath);
 
+
+// Talk To Player
+protected:
+	FString GreetingText = TEXT("안녕하세요!");
+	FString GreetingEmotion = TEXT("joy");
+
+	FString NPCTTSPath = TEXT("");
+	bool IsRequestingTTS = false;
+
+public:
+	void RequestTTS();
+	void SetTTSPath(const FString& NewTTSPath);
+
+	void TalkToPlayer();
+
+
 // Name
 protected:
 	UPROPERTY(EditAnywhere)
@@ -64,7 +97,7 @@ public:
 
 // Likeability
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	int32 CurLikeability = 0;
 
 	UPROPERTY(EditDefaultsOnly)

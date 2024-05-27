@@ -50,7 +50,7 @@ public:
 	UFUNCTION()
 	void OnClicked_Exit();
 
-	void UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream = false);
+	void UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream = false, bool FromNPC = false);
 
 // Stream
 protected:

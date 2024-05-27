@@ -10,6 +10,7 @@
 
 #include "Sound/SoundWave.h"
 #include "Audio.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "PKH/NPC/NPCBase.h"
 #include "Serialization/EditorBulkData.h"
 
@@ -24,6 +25,8 @@ AHttpActor::AHttpActor()
 void AHttpActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ExtraPath = UKismetSystemLibrary::GetProjectDirectory() + ExtraFolder;
 
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 }
@@ -273,7 +276,77 @@ void AHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Respon
 		const FString& ResultText = Response->GetContentAsString();
 
 		// TTS 출력
-		MyGameMode->PlayTTS(ResultText.Mid(1, ResultText.Len() - 2));
+		const FString& FilePath = ExtraPath + ResultText.Mid(4, ResultText.Len() - 5);
+		MyGameMode->PlayTTS(FilePath);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region From NPC
+void AHttpActor::SendNPCText(const FString& NPCName, const FString& NPCText)
+{
+	const FString& FullURL = BaseURL + EndPoint_SendNPCText;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendNPCTextComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"npc_text\": \"%s\"}"), *NPCName, *NPCText);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Send npc text to %s"), *FullURL);
+}
+
+void AHttpActor::SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Send npc text Complete"));
+		GetNPCTTS();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::GetNPCTTS()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetNPCTTS;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetNPCTTSComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+}
+
+void AHttpActor::GetNPCTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		
 	}
 	else
 	{

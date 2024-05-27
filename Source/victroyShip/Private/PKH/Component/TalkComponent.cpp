@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PKH/Component/STTComponent.h"
+#include "PKH/Component/TalkComponent.h"
 
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
@@ -11,7 +11,7 @@
 #include "PKH/NPC/NPCBase.h"
 
 // Sets default values for this component's properties
-USTTComponent::USTTComponent()
+UTalkComponent::UTalkComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -20,7 +20,7 @@ USTTComponent::USTTComponent()
 	RecordFilePath = RecordFileDir + RecordFileName + TEXT(".wav");
 }
 
-void USTTComponent::BeginPlay()
+void UTalkComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -29,18 +29,18 @@ void USTTComponent::BeginPlay()
 }
 
 #pragma region Check Nearby
-void USTTComponent::CheckNearbyObjects()
+void UTalkComponent::CheckNearbyObjects()
 {
 	const FString Input = TEXT("");
 	SearchNearby(Input);
 }
 
-void USTTComponent::CheckNearbyObjects(const FString& InputText)
+void UTalkComponent::CheckNearbyObjects(const FString& InputText)
 {
 	SearchNearby(InputText);
 }
 
-void USTTComponent::SearchNearby(const FString& InputText)
+void UTalkComponent::SearchNearby(const FString& InputText)
 {
 	// 이미 NPC와 대화중이라면 바로 통신
 	ANPCBase* CurNPC = MyGameMode->GetCurNPC();
@@ -130,22 +130,22 @@ void USTTComponent::SearchNearby(const FString& InputText)
 #pragma endregion
 
 #pragma region Communication
-void USTTComponent::ConversationWithNPC(ANPCBase* NewNPC)
+void UTalkComponent::ConversationWithNPC(ANPCBase* NewNPC)
 {
 	MyGameMode->SendSpeech(RecordFileName, RecordFilePath, NewNPC);
 }
 
-void USTTComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& InputText)
+void UTalkComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& InputText)
 {
 	MyGameMode->SendText(InputText, NewNPC);
 }
 
-void USTTComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
+void UTalkComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
 	MyGameMode->TalkToPlant(RecordFileName, RecordFilePath, NewPlants);
 }
 
-void USTTComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& NewPlants, const FString& InputText)
+void UTalkComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& NewPlants, const FString& InputText)
 {
 	MyGameMode->TalkToPlantWithText(InputText, NewPlants);
 }

@@ -198,6 +198,41 @@ void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArr
 }
 #pragma endregion
 
+#pragma region Talk From NPC
+void AFarmLifeGameMode::RequestTTS(ANPCBase* NewNPC, const FString& InputText)
+{
+	CurNPC = NewNPC;
+	HttpActor->SendNPCText(CurNPC->GetNPCName(), InputText);
+}
+
+void AFarmLifeGameMode::SetNPCTTS(const FString& NewTTSPath)
+{
+	if(nullptr == CurNPC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[SetNPCTTS] CurNPC is null"));
+		return;
+	}
+
+	CurNPC->SetTTSPath(NewTTSPath);
+}
+
+void AFarmLifeGameMode::TalkToPlayer(const FString& InputText, const FString& NewEmotion)
+{
+	if (nullptr == CurNPC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[TalkToPlayer] CurNPC is null"));
+		return;
+	}
+
+	// UI 갱신
+	if (ConversationUI->IsVisible())
+	{
+		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
+		CurNPC->SetCurEmotion(NewEmotion);
+	}
+}
+#pragma endregion
+
 #pragma region Time flow
 void AFarmLifeGameMode::StartTime()
 {

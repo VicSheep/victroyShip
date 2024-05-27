@@ -4,7 +4,7 @@
 #include "PKH/Test/TextInputComponent.h"
 
 #include "Blueprint/UserWidget.h"
-#include "PKH/Component/STTComponent.h"
+#include "PKH/Component/TalkComponent.h"
 #include "PKH/UI/ChatUIWidget.h"
 
 UTextInputComponent::UTextInputComponent()
@@ -48,8 +48,8 @@ void UTextInputComponent::Chat()
 		{
 			return;
 		}
-
-		USTTComponent* STTComp = Cast<USTTComponent>(GetOwner()->GetComponentByClass(USTTComponent::StaticClass()));
+		
+		UTalkComponent* STTComp = Cast<UTalkComponent>(GetOwner()->GetComponentByClass(UTalkComponent::StaticClass()));
 		if(STTComp)
 		{
 			STTComp->CheckNearbyObjects(InputText);

@@ -18,17 +18,15 @@ ANPCBase::ANPCBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	AIControllerClass = ANPCController::StaticClass();
-	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	// AI Controller
+	static ConstructorHelpers::FClassFinder<ANPCController> NPCControllerClassRef(TEXT("/Game/PKH/Blueprint/BP_NPCController.BP_NPCController_C"));
+	if(NPCControllerClassRef.Class)
+	{
+		AIControllerClass = NPCControllerClassRef.Class;
+		AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	}
 
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
-
-	// Mesh
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT(""));
-	if(MeshRef.Object)
-	{
-		GetMesh()->SetSkeletalMesh(MeshRef.Object);
-	}
 
 	// Animation
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPC.ABP_NPC_C"));
@@ -41,6 +39,10 @@ ANPCBase::ANPCBase()
 
 	// Media Sound Component
 	MediaComp = CreateDefaultSubobject<UMediaSoundComponent>(TEXT("MediaComp"));
+
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), TEXT("미라"));
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), TEXT("이준호"));
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), TEXT("이춘식"));
 }
 
 void ANPCBase::BeginPlay()
@@ -48,10 +50,14 @@ void ANPCBase::BeginPlay()
 	Super::BeginPlay();
 
 	NPCController = CastChecked<ANPCController>(GetController());
+	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
 
+	NPCName = NPCNameMap[UEnum::GetValueAsString(NPCType)];
+
+	// Media Player Initialize
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
@@ -115,6 +121,32 @@ void ANPCBase::OnPlayEnded()
 	}
 }
 #pragma endregion
+
+
+#pragma region Talk To Player
+void ANPCBase::RequestTTS()
+{
+	MyGameMode->RequestTTS(this, GreetingText);
+	IsRequestingTTS = true;
+}
+
+void ANPCBase::SetTTSPath(const FString& NewTTSPath)
+{
+	NPCTTSPath = NewTTSPath;
+	IsRequestingTTS = false;
+}
+
+void ANPCBase::TalkToPlayer()
+{
+	StartConversation();
+	MyGameMode->TalkToPlayer(GreetingText, GreetingEmotion);
+	if(false == IsRequestingTTS)
+	{
+		PlayTTS(NPCTTSPath);
+	}
+}
+#pragma endregion
+
 
 #pragma region 호감도
 void ANPCBase::UpdateLikeability(int32 InLikeability)

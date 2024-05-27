@@ -28,7 +28,7 @@ void UNPCConversationWidget::OnClicked_Exit()
 	MyGameMode->CheckDateUpdate();
 }
 
-void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream)
+void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream, bool FromNPC)
 {
 	Txt_NPCName->SetText(FText::FromString(NPCName));
 
@@ -42,7 +42,7 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const 
 		{
 			CurText = NewConversation;
 			CurLen = 1;
-			CurConvState = EConvState::Player; 
+			CurConvState = FromNPC ? EConvState::NPC : EConvState::Player;
 			GetWorld()->GetTimerManager().SetTimer(StreamHandle, this, &UNPCConversationWidget::StreamText, StreamDeltaTime, true);
 		}
 	}

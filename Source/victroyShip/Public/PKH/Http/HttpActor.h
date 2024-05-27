@@ -51,9 +51,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetTTS = TEXT("/get-tts");
 
+	// Request From NPC
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_SendNPCText = TEXT("/post-npc_text");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetNPCTTS = TEXT("/get-npc_tts");
+
 	// End Chat
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_EndChat = TEXT("/end-chat");
+
+	// Extra Folder Directory
+	UPROPERTY(EditDefaultsOnly)
+	FString ExtraFolder = TEXT("Extras/");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString ExtraPath;
 
 public:
 	// STT
@@ -80,6 +94,13 @@ public:
 	// TTS
 	void GetTTS();
 	void GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Request From NPC
+	void SendNPCText(const FString& NPCName, const FString& NPCText);
+	void SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetNPCTTS();
+	void GetNPCTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// End Chat
 	void EndChat(const FString& NPCName);
