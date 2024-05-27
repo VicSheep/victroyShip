@@ -71,10 +71,8 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	///* Tool *///
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int CurrentTool = 0;
+	class UFarmerComponent* FarmerComponent;
 
-	UFUNCTION()
-	void SwitchTool(int index);
+	///* Tool *///
 };
