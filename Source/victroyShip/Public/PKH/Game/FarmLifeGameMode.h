@@ -6,6 +6,17 @@
 #include "GameFramework/GameModeBase.h"
 #include "FarmLifeGameMode.generated.h"
 
+USTRUCT()
+struct FNPCResponse
+{
+	GENERATED_BODY()
+
+	FString Answer;
+	FString Emotion;
+	FString FilePath;
+	int32 Likeability;
+};
+
 class UNPCConversationWidget;
 /**
  * 
@@ -20,6 +31,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	virtual void Tick(float DeltaSeconds) override;
 
 // Http
 protected:
@@ -38,34 +52,48 @@ protected:
 	TObjectPtr<class ANPCBase> CurNPC;
 
 	UPROPERTY(VisibleAnywhere)
-	TArray<TObjectPtr<AActor>> CurPlants;
+	TArray<TObjectPtr<class APlantActor>> CurPlants;
 
-// Initialize
-protected:
-	const FString& InitialName = TEXT("Speech");
-	const FString& InitialPath = TEXT("D:/Projects/victroyShip/Saved/BouncedWavFiles/Speech.wav");
-	const FString& InitialNPC = TEXT("미라");
-
-	void Initialize();
+public:
+	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
 
 // Conversation
 public:
 	// NPC conversation
 	void SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<class ANPCBase>& NewNPC);
 
-	void SetLatestSpeech(const FString& Response, const FString& FilePath);
+	void SetLatestSpeech(const FNPCResponse& Response);
 	FString& GetLatestSpeech();
 
 	void EndConversation();
 
+	// Player input text
+	void ShowPlayerText(const FString& PlayerInputText);
+
 	// NPC conversation by text
 	void SendText(const FString& InputText, const TObjectPtr<class ANPCBase>& NewNPC);
 
+	// Emotion
+	void PlayNPCEmotion();
+
+	// TTS
+	void PlayTTS(const FString& FilePath);
+
 	// Talk to plant
-	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants);
+	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
 	void SetTalkScore(int32 Score);
 	int32 GetTalkScore();
+
+	void TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
+
+// TalkFromNPC
+public:
+	void RequestTTS(class ANPCBase* NewNPC, const FString& InputText);
+
+	void SetNPCTTS(const FString& NewTTSPath);
+
+	void TalkToPlayer(const FString& InputText, const FString& NewEmotion);
 
 // Time flow
 protected:
@@ -81,7 +109,7 @@ protected:
 
 	const FRotator SunBeginRot = FRotator(200, 0, 0);
 	const FRotator SunEndRot = FRotator(350, 0, 0);
-	const FRotator SunDeltaRot = FRotator(2.5f, 0, 0);
+	const FRotator SunDeltaRot = FRotator(0.5f, 0, 0);
 
 	UFUNCTION()
 	void UpdateMinutes();
@@ -94,6 +122,14 @@ public:
 
 	void StartTime();
 	void StopTime();
+
+	UFUNCTION()
+	void OnNextDay();
+
+	UFUNCTION()
+	void OnFadeOutFinished();
+
+	void CheckDateUpdate();
 
 // TTS
 protected:

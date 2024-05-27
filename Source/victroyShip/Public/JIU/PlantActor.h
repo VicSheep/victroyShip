@@ -3,14 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlantStructure.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/Actor.h"
 #include "PlantActor.generated.h"
 
+class AGroundActor;
+
 UENUM()
-enum class EPlantType
+enum class EPlantState
 {
-	Grape,
-	Sunflower,
+	Seed,
+	Growing,
+	Mature,
+	Havested,
 };
 
 UCLASS()
@@ -32,6 +38,8 @@ public:
 
 	virtual void Destroyed() override;
 
+	int stateInt;
+
 	///* Component *///
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* BoxComponent;
@@ -39,12 +47,31 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
+	///* Data Table *///
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* PlantDataTable;
+
+	UFUNCTION()
+	FPlantStruct GetPlantData(FName RowName);
+
+	FString PlantDataTablePath = "/Game/JIU/Others/Datatable_Plant.Datatable_Plant";
+
+	///* Plant *///
+	UPROPERTY()
+	FPlantStruct PlantInfo;
+
+	UPROPERTY()
+	EPlantState PlantState;
+
+	bool isRepeated = false;
+
+	int MaxGrowLevel = -1;
+	int MaxHavestLevel = -1;
+	int CurLevel = 0;
+
 	///* Plant Seed *///
 	UFUNCTION()
 	void SetPlant(int id, AGroundActor* _ground);
-
-	UPROPERTY()
-	EPlantType PlantType;
 
 	UPROPERTY()
 	class AGroundActor* Ground;
@@ -53,21 +80,30 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GrowPlant();
 
+	UFUNCTION()
+	void StartScaling();
+
+	UFUNCTION()
+	void HandleProgress(float Value);
+
+	UFUNCTION()
+	void OnTimelineFinished();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* FloatCurve;
+
+	FTimeline MyTimeline;
+
+	FVector InitialScale = FVector(1.0f, 1.0f, 1.0f);
+	FVector MaxScale = FVector(1.0f, 1.0f, 1.0f);
+
 	UPROPERTY()
-	int state;
+	UStaticMesh* NewMesh;
+	bool isChanged = true;
+
+	void SetupTimeline();
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
-
-	///* Mesh pathes *///
-	FString GrapePath0 = "/Game/UltimateFarming/Meshes/SM_BambooHatch_B.SM_BambooHatch_B";
-	FString GrapePath1 = "/Game/UltimateFarming/Meshes/SM_Grape_Starter.SM_Grape_Starter";
-	FString GrapePath2 = "/Game/UltimateFarming/Meshes/SM_Grape_C_Harvested.SM_Grape_C_Harvested";
-	FString GrapePath3 = "/Game/UltimateFarming/Meshes/SM_Grape_A_Harvested.SM_Grape_A_Harvested"; // Havested
-	FString GrapePath4 = "/Game/UltimateFarming/Meshes/SM_Grape_A.SM_Grape_A";
-
-	FString SunflowerPath1 = "/Game/UltimateFarming/Meshes/SM_Sunflower_Starter.SM_Sunflower_Starter";
-	FString SunflowerPath2 = "/Game/UltimateFarming/Meshes/SM_Sunflower_C.SM_Sunflower_C";
-	FString SunflowerPath3 = "/Game/UltimateFarming/Meshes/SM_Sunflower_A.SM_Sunflower_A";
 };

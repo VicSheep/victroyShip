@@ -4,7 +4,7 @@
 #include "PKH/Test/TextInputComponent.h"
 
 #include "Blueprint/UserWidget.h"
-#include "PKH/Component/STTComponent.h"
+#include "PKH/Component/TalkComponent.h"
 #include "PKH/UI/ChatUIWidget.h"
 
 UTextInputComponent::UTextInputComponent()
@@ -32,28 +32,33 @@ void UTextInputComponent::BeginPlay()
 #pragma region 채팅 입력
 void UTextInputComponent::Chat()
 {
-	if(false == IsChatting)
+	if(false == InChatting)
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Visible);
 		ChatUI->Focus();
-		IsChatting = true;
+		InChatting = true;
 	}
 	else
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
-		IsChatting = false;
+		InChatting = false;
 
 		FString InputText = ChatUI->GetChatText();
 		if(InputText.IsEmpty())
 		{
 			return;
 		}
-
-		USTTComponent* STTComp = Cast<USTTComponent>(GetOwner()->GetComponentByClass(USTTComponent::StaticClass()));
+		
+		UTalkComponent* STTComp = Cast<UTalkComponent>(GetOwner()->GetComponentByClass(UTalkComponent::StaticClass()));
 		if(STTComp)
 		{
 			STTComp->CheckNearbyObjects(InputText);
 		}
 	}
+}
+
+bool UTextInputComponent::IsChatting() const
+{
+	return InChatting;
 }
 #pragma endregion

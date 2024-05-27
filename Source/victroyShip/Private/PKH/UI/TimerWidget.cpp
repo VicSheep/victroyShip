@@ -3,7 +3,9 @@
 
 #include "PKH/UI/TimerWidget.h"
 
+#include "Animation/WidgetAnimation.h"
 #include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
 
 UTimerWidget::UTimerWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -18,7 +20,7 @@ void UTimerWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-
+	
 }
 
 void UTimerWidget::UpdateTimerUI(int32 Date, int32 Hours, int32 Minutes)
@@ -31,4 +33,20 @@ void UTimerWidget::UpdateTimerUI(int32 Date, int32 Hours, int32 Minutes)
 
 	Txt_Date->SetText(FText::FromString(DateText));
 	Txt_Hour->SetText(FText::FromString(HourText));
+}
+
+void UTimerWidget::StartFadeOutAnim()
+{
+	PlayAnimation(FadeOut, 0, 1);
+}
+
+void UTimerWidget::StartFadeInAnim()
+{
+	PlayAnimation(FadeIn, 0, 1);
+}
+
+void UTimerWidget::BindOnFinished()
+{
+	BindToAnimationFinished(FadeOut, FadeOutFinished);
+	BindToAnimationFinished(FadeIn, FadeInFinished);
 }

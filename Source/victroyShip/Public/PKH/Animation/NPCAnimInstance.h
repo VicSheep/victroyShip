@@ -43,4 +43,23 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsFalling : 1;
+
+// Montage
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Conv;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UAnimMontage>> EmotionMontages;
+
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, int32> EmotionMap;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Indiff;
+
+public:
+	void PlayMontage_Conv();
+
+	void PlayMontage_Emotion(const FString& Emotion);
 };

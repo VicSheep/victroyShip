@@ -10,9 +10,7 @@ void UToolWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	APlayerController* pc = GetWorld()->GetFirstPlayerController();
-
-    if (pc)
+    if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
     {
         PP = Cast<ATestCharacter>(pc->GetPawn());
     }
@@ -22,11 +20,14 @@ void UToolWidget::NativeConstruct()
     button_2->OnClicked.AddDynamic(this, &UToolWidget::Onclick2);
     button_3->OnClicked.AddDynamic(this, &UToolWidget::Onclick3);
     button_4->OnClicked.AddDynamic(this, &UToolWidget::Onclick4);
+    button_5->OnClicked.AddDynamic(this, &UToolWidget::Onclick5);
 
 }
 
 void UToolWidget::ClickButton(int index)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, FString::Printf(TEXT("equip %d"), index));
+
     if (PP)
     {
 	    PP->SwitchTool(index);
@@ -56,4 +57,9 @@ void UToolWidget::Onclick3()
 void UToolWidget::Onclick4()
 {
     ClickButton(4);
+}
+
+void UToolWidget::Onclick5()
+{
+    ClickButton(5);
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "NPCController.generated.h"
 
 /**
@@ -27,7 +28,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UBlackboardComponent* BBComp;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAIPerceptionComponent> SightComp;
+
+	FTimerHandle SightHandle;
+
+	float NormalWalkSpeed = 150.0f;
+	float FastWalkSpeed = 400.0f;
+
+protected:
 	virtual void OnPossess(APawn* InPawn) override;
+
+	UFUNCTION()
+	void OnSightUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UFUNCTION()
+	void OnLostPlayer();
 
 public:
 	void RunAI();
@@ -36,7 +52,12 @@ public:
 	void StartConversation();
 	void EndConversation();
 
-	void MoveToTargetLoc();
-	void ReachTargetLoc();
+	void SetHomeLoc(const FVector& HomeLoc);
+	FVector GetHomeLoc() const;
+
+	void MoveToTargetLoc(const FVector& TargetLoc);
+	void MoveToHome();
+
+	
 
 };

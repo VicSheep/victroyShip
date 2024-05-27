@@ -44,5 +44,6 @@ public:
 	void UpdatePlantInfo();
 
 	///* Click Button *///
+	UFUNCTION()
 	void ClickGrowButton();
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "PKH/Game/FarmLifeGameMode.h"
 #include "JsonParserLibrary.generated.h"
 
 /**
@@ -15,5 +16,5 @@ class VICTROYSHIP_API UJsonParserLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	static void ParseNPCResponse(const FString& Data, FString& OutResponse, FString& OutPath);
+	static void ParseNPCResponse(const FString& Data, FNPCResponse& Response);
 };

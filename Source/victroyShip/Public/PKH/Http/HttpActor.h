@@ -26,33 +26,85 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString BaseURL = TEXT("http://127.0.0.1:8000");
 
+	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_SendSpeech = TEXT("/post-speech");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetSpeech = TEXT("/get-speech");
 
+	// ChatBot response
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_SendConv = TEXT("/post-conv");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetConv = TEXT("/get-conv");
+
+	// Direct text
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_SendText = TEXT("/post-text");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetText = TEXT("/get-text");
 
+	// TTS
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetTTS = TEXT("/get-tts");
+
+	// Request From NPC
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_SendNPCText = TEXT("/post-npc_text");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetNPCTTS = TEXT("/get-npc_tts");
+
+	// End Chat
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_EndChat = TEXT("/end-chat");
+
+	// Extra Folder Directory
+	UPROPERTY(EditDefaultsOnly)
+	FString ExtraFolder = TEXT("Extras/");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString ExtraPath;
+
 public:
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath, const FString& NPCName);
+	// STT
+	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	void SendText(const FString& NPCName, const FString& InputText);
+	// ChatBot response
+	void SendConv(const FString& NPCName, int32 Preference);
+	void SendConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetConv();
+	void GetConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Text
+	void SendText(const FString& NPCName, const FString& InputText, int32 Preference);
 	void SendTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetText();
 	void GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	//void GetSpeechFile();
-	//void GetSpeechFileComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	// TTS
+	void GetTTS();
+	void GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Request From NPC
+	void SendNPCText(const FString& NPCName, const FString& NPCText);
+	void SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetNPCTTS();
+	void GetNPCTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// End Chat
+	void EndChat(const FString& NPCName);
+	void EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 // Talk to plant
 protected:
@@ -60,12 +112,26 @@ protected:
 	FString EndPoint_TalkToPlant = TEXT("/post-talk2plant");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetScore = TEXT("/get-talk2plant");
+	FString EndPoint_GetSpeechScore = TEXT("/get-talk2plant");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_TextToPlant = TEXT("/post-text2plant");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetTextScore = TEXT("/get-text2plant");
 
 public:
+	// STT
 	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
 	void TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqScore();
 	void ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Text
+	void TalkToPlantWithText(const FString& InputText);
+	void TalkToPlantWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void ReqScoreWithText();
+	void ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 };

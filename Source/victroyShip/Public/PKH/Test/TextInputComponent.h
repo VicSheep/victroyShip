@@ -26,9 +26,12 @@ protected:
 	TObjectPtr<class UChatUIWidget> ChatUI;
 
 protected:
-	bool IsChatting = false;
+	bool InChatting = false;
 
 public:	
 	void Chat();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsChatting() const;
 		
 };

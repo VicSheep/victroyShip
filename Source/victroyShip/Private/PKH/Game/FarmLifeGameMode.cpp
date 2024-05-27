@@ -4,6 +4,7 @@
 #include "PKH/Game/FarmLifeGameMode.h"
 
 #include "Engine/DirectionalLight.h"
+#include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Http/HttpActor.h"
 #include "PKH/Interface/DateUpdate.h"
@@ -21,6 +22,7 @@
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	// Default Pawn & Controller
 
 
@@ -57,27 +59,28 @@ void AFarmLifeGameMode::BeginPlay()
 	SunLight = Cast<ADirectionalLight>(UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass()));
 	SunLight->SetActorRotation(SunBeginRot);
 
-	StartTime();
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TIME_UPDATE_INTERVAL, true, TIME_UPDATE_INTERVAL);
 
 	// UI
 	TimerUI = CreateWidget<UTimerWidget>(GetWorld(), TimerUIClass);
 	ensure(TimerUI);
 	TimerUI->AddToViewport();
 	TimerUI->UpdateTimerUI(Date, Hours, Minutes);
+	TimerUI->FadeOutFinished.BindDynamic(this, &AFarmLifeGameMode::OnNextDay);
+	TimerUI->FadeInFinished.BindDynamic(this, &AFarmLifeGameMode::OnFadeOutFinished);
+	TimerUI->BindOnFinished();
 
 	ConversationUI = CreateWidget<UNPCConversationWidget>(GetWorld(), ConversationUIClass);
 	ensure(ConversationUI);
 	ConversationUI->AddToViewport();
 	ConversationUI->SetVisibility(ESlateVisibility::Hidden);
-
-	// Initialize
-	Initialize();
 }
 
-// 모델 로딩을 위해 최초 1회 통신
-void AFarmLifeGameMode::Initialize()
+void AFarmLifeGameMode::Tick(float DeltaSeconds)
 {
-	HttpActor->SendSpeech(InitialName, InitialPath, InitialNPC);
+	Super::Tick(DeltaSeconds);
+
+	SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
 }
 
 #pragma region NPC conversation
@@ -86,32 +89,26 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
 
-	HttpActor->SendSpeech(FileName, FilePath, CurNPC->GetNPCName());
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
+	HttpActor->SendSpeech(FileName, FilePath);
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
-void AFarmLifeGameMode::SetLatestSpeech(const FString& Response, const FString& FilePath)
+void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
-	// 초기화용 호출이라면 바로 종료
-	if(nullptr == CurNPC)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Initialize Complete"));
-		return;
-	}
-
-	LatestSpeech = Response;
-	UE_LOG(LogTemp, Warning, TEXT("ReqText Complete : [%s] %s"), *CurNPC->GetNPCName(), *LatestSpeech);
+	LatestSpeech = Response.Answer;
 
 	// UI 갱신
 	if(ConversationUI->IsVisible())
 	{
-		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech);
-		CurNPC->LoadSpeechFileAndPlay(FilePath);
+		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
+		CurNPC->SetCurEmotion(Response.Emotion);
 	}
 
 	// 호감도 갱신
-
+	CurNPC->UpdateLikeability(Response.Likeability);
+	UE_LOG(LogTemp, Warning, TEXT("[%s's likeability] : %d"), *CurNPC->GetNPCName(), CurNPC->GetLikeability());
+	UE_LOG(LogTemp, Warning, TEXT("[%s's emotion] : %s"), *CurNPC->GetNPCName(), *Response.Emotion);
 }
 
 FString& AFarmLifeGameMode::GetLatestSpeech()
@@ -121,10 +118,19 @@ FString& AFarmLifeGameMode::GetLatestSpeech()
 
 void AFarmLifeGameMode::EndConversation()
 {
-	if(CurNPC)
+	if(nullptr == CurNPC)
 	{
-		CurNPC->EndConversation();
+		return;
 	}
+
+	CurNPC->EndConversation();
+	HttpActor->EndChat(CurNPC->GetNPCName());
+	CurNPC = nullptr;
+}
+
+void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
+{
+	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
 }
 
 // By Text
@@ -132,15 +138,31 @@ void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPC
 {
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
+	ShowPlayerText(InputText);
 
-	HttpActor->SendText(CurNPC->GetNPCName(), InputText);
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT(""));
+	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::PlayNPCEmotion()
+{
+	if(CurNPC)
+	{
+		CurNPC->PlayEmotion();
+	}
+}
+
+void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
+{
+	if(CurNPC)
+	{
+		CurNPC->PlayTTS(FilePath);
+	}
 }
 #pragma endregion
 
 #pragma region Talk to plant
-void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<AActor>>& NewPlants)
+void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
 	CurPlants = NewPlants;
 	HttpActor->TalkToPlant(FileName, FilePath);
@@ -148,11 +170,19 @@ void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& File
 
 void AFarmLifeGameMode::SetTalkScore(int32 Score)
 {
-	TalkScore = Score;
-	for(AActor* P : CurPlants)
+	if(Score == 0)
 	{
-		// 점수 반응
+		return;
+	}
 
+	const bool IsPositive = Score > 0;
+	for(APlantActor* P : CurPlants)
+	{
+		// 긍정적이라면 작물 성장
+		if(IsPositive)
+		{
+			P->GrowPlant();
+		}
 	}
 }
 
@@ -160,23 +190,100 @@ int32 AFarmLifeGameMode::GetTalkScore()
 {
 	return TalkScore;
 }
+
+void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<APlantActor>>& NewPlants)
+{
+	CurPlants = NewPlants;
+	HttpActor->TalkToPlantWithText(InputText);
+}
+#pragma endregion
+
+#pragma region Talk From NPC
+void AFarmLifeGameMode::RequestTTS(ANPCBase* NewNPC, const FString& InputText)
+{
+	CurNPC = NewNPC;
+	HttpActor->SendNPCText(CurNPC->GetNPCName(), InputText);
+}
+
+void AFarmLifeGameMode::SetNPCTTS(const FString& NewTTSPath)
+{
+	if(nullptr == CurNPC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[SetNPCTTS] CurNPC is null"));
+		return;
+	}
+
+	CurNPC->SetTTSPath(NewTTSPath);
+}
+
+void AFarmLifeGameMode::TalkToPlayer(const FString& InputText, const FString& NewEmotion)
+{
+	if (nullptr == CurNPC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[TalkToPlayer] CurNPC is null"));
+		return;
+	}
+
+	// UI 갱신
+	if (ConversationUI->IsVisible())
+	{
+		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
+		CurNPC->SetCurEmotion(NewEmotion);
+	}
+}
 #pragma endregion
 
 #pragma region Time flow
 void AFarmLifeGameMode::StartTime()
 {
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TIME_UPDATE_INTERVAL, true, TIME_UPDATE_INTERVAL);
+	GetWorldTimerManager().UnPauseTimer(TimerHandle);
+	Paused = false;
 }
 
 void AFarmLifeGameMode::StopTime()
 {
-	GetWorldTimerManager().ClearTimer(TimerHandle);
+	GetWorldTimerManager().PauseTimer(TimerHandle);
+	Paused = true;
+}
+
+// For Binding
+void AFarmLifeGameMode::OnNextDay()
+{
+	Hours = START_HOUR;
+	Minutes = 0;
+	++Date;
+	SunLight->SetActorRotation(SunBeginRot);
+
+	// 날짜 업데이트 일괄처리
+	TArray<AActor*> OutActors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UDateUpdate::StaticClass(), OutActors);
+	for (AActor* Actor : OutActors)
+	{
+		IDateUpdate* DU = Cast<IDateUpdate>(Actor);
+		DU->OnDateUpdated(Date);
+	}
+
+	TimerUI->UpdateTimerUI(Date, Hours, Minutes);
+	TimerUI->StartFadeInAnim();
+}
+// For Binding
+void AFarmLifeGameMode::OnFadeOutFinished()
+{
+	StartTime();
+}
+
+void AFarmLifeGameMode::CheckDateUpdate()
+{
+	if(Paused && Hours == END_HOUR)
+	{
+		UpdateDate();
+	}
 }
 
 void AFarmLifeGameMode::UpdateMinutes()
 {
 	Minutes += TEN_MINUTES;
-	SunLight->AddActorWorldRotation(SunDeltaRot);
+	
 	if(Minutes == SIXTY_MINUTES)
 	{
 		UpdateHours();
@@ -206,25 +313,15 @@ void AFarmLifeGameMode::UpdateHours()
 
 void AFarmLifeGameMode::UpdateDate()
 {
-	// 플레이어가 대화중이라면 보류
+	StopTime();
 
-
-	Hours = START_HOUR;
-	Minutes = 0;
-	++Date;
-	SunLight->SetActorRotation(SunBeginRot);
-
-	// 날짜 업데이트 일괄처리
-	TArray<AActor*> OutActors;
-	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UDateUpdate::StaticClass(), OutActors);
-	for (AActor* Actor : OutActors)
+	// 대화중이라면 업데이트 보류
+	if(ConversationUI->IsVisible())
 	{
-		IDateUpdate* HU = Cast<IDateUpdate>(Actor);
-		HU->OnDateUpdated(Date);
+		return;
 	}
+
+	// 페이드아웃
+	TimerUI->StartFadeOutAnim();
 }
-#pragma endregion
-
-#pragma region TTS
-
 #pragma endregion

@@ -16,9 +16,9 @@ void UPlantWidget::NativeConstruct()
 
 void UPlantWidget::CreateButtons()
 {
-	Buttons.SetNum(12);
+	Buttons.SetNum(16);
 
-	for (int i = 0; i < 12; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		int row = i / 4;
 		int col = i % 4;
