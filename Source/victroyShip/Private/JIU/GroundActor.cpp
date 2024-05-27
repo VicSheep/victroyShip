@@ -4,11 +4,13 @@
 #include "JIU/GroundActor.h"
 
 #include "TimerManager.h"
+#include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "JIU/PlantActor.h"
 #include "JIU/WeedActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Math/UnrealMathUtility.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -29,6 +31,10 @@ AGroundActor::AGroundActor()
 	ActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("ActorComponent"));
 	ActorComponent->SetupAttachment(RootComponent);
 	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetupAttachment(RootComponent);
+	CameraComponent->SetRelativeLocationAndRotation(FVector(-180.f, 0.f, 120.f), FRotator(-15.f, 0.f, 0.f));
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -55,10 +61,16 @@ void AGroundActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (PC)
+	{
+		PP = PC->GetPawn();
+	}
+
 	if (DefaultMaterialInterface)
 	{
 		MeshComponent->SetMaterial(0, DefaultMaterialInterface);
-		GroundState = EGroundState::Default;
+		SetGroundState(EGroundState::Default);
 	}
 
 	WeedActor = Cast<AWeedActor>(ActorComponent->GetChildActor());
@@ -72,7 +84,8 @@ void AGroundActor::BeginPlay()
 
 	FTimerHandle timerHandle;
 	GetWorldTimerManager().SetTimer(timerHandle, [&]() {
-		if(Plant)
+
+		if (Plant)
 		{
 			if (WaterFigure > 0.f)
 			{
@@ -86,20 +99,29 @@ void AGroundActor::BeginPlay()
 		}
 		else
 		{
+			if (Cushion < 5)
+			{
+				Cushion += 1;
+				return;
+			}
+
 			RandomNumber = FMath::RandRange(1, 100);
+			// UE_LOG(LogTemp, Warning, TEXT("%d"), RandomNumber);
 
 			if (GroundState == EGroundState::DryPlanter)
 			{
-				if (RandomNumber <= 10)
+				if (RandomNumber <= 20)
 				{
-					GroundState = EGroundState::Default;
+					Cushion = 0;
+					SetGroundState(EGroundState::Default);
 					MeshComponent->SetMaterial(0, DefaultMaterialInterface);
 				}
 			}
 			else if (GroundState == EGroundState::Default && !isWeed)
 			{
-				if (RandomNumber <= 10)
+				if (RandomNumber <= 20)
 				{
+					Cushion = 0;
 					isWeed = true;
 					if (WeedActor)
 					{
@@ -160,7 +182,8 @@ void AGroundActor::ProwGround()
 	{
 		if (GroundState == EGroundState::Default)
 		{
-			GroundState = EGroundState::DryPlanter;
+			SetGroundState(EGroundState::DryPlanter);
+			Cushion = 0;
 
 			if (DryMaterialInterface)
 			{
@@ -176,6 +199,33 @@ void AGroundActor::RemoveWeed()
 	{
 		isWeed = false;
 		WeedActor->SetVisible(false);
+		Cushion = 0;
+	}
+}
+
+void AGroundActor::MoveCamera(bool go)
+{
+	if (PC && PP)
+	{
+		// 카메라 전환을 부드럽게 하기 위한 블렌드 시간과 블렌드 함수 설정
+		float BlendTime = 0.5f;
+		EViewTargetBlendFunction BlendFunc = VTBlend_Cubic;
+		float BlendExp = 0.0f;
+		bool bLockOutgoing = false;
+
+		// 카메라 전환
+		if (go)
+		{
+			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+		}
+		else
+		{
+			PC->SetViewTargetWithBlend(PP, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Player Controller"));
 	}
 }
 
@@ -188,7 +238,7 @@ void AGroundActor::SetGroundMaterial()
 			if (WetMaterialInterface)
 			{
 				MeshComponent->SetMaterial(0, WetMaterialInterface);
-				GroundState = EGroundState::WetPlanter;
+				SetGroundState(EGroundState::WetPlanter);
 			}
 		}
 	}
@@ -200,8 +250,20 @@ void AGroundActor::SetGroundMaterial()
 			if (DryMaterialInterface)
 			{
 				MeshComponent->SetMaterial(0, DryMaterialInterface);
-				GroundState = EGroundState::DryPlanter;
+				SetGroundState(EGroundState::DryPlanter);
 			}
 		}
 	}
+}
+
+void AGroundActor::SetGroundState(EGroundState state)
+{
+	/*
+	if (state == EGroundState::Default && state == EGroundState::DryPlanter)
+	{
+		Cushion = 0;
+	}
+	*/
+
+	GroundState = state;
 }

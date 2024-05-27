@@ -44,10 +44,7 @@ void APlantActor::Tick(float DeltaTime)
 
 	MyTimeline.TickTimeline(DeltaTime);
 
-	/*stateInt = static_cast<int32>(PlantState);
-	UE_LOG(LogTemp, Error, TEXT("Plant State : %d"), stateInt);*/
-
-	UE_LOG(LogTemp, Error, TEXT("Plant State : %d"), CurLevel);
+	// UE_LOG(LogTemp, Error, TEXT("Plant State : %d"), CurLevel);
 }
 
 void APlantActor::Destroyed()
@@ -133,6 +130,8 @@ void APlantActor::GrowPlant()
 		{
 			PlantState = EPlantState::Mature;
 
+			// Ground->MoveCamera(true);
+
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
 			return;
@@ -201,6 +200,8 @@ void APlantActor::OnTimelineFinished()
 {
 	NewMesh = nullptr;
 	isChanged = true;
+
+	// Ground->MoveCamera(false);
 }
 
 void APlantActor::SetupTimeline()
