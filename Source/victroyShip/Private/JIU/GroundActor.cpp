@@ -203,7 +203,7 @@ void AGroundActor::RemoveWeed()
 	}
 }
 
-void AGroundActor::MoveCamera(bool go)
+void AGroundActor::MoveCamera(bool zoomin)
 {
 	if (PC && PP)
 	{
@@ -214,13 +214,15 @@ void AGroundActor::MoveCamera(bool go)
 		bool bLockOutgoing = false;
 
 		// 카메라 전환
-		if (go)
+		if (zoomin)
 		{
 			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+			UE_LOG(LogTemp, Warning, TEXT("Zoom In"));
 		}
 		else
 		{
 			PC->SetViewTargetWithBlend(PP, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+			UE_LOG(LogTemp, Warning, TEXT("Zoom Out"));
 		}
 	}
 	else

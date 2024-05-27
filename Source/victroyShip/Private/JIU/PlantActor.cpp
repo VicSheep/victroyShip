@@ -130,8 +130,6 @@ void APlantActor::GrowPlant()
 		{
 			PlantState = EPlantState::Mature;
 
-			// Ground->MoveCamera(true);
-
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
 			return;
@@ -168,6 +166,8 @@ void APlantActor::GrowPlant()
 
 void APlantActor::StartScaling()
 {
+	Ground->MoveCamera(true);
+
 	MeshComponent->SetWorldScale3D(InitialScale);
 
 	if (FloatCurve)
@@ -201,7 +201,7 @@ void APlantActor::OnTimelineFinished()
 	NewMesh = nullptr;
 	isChanged = true;
 
-	// Ground->MoveCamera(false);
+	Ground->MoveCamera(false);
 }
 
 void APlantActor::SetupTimeline()
