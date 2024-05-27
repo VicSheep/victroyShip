@@ -102,6 +102,8 @@ public:
 	bool isChanged = true;
 
 	void SetupTimeline();
+	
+	///* Particle *///
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
