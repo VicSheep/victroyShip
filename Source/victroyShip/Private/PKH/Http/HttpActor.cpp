@@ -119,7 +119,7 @@ void AHttpActor::SendText(const FString& NPCName, const FString& InputText, int3
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"preference\" : \"%d\"}"), *NPCName, *InputText, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"likeability\" : \"%d\"}"), *NPCName, *InputText, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -192,7 +192,7 @@ void AHttpActor::SendConv(const FString& NPCName, int32 Preference)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendConvComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"preference\": \"%d\"}"), *NPCName, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
