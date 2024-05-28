@@ -75,10 +75,13 @@ void UFarmerComponent::OpenInfoWidget()
 	{
 		if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Visible)
 		{
+			Ground->MoveCamera(false);
 			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			PlantInfoWidget->ground = nullptr;
 		}
 		else
 		{
+			Ground->MoveCamera(true);
 			PlantInfoWidget->SetVisibility(ESlateVisibility::Visible);
 			PlantInfoWidget->SetPlantInfo(Ground->Plant);
 		}
@@ -109,7 +112,7 @@ void UFarmerComponent::FarmingInteraction()
 	case 0:
 		if (Ground->Plant)
 		{
-			Ground->Plant->HavestPlant();
+			OpenInfoWidget();
 		}
 		else
 		{

@@ -66,6 +66,15 @@ void AGroundActor::BeginPlay()
 	if (PC)
 	{
 		PP = PC->GetPawn();
+
+		if (PP)
+		{
+			UActorComponent* comp = PP->GetComponentByClass(UPrimitiveComponent::StaticClass());
+			if (comp)
+			{
+				PrimitiveComponent = Cast<UPrimitiveComponent>(comp);
+			}
+		}
 	}
 
 	if (DefaultMaterialInterface)
@@ -248,10 +257,20 @@ void AGroundActor::MoveCamera(bool zoomin)
 			PP->SetActorRotation(LookAtRotation);
 
 			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+
+			if (PrimitiveComponent)
+			{
+				PrimitiveComponent->SetVisibility(false);
+			}
 		}
 		else
 		{
 			PC->SetViewTargetWithBlend(PP, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
+
+			if (PrimitiveComponent)
+			{
+				PrimitiveComponent->SetVisibility(true);
+			}
 		}
 	}
 	else

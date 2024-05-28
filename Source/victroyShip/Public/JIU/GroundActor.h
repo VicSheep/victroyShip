@@ -66,6 +66,9 @@ public:
 	UPROPERTY()
 	class APawn* PP;
 
+	UPROPERTY()
+	class UPrimitiveComponent* PrimitiveComponent;
+
 	///* Variable *///
 	EGroundState GroundState = EGroundState::Default;
 

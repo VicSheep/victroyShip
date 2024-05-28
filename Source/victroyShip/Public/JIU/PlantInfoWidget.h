@@ -33,6 +33,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UButton* button_grow;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* text_grow;
+
 	///* Set Info *///
 	UFUNCTION(BlueprintCallable)
 	void SetPlantInfo(APlantActor* plant);

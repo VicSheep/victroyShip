@@ -57,8 +57,30 @@ void UPlantInfoWidget::ClickGrowButton()
 	{
 		if (ground->Plant)
 		{
-			ground->MoveCamera(true);
-			// Ground->Plant->GrowPlant();
+			if (ground->Plant->PlantState == EPlantState::Mature)
+			{
+				ground->Plant->HavestPlant();
+
+				if (!ground->Plant)
+				{
+					this->SetVisibility(ESlateVisibility::Hidden);
+					ground->MoveCamera(false);
+					ground = nullptr;
+				}
+				else
+				{
+					text_grow->SetText(FText::FromString(TEXT("Grow Up")));
+				}
+			}
+			else
+			{
+				ground->Plant->GrowPlant();
+
+				if (ground->Plant->PlantState == EPlantState::Mature)
+				{
+					text_grow->SetText(FText::FromString(TEXT("Havest")));
+				}
+			}
 		}
 	}
 
