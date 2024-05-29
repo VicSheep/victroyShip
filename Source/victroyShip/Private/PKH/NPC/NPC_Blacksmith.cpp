@@ -3,39 +3,55 @@
 
 #include "PKH/NPC/NPC_Blacksmith.h"
 
+#include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
 
-#define HOUR_OUTSIDE 9
-#define HOUR_BACK_TO_HOME 10
+#define HOUR_GO_WORK 9
+#define HOUR_BACK_HOME 16
 
 ANPC_Blacksmith::ANPC_Blacksmith()
 {
-	NPCName = TEXT("이춘식");
+	NPCType = ENPCType::Chunsik;
+
+	HomeLoc = FVector(720, -330, 88);
+	WorkLoc = FVector(-220, -330, 88);
+
+	WorkRotation = FRotator(0, 90, 0);
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_BlacksmithWork.AM_BlacksmithWork'"));
+	if(Montage_WorkRef.Object)
+	{
+		Montage_Work = Montage_WorkRef.Object;
+	}
 }
 
 void ANPC_Blacksmith::BeginPlay()
 {
 	Super::BeginPlay();
 
-	NPCController->SetHomeLoc(HomeLoc);
+	
+}
+
+void ANPC_Blacksmith::DoJob()
+{
+	Super::DoJob();
+
+	
 }
 
 void ANPC_Blacksmith::OnHourUpdated(int32 NewHour)
 {
-	if(NewHour == HOUR_OUTSIDE)
+	if(NewHour == HOUR_GO_WORK)
 	{
-		NPCController->MoveToTargetLoc(TargetLoc); UE_LOG(LogTemp, Warning, TEXT("Chunsick Go Outside"));
+		NPCController->MoveToTargetLoc(WorkLoc);
+		NPCController->SetIsWorking(true);
 		return;
 	}
 
-	if (NewHour == HOUR_BACK_TO_HOME)
+	if (NewHour == HOUR_BACK_HOME)
 	{
-		NPCController->MoveToHome(); UE_LOG(LogTemp, Warning, TEXT("Chunsick Back Home"));
-		return;
+		NPCController->MoveToHome();
+		NPCController->SetIsWorking(false);
+		AnimInstance->StopSpecificMontage(Montage_Work);
 	}
-}
-
-void ANPC_Blacksmith::OnDateUpdated(int32 NewDate)
-{
-	SetActorLocation(HomeLoc);
 }

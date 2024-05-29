@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PKH/Game/FarmLifeGameMode.h"
+#include "PKH/Interface/DateUpdate.h"
 #include "NPCBase.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
@@ -13,11 +15,22 @@ enum class ENPCType : uint8
 {
 	Mira = 0,
 	Junho,
-	Chunsik
+	Chunsik,
+	Okja
+};
+
+UENUM()
+enum class EEmotion : uint8
+{
+	none = 0,
+	joy,
+	surprise,
+	sad,
+	anger
 };
 
 UCLASS()
-class VICTROYSHIP_API ANPCBase : public ACharacter
+class VICTROYSHIP_API ANPCBase : public ACharacter, public IDateUpdate
 {
 	GENERATED_BODY()
 
@@ -40,6 +53,9 @@ protected:
 	UPROPERTY()
 	TMap<FString, FString> NPCNameMap;
 
+	UPROPERTY(EditAnywhere)
+	FVector HomeLoc = FVector();
+
 public:
 	void StartConversation();
 	void EndConversation();
@@ -57,7 +73,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<class UMediaPlayer> MediaPlayer;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	FString CurEmotion;
 
 	UFUNCTION()
@@ -71,20 +87,15 @@ public:
 	void PlayTTS(const FString& FilePath);
 
 
-// Talk To Player
+// Greeting
 protected:
-	FString GreetingText = TEXT("안녕하세요!");
-	FString GreetingEmotion = TEXT("joy");
-
-	FString NPCTTSPath = TEXT("");
-	bool IsRequestingTTS = false;
+	FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
+	bool HasIntendToGreeting = false;
 
 public:
-	void RequestTTS();
-	void SetTTSPath(const FString& NewTTSPath);
+	void InitGreeting();
 
-	void TalkToPlayer();
-
+	void GreetingToPlayer();
 
 // Name
 protected:
@@ -101,6 +112,9 @@ protected:
 	int32 CurLikeability = 0;
 
 	UPROPERTY(EditDefaultsOnly)
+	int32 FriendlyLikeability = 50;
+
+	UPROPERTY(EditDefaultsOnly)
 	int32 MaxLikeability = 100;
 
 public:
@@ -110,6 +124,8 @@ public:
 	bool IsMaxLikeability();
 
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
+	bool IsFriendly() const;
+
 
 // Present
 protected:
@@ -118,6 +134,25 @@ protected:
 	int32 NormalItemValue = 3;
 	int32 PreferItemValue = 10;
 
+	UPROPERTY(EditDefaultsOnly)
+	FString PresentText = TEXT("이거 선물이야, 받아줘!");
+
 public:
 	void GivePresent(int32 NewItemId);
+
+// Job
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Work;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator WorkRotation;
+
+public:
+	virtual void DoJob();
+
+// Interface
+public:
+	virtual void OnDateUpdated(int32 NewDate) override;
+
 };

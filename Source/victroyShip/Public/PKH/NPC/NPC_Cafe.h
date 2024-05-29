@@ -5,18 +5,18 @@
 #include "CoreMinimal.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
-#include "NPC_Blacksmith.generated.h"
+#include "NPC_Cafe.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate
+class VICTROYSHIP_API ANPC_Cafe : public ANPCBase, public IHourUpdate
 {
 	GENERATED_BODY()
 
 public:
-	ANPC_Blacksmith();
+	ANPC_Cafe();
 
 protected:
 	virtual void BeginPlay() override;

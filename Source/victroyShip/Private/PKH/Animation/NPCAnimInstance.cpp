@@ -78,21 +78,57 @@ void UNPCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsFalling = MoveComp->IsFalling();
 }
 
-void UNPCAnimInstance::PlayMontage_Conv()
+void UNPCAnimInstance::PlayMontage_Conv(float PlayRate)
 {
-	StopAllMontages(0);
-	Montage_Play(Montage_Conv, 1.0f);
+	if(Montage_Conv)
+	{
+		Montage_Play(Montage_Conv, PlayRate);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[PlayMontage_Conv] Montage_Conv is null"));
+	}
 }
 
-void UNPCAnimInstance::PlayMontage_Emotion(const FString& Emotion)
+void UNPCAnimInstance::PlayMontage_Emotion(const FString& Emotion, float PlayRate)
 {
 	if(false == EmotionMap.Contains(Emotion))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("There is no emotion: %s"), *Emotion);
-		Montage_Play(Montage_Indiff, 1.0f);
+		if(Montage_Indiff)
+		{
+			Montage_Play(Montage_Indiff, PlayRate);
+		}
 		return;
 	}
 
 	const int32 Idx = EmotionMap[Emotion];
-	Montage_Play(EmotionMontages[Idx], 1.0f);
+	if(EmotionMontages[Idx])
+	{
+		Montage_Play(EmotionMontages[Idx], PlayRate);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PlayMontage_Emotion] %s montage is null"), *Emotion);
+	}
+}
+
+void UNPCAnimInstance::PlayMontage_Custom(UAnimMontage* NewMontage, float PlayRate)
+{
+	if (NewMontage)
+	{
+		Montage_Play(NewMontage, PlayRate);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[PlayMontage_Custom] Montage is null"));
+	}
+}
+
+void UNPCAnimInstance::StopSpecificMontage(UAnimMontage* TargetMontage, float BlendOutTime)
+{
+	if(GetCurrentActiveMontage() == TargetMontage)
+	{
+		Montage_Stop(BlendOutTime, TargetMontage);
+	}
 }

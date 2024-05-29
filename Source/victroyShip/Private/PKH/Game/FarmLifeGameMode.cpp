@@ -18,7 +18,7 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 5.0f
+#define TIME_UPDATE_INTERVAL 2.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -90,12 +90,17 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC->StartConversation();
 
 	HttpActor->SendSpeech(FileName, FilePath);
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 }
 
 void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
+	if(nullptr == CurNPC)
+	{
+		return;
+	}
+
 	LatestSpeech = Response.Answer;
 
 	// UI 갱신
@@ -130,7 +135,10 @@ void AFarmLifeGameMode::EndConversation()
 
 void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 {
-	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
+	if(CurNPC)
+	{
+		ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
+	}
 }
 
 // By Text
@@ -174,14 +182,14 @@ void AFarmLifeGameMode::SetTalkScore(int32 Score)
 	{
 		return;
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("Cur Plants Size: %d"), CurPlants.Num());
 	const bool IsPositive = Score > 0;
 	for(APlantActor* P : CurPlants)
 	{
 		// 긍정적이라면 작물 성장
 		if(IsPositive)
 		{
-			P->GrowPlant();
+			P->GrowPlant(); UE_LOG(LogTemp, Warning, TEXT("Grow Plant"));
 		}
 	}
 }
@@ -198,38 +206,28 @@ void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArr
 }
 #pragma endregion
 
-#pragma region Talk From NPC
-void AFarmLifeGameMode::RequestTTS(ANPCBase* NewNPC, const FString& InputText)
+#pragma region Greeting
+void AFarmLifeGameMode::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
 {
-	CurNPC = NewNPC;
-	HttpActor->SendNPCText(CurNPC->GetNPCName(), InputText);
+	HttpActor->InitGreeting(NPCName, NPCText, Likeability);
 }
 
-void AFarmLifeGameMode::SetNPCTTS(const FString& NewTTSPath)
+void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)
+{
+	CurNPC = NewNPC;
+	HttpActor->RequestGreeting(CurNPC->GetNPCName());
+	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 {
 	if(nullptr == CurNPC)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[SetNPCTTS] CurNPC is null"));
 		return;
 	}
 
-	CurNPC->SetTTSPath(NewTTSPath);
-}
-
-void AFarmLifeGameMode::TalkToPlayer(const FString& InputText, const FString& NewEmotion)
-{
-	if (nullptr == CurNPC)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[TalkToPlayer] CurNPC is null"));
-		return;
-	}
-
-	// UI 갱신
-	if (ConversationUI->IsVisible())
-	{
-		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
-		CurNPC->SetCurEmotion(NewEmotion);
-	}
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	CurNPC->PlayTTS(NPCResponse.FilePath);
 }
 #pragma endregion
 

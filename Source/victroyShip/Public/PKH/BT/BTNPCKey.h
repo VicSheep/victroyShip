@@ -7,6 +7,7 @@
 // Bool
 #define KEY_IN_CONV TEXT("InConversation")
 #define KEY_IS_MOVING TEXT("IsMoving")
+#define KEY_IS_WORKING TEXT("IsWorking")
 #define KEY_PLAYER_IN_SIGHT TEXT("IsPlayerInSight")
 // Object
 #define KEY_PLAYER TEXT("Player")

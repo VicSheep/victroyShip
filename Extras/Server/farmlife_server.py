@@ -21,7 +21,7 @@ from melo.api import TTS
 
 import time
 
-app = FastAPI() #uvicorn farmlife_server:app --reload
+app = FastAPI() #  uvicorn farmlife_server:app --reload
 
 load_dotenv()
 
@@ -37,16 +37,28 @@ class NPC_Name(fastapiBaseModel):
 class NPC_Input(fastapiBaseModel):
     npcName : str #대화할 npc 이름 입력, 해당 이름이 곧 세션이름, persona_ㅇㅇㅇ.txt 파일 필요
     question : str
-    preference : int
+    likeability : int
 
 # pydantic 모델 설정 - 출력양식
 class NPC_Output(LangChainBaseModel):
     answer: str = Field(description="요청에 대한 답변")
     emotion: str = Field(description="Respond to emotional changes caused by talking to humans with either joy, surprise, sadness, or anger.")
     #human과의 대화로 인한 감정의 변화를 기쁨, 놀람, 슬픔, 화남 중 하나로 응답할 것
-    likability: int = Field(description="Respond to the change in favorability from talking to a human as an integer between -10 and 10.")
+    likeability: int = Field(description="Respond to the change in favorability from talking to a human as an integer between -10 and 10.")
     #human과의 대화로 인한 호감도의 변화량을 -10 에서 10 사이의 정수로 응답할 것
     file_path: str = Field(description="답변 음성 파일 경로")
+
+# NPC 인사 설정
+class NPC_Greeting_Input(fastapiBaseModel):
+    npc_name : str
+    text : str
+    likeability : int
+
+class NPC_Greeting_Output(fastapiBaseModel):
+    npc_name : str
+    answer : str
+    file_path : str
+    likeability : int
 
 # 언어 모델 설정
 llm = ChatOpenAI(
@@ -126,7 +138,7 @@ def set_preference(intPref:int):
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
 # 목소리 딕셔너리
-voice_dict = {'미라':'ani', '이준호':'codingApple', '새로만듦':'codingApple', '이춘식':'rammus', '빈칸2':'hakers', '빈칸3':'hakers'}
+voice_dict = {'미라':'ani', '이준호':'codingApple', '김옥자':'hakers', '이춘식':'rammus', '빈칸2':'hakers', '빈칸3':'hakers'}
 
 def getChatLog(session_ids : str):#npc 개별로 채팅 기록 생성, 각각 기존의 채팅 내역을 기억하고 대화에 반영함.
     if session_ids not in session_store: # 세션 기록이 없을 경우 - 유저가 대화한 적이 없을 경우 -> 새 채팅창 생성
@@ -169,14 +181,20 @@ def summarizeChat(npcName):#지금까지의 대화를 요약 후 저장함, 기�
     return SC.content
 
 
+eng_name = {'미라':'Mira', '이준호':'Junho', '김옥자':'Okja', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
+
 def tts(response:NPC_Output, npc_name):
     begin_time = time.time()
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
-    voiceChange(wav_path, voice_dict[npc_name])#음성변조
-    response.file_path = wav_path
     end_time = time.time()
-    print(f'tts: {end_time - begin_time: .5f} sec')
-    return response.file_path
+    print(f'일반 tts: {end_time - begin_time: .5f} sec')
+
+    begin_time = time.time()
+    tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
+    voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
+    end_time = time.time()
+    print(f'변조 tts: {end_time - begin_time: .5f} sec')
+    return tts_path
 
 
 ### 목소리 변조
@@ -195,24 +213,24 @@ for voice in voice_ref_list:
     target_se, audio_name = se_extractor.get_se(reference_speaker, tone_color_converter, vad=False)
     voiceRefs[voice] = (target_se,audio_name)
 
+source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
+
 # src_path='outputs_v2/tmp.wav'
-def voiceChange(src_path:str,voiceRef:str):
-    source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
+def voiceChange(src_path:str, out_path:str, voiceRef:str):
+    # source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
     # Run the tone color converter
     target_se = voiceRefs[voiceRef][0]
-    audio_name = voiceRefs[voiceRef][1]
     encode_message = "@MyShell"
     tone_color_converter.convert(
         audio_src_path=src_path, #변조할 원본 음성
         src_se=source_se, #??
         tgt_se=target_se, #레퍼런스 음성
-        output_path=wav_path,#저장경로
+        output_path=out_path,#저장경로
         message=encode_message)
     
 ###한국어 특화 tts모델
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 model = TTS(language="KR", device=device)
-
 
 output_parser = StrOutputParser()
 
@@ -241,11 +259,11 @@ class STTData(fastapiBaseModel):
 class TextData(fastapiBaseModel):
     npc_name : str
     chat_text : str
-    preference : int
+    likeability : int
 
 class NPCData(fastapiBaseModel):
     npc_name : str
-    preference : int
+    likeability : int
 
 ## 식물 성장
 class STT2Plant(fastapiBaseModel):
@@ -273,8 +291,8 @@ def stt(name:str, path:str):
         print(f'stt: {end_time - begin_time: .5f} sec')
         return text
 
-latest_dict = {}
 
+latest_dict = {}
 
 # NPC 대화
 @app.post("/post-speech")
@@ -297,7 +315,7 @@ async def post_conv(data:NPCData):
     try:
         global latest_dict, latest_npc_name
         latest_npc_name = data.npc_name
-        latest_dict = talk2npc(data.npc_name, latest_speech, data.preference)
+        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability)
         return latest_dict
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
@@ -310,12 +328,12 @@ async def get_conv():
 
 ## NPC 대화(텍스트)
 @app.post("/post-text")
-async def post_speech(data:TextData):
+async def post_text(data:TextData):
     try:
         global latest_speech, latest_dict, latest_npc_name
         latest_speech = data.chat_text
         latest_npc_name = data.npc_name
-        latest_dict = talk2npc(data.npc_name, latest_speech, data.preference)
+        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability)
         return latest_dict
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
@@ -331,7 +349,32 @@ async def get_text():
 async def get_tts():
     return tts(latest_dict, latest_npc_name)
 
-#### NPC 대화 기록 지우기
+
+#### NPC 인사 초기화
+greetings = {}
+requested_npc_name = ""
+
+@app.post("/init-greeting")
+async def init_greeting(data:NPC_Greeting_Input):
+    try:
+        greeting = talk2npc(data.npc_name, data.text, data.likeability)
+        greeting.file_path = tts(greeting, data.npc_name)
+        greetings[data.npc_name] = greeting
+        return greetings[data.npc_name]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"{str(e)}")
+    
+@app.post("/post-greeting")
+async def post_greeting(data:NPC_Name):
+    global requested_npc_name
+    requested_npc_name = data.npc_name
+
+@app.get("/get-greeting")
+async def get_greeting():
+    return greetings[requested_npc_name]
+
+
+##### NPC 대화 기록 지우기
 @app.post("/end-chat")
 def end_chat(data:NPC_Name):
     return summarizeChat(data.npc_name)

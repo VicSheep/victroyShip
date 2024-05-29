@@ -119,7 +119,7 @@ void AHttpActor::SendText(const FString& NPCName, const FString& InputText, int3
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"preference\" : \"%d\"}"), *NPCName, *InputText, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"likeability\" : \"%d\"}"), *NPCName, *InputText, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -192,7 +192,7 @@ void AHttpActor::SendConv(const FString& NPCName, int32 Preference)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendConvComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"preference\": \"%d\"}"), *NPCName, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Preference);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -289,33 +289,32 @@ void AHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Respon
 }
 #pragma endregion
 
-#pragma region From NPC
-void AHttpActor::SendNPCText(const FString& NPCName, const FString& NPCText)
+#pragma region Greeting
+void AHttpActor::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
 {
-	const FString& FullURL = BaseURL + EndPoint_SendNPCText;
+	const FString& FullURL = BaseURL + EndPoint_InitGreeting;
 
 	// HTTP Request
 	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
 	HttpRequest->SetVerb(TEXT("POST"));
 	HttpRequest->SetURL(FullURL);
 	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::SendNPCTextComplete);
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::InitGreetingComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"npc_text\": \"%s\"}"), *NPCName, *NPCText);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"text\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, *NPCText, Likeability);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
 
-	UE_LOG(LogTemp, Warning, TEXT("Send npc text to %s"), *FullURL);
+	UE_LOG(LogTemp, Warning, TEXT("Init Greeting: %s"), *NPCName);
 }
 
-void AHttpActor::SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+void AHttpActor::InitGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
 	if (bConnectedSuccessfully)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Send npc text Complete"));
-		GetNPCTTS();
+		UE_LOG(LogTemp, Warning, TEXT("Init Greeting Complete"));
 	}
 	else
 	{
@@ -326,27 +325,69 @@ void AHttpActor::SendNPCTextComplete(FHttpRequestPtr Request, FHttpResponsePtr R
 	}
 }
 
-void AHttpActor::GetNPCTTS()
+void AHttpActor::RequestGreeting(const FString& NPCName)
 {
-	const FString& FullURL = BaseURL + EndPoint_GetNPCTTS;
+	const FString& FullURL = BaseURL + EndPoint_PostGreeting;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::RequestGreetingComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\"}"), *NPCName);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Request Greeting to %s"), *FullURL);
+}
+
+void AHttpActor::RequestGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Request Greeting Complete"));
+		GetGreeting();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void AHttpActor::GetGreeting()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetGreeting;
 
 	// HTTP Request
 	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
 	HttpRequest->SetVerb(TEXT("GET"));
 	HttpRequest->SetURL(FullURL);
 	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetNPCTTSComplete);
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &AHttpActor::GetGreetingComplete);
 
 	HttpRequest->ProcessRequest();
-	UE_LOG(LogTemp, Warning, TEXT("Req to %s"), *FullURL);
+	UE_LOG(LogTemp, Warning, TEXT("Get Greeting From %s"), *FullURL);
 }
 
-void AHttpActor::GetNPCTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+void AHttpActor::GetGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+		UE_LOG(LogTemp, Warning, TEXT("Get Greeting Complete: %s"), *NPCResponse.Answer);
+
+		// 경로 수정
+		NPCResponse.FilePath = ExtraPath + NPCResponse.FilePath.Mid(3, NPCResponse.FilePath.Len() - 3);
+		MyGameMode->GreetingToPlayer(NPCResponse);
 	}
 	else
 	{
@@ -453,8 +494,9 @@ void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Resp
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
-		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+		const int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %d"), Score);
+		MyGameMode->SetTalkScore(Score);
 	}
 	else
 	{
@@ -525,8 +567,9 @@ void AHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponse
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
-		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+		const int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %d"), Score);
+		MyGameMode->SetTalkScore(Score);
 	}
 	else
 	{

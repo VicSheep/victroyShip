@@ -132,3 +132,8 @@ void ASTTCharacter::Chat(const FInputActionValue& Value)
 {
 	ChatComp->Chat();
 }
+
+void ASTTCharacter::SwitchTool(int index)
+{
+	CurrentTool = index;
+}
