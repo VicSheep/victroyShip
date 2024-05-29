@@ -7,7 +7,7 @@
 AFarmLifeOjsGameModeBase::AFarmLifeOjsGameModeBase()
 {
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/OJS/Player/BP_FarmLifeOjsPlayerCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
+	if (PlayerPawnBPClass.Class != NULL)                      
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
