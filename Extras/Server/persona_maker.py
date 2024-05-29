@@ -34,20 +34,20 @@ objective
 
 ####################### 만들고자 하는 npc 컨셉 적기 #######################
 
-npc_name = "이춘식"
-persona = f"말수가 적고 무뚝뚝하며, 질문에 반말로 답변하며 이름이 {npc_name}인 중년 대장장이 아저씨 npc의 페르소나를 만드시오."
+npc_name = "릴리"
+persona = f"Create me the persona of a young female farmer who has a high affinity for talking to me in half words. Her name is {npc_name}"
 
 #########################################################################
 
 system_content = persona_prompt
 completion = client.chat.completions.create(
-    model="gpt-4-turbo",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": system_content},
         {"role": "user", "content": persona}
     ],
-    temperature=0.5,
-    max_tokens=1000
+    temperature=1.0,
+    max_tokens=1500
 )
 msg = completion.choices[0].message
 
@@ -67,18 +67,18 @@ with open(persona_path, 'w', encoding='UTF-8-sig') as file:
 
 npcPersona = msg.content
 
-sysprom = """주어지는 페르소나를 기반으로 해당 인물이 할 법한 한국어 대사 예시를 호감도별로 각각 5개씩 작성하시오. 대사 예시의 말투, 대화 길이는 대화 상대와의 호감도에 따라 달라집니다.
+sysprom = """Based on the persona given, write 5 examples of Korean dialogue that the person is likely to say, each for each favorability. The tone of the example dialogue and the length of the conversation will depend on how likable you are with the person you are talking to.
 호감도 낮은 경우 (낯선 사람 또는 처음 만난 사람)
 호감도 중간 (친해지고 있는 이웃 또는 지인)
 호감도 높은 경우 (친한 친구 또는 가까운 사람)
 """
 completion = client.chat.completions.create(
-    model="gpt-4-turbo",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": sysprom},
         {"role": "user", "content": npcPersona}
     ],
-    temperature=0.5,
+    temperature=1.0,
     max_tokens=1000
 )
 result_text = completion.choices[0].message.content
