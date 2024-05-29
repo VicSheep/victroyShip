@@ -5,6 +5,8 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "PKH/BT/BTNPCKey.h"
+#include "PKH/Component/TalkComponent.h"
 #include "PKH/NPC/NPCBase.h"
 
 UBTTask_TalkToPlayer::UBTTask_TalkToPlayer()
@@ -24,6 +26,24 @@ EBTNodeResult::Type UBTTask_TalkToPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	ANPCBase* NPC = Cast <ANPCBase>(OwnerPawn);
 	if(nullptr == NPC)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
+	if(nullptr == BBComp)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	AActor* Player = Cast<AActor>(BBComp->GetValueAsObject(KEY_PLAYER));
+	if(nullptr == Player)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	UTalkComponent* TalkComp = Cast<UTalkComponent>(Player->GetComponentByClass(UTalkComponent::StaticClass()));
+	if(nullptr == TalkComp || TalkComp->IsInConversation())
 	{
 		return EBTNodeResult::Failed;
 	}

@@ -494,8 +494,9 @@ void AHttpActor::ReqScoreComplete(FHttpRequestPtr Request, FHttpResponsePtr Resp
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %s"), *ResultText);
-		MyGameMode->SetTalkScore(FCString::Atoi(*ResultText));
+		const int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
+		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %d"), Score);
+		MyGameMode->SetTalkScore(Score);
 	}
 	else
 	{
@@ -566,7 +567,7 @@ void AHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponse
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
-		int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
+		const int32 Score = FCString::Atoi(*ResultText.Mid(1, ResultText.Len() - 2));
 		UE_LOG(LogTemp, Warning, TEXT("Talk to plant score : %d"), Score);
 		MyGameMode->SetTalkScore(Score);
 	}

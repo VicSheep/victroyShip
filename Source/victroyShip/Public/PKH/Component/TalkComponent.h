@@ -36,6 +36,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString RecordFilePath;
 
+// Search target to do conversation 
 protected:
 	void SearchNearby(const FString& InputText);
 
@@ -45,11 +46,19 @@ public:
 
 	void CheckNearbyObjects(const FString& InputText);
 
+// Conversation
 protected:
 	void ConversationWithNPC(class ANPCBase* NewNPC);
 	void ConversationWithNPCByText(class ANPCBase* NewNPC, const FString& InputText);
 
 	void TalkToPlant(const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 	void TalkToPlantByText(const TArray<TObjectPtr<class APlantActor>>& NewPlants, const FString& InputText);
+
+	bool InConversation = false;
+
+public:
+	FORCEINLINE void StartConversation() { InConversation = true; };
+	FORCEINLINE void EndConversation() { InConversation = false; };
+	FORCEINLINE bool IsInConversation() const { return InConversation; }
 		
 };

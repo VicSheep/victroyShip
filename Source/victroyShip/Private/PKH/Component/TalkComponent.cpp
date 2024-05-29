@@ -129,21 +129,25 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 #pragma region Communication
 void UTalkComponent::ConversationWithNPC(ANPCBase* NewNPC)
 {
+	InConversation = true;
 	MyGameMode->SendSpeech(RecordFileName, RecordFilePath, NewNPC);
 }
 
 void UTalkComponent::ConversationWithNPCByText(ANPCBase* NewNPC, const FString& InputText)
 {
+	InConversation = true;
 	MyGameMode->SendText(InputText, NewNPC);
 }
 
 void UTalkComponent::TalkToPlant(const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
+	InConversation = true;
 	MyGameMode->TalkToPlant(RecordFileName, RecordFilePath, NewPlants);
 }
 
 void UTalkComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& NewPlants, const FString& InputText)
 {
+	InConversation = true;
 	MyGameMode->TalkToPlantWithText(InputText, NewPlants);
 }
 #pragma endregion

@@ -5,12 +5,14 @@
 
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
+#include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/NPC/NPCBase.h"
 
 UNPCConversationWidget::UNPCConversationWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-
+	
 }
 
 void UNPCConversationWidget::NativeConstruct()
@@ -18,14 +20,43 @@ void UNPCConversationWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+
 	Btn_Exit->OnClicked.AddDynamic(this, &UNPCConversationWidget::OnClicked_Exit);
+	OnVisibilityChanged.AddDynamic(this, &UNPCConversationWidget::OnHidden);
 }
 
 void UNPCConversationWidget::OnClicked_Exit()
 {
 	MyGameMode->EndConversation();
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if(Player)
+	{
+		UTalkComponent* TalkComp = Cast<UTalkComponent>(Player->GetComponentByClass(UTalkComponent::StaticClass()));
+		if(TalkComp)
+		{
+			TalkComp->EndConversation();
+		}
+	}
+
 	SetVisibility(ESlateVisibility::Hidden);
 	MyGameMode->CheckDateUpdate();
+}
+
+void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)
+{
+	if(InVisibility != ESlateVisibility::Hidden)
+	{
+		return;
+	}
+
+	// 텍스트 스트림 중이라면 해제
+	if (GetWorld()->GetTimerManager().IsTimerActive(StreamHandle)) 
+	{
+		GetWorld()->GetTimerManager().ClearTimer(StreamHandle);
+		UE_LOG(LogTemp, Error, TEXT("Stream Stop"));
+		Txt_Conversation->SetText(FText::FromString(TEXT("")));
+		CurConvState = EConvState::None;
+	}
 }
 
 void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream, bool FromNPC)

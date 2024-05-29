@@ -59,7 +59,11 @@ protected:
 	TObjectPtr<class UAnimMontage> Montage_Indiff;
 
 public:
-	void PlayMontage_Conv();
+	void PlayMontage_Conv(float PlayRate = 1.0f);
 
-	void PlayMontage_Emotion(const FString& Emotion);
+	void PlayMontage_Emotion(const FString& Emotion, float PlayRate = 1.0f);
+
+	void PlayMontage_Custom(class UAnimMontage* NewMontage, float PlayRate = 1.0f);
+
+	void StopSpecificMontage(class UAnimMontage* TargetMontage, float BlendOutTime = 0.0f);
 };

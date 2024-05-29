@@ -41,6 +41,8 @@ void ANPCController::OnPossess(APawn* InPawn)
 	RunAI();
 }
 
+
+#pragma region AI Perception 
 void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if(false == Actor->IsA<ASTTCharacter>()) // 추후 수정할 것
@@ -48,14 +50,19 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 		return;
 	}
 
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if (nullptr == NPC || false == NPC->IsFriendly())
+	{
+		return;
+	}
+
+	if(BBComp->GetValueAsBool(KEY_IS_WORKING))
+	{
+		return;
+	}
+
 	if(Stimulus.WasSuccessfullySensed())
 	{
-		ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
-		if(nullptr == NPC || false == NPC->IsFriendly())
-		{
-			return;
-		}
-
 		NPC->GetCharacterMovement()->MaxWalkSpeed = FastWalkSpeed;
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
@@ -71,13 +78,21 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 void ANPCController::OnLostPlayer()
 {
+	// 이미 실행됐다면 스킵
+	if(nullptr == BBComp->GetValueAsObject(KEY_PLAYER))
+	{
+		return;
+	}
+
 	ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
 	NPC->GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);
 }
+#pragma endregion
 
+#pragma region Run / Stop AI
 void ANPCController::RunAI()
 {
 	BBComp = Blackboard;
@@ -98,17 +113,22 @@ void ANPCController::StopAI()
 		BTComp->StopTree();
 	}
 }
+#pragma endregion
 
+#pragma region Conversation
 void ANPCController::StartConversation()
 {
-	BBComp->SetValueAsBool(KEY_IN_CONV, true);
+	BBComp->SetValueAsBool(KEY_IN_CONV, true); UE_LOG(LogTemp, Log, TEXT("StartConversation() In Controller"));
 }
 
 void ANPCController::EndConversation()
 {
 	BBComp->SetValueAsBool(KEY_IN_CONV, false);
+	OnLostPlayer();
 }
+#pragma endregion
 
+#pragma region Location
 void ANPCController::SetHomeLoc(const FVector& HomeLoc)
 {
 	BBComp->SetValueAsVector(KEY_HOME_LOC, HomeLoc);
@@ -130,4 +150,16 @@ void ANPCController::MoveToHome()
 FVector ANPCController::GetHomeLoc() const
 {
 	return BBComp->GetValueAsVector(KEY_HOME_LOC);
+}
+#pragma endregion
+
+
+void ANPCController::SetIsWorking(bool InIsWorking)
+{
+	IsWorking = InIsWorking;
+	// 일 종료인 경우에는 바로 키까지 변경
+	if(false == IsWorking)
+	{
+		BBComp->SetValueAsBool(KEY_IS_WORKING, false);
+	}
 }

@@ -5,18 +5,18 @@
 #include "CoreMinimal.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
-#include "NPC_Blacksmith.generated.h"
+#include "NPC_Artist.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class VICTROYSHIP_API ANPC_Blacksmith : public ANPCBase, public IHourUpdate
+class VICTROYSHIP_API ANPC_Artist : public ANPCBase, public IHourUpdate
 {
 	GENERATED_BODY()
 
 public:
-	ANPC_Blacksmith();
+	ANPC_Artist();
 
 protected:
 	virtual void BeginPlay() override;
@@ -26,10 +26,12 @@ protected:
 // Locations
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	FVector WorkLoc;
+	FVector HillLoc;
+
+	UPROPERTY(EditDefaultsOnly)
+	FVector ParkLoc;
 
 // Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;
-
 };

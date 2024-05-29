@@ -138,7 +138,7 @@ def set_preference(intPref:int):
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
 # 목소리 딕셔너리
-voice_dict = {'미라':'ani', '이준호':'codingApple', '새로만듦':'codingApple', '이춘식':'rammus', '빈칸2':'hakers', '빈칸3':'hakers'}
+voice_dict = {'미라':'ani', '이준호':'codingApple', '김옥자':'hakers', '이춘식':'rammus', '빈칸2':'hakers', '빈칸3':'hakers'}
 
 def getChatLog(session_ids : str):#npc 개별로 채팅 기록 생성, 각각 기존의 채팅 내역을 기억하고 대화에 반영함.
     if session_ids not in session_store: # 세션 기록이 없을 경우 - 유저가 대화한 적이 없을 경우 -> 새 채팅창 생성
@@ -181,15 +181,19 @@ def summarizeChat(npcName):#지금까지의 대화를 요약 후 저장함, 기�
     return SC.content
 
 
-eng_name = {'미라':'Mira', '이준호':'Junho', '새로만듦':'null', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
+eng_name = {'미라':'Mira', '이준호':'Junho', '김옥자':'Okja', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
 
 def tts(response:NPC_Output, npc_name):
     begin_time = time.time()
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
+    end_time = time.time()
+    print(f'일반 tts: {end_time - begin_time: .5f} sec')
+
+    begin_time = time.time()
     tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
     voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
     end_time = time.time()
-    print(f'tts: {end_time - begin_time: .5f} sec')
+    print(f'변조 tts: {end_time - begin_time: .5f} sec')
     return tts_path
 
 
@@ -227,7 +231,6 @@ def voiceChange(src_path:str, out_path:str, voiceRef:str):
 ###한국어 특화 tts모델
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 model = TTS(language="KR", device=device)
-
 
 output_parser = StrOutputParser()
 
@@ -354,7 +357,7 @@ requested_npc_name = ""
 @app.post("/init-greeting")
 async def init_greeting(data:NPC_Greeting_Input):
     try:
-        greeting = talk2npc(data.npc_name, latest_speech, data.likeability)
+        greeting = talk2npc(data.npc_name, data.text, data.likeability)
         greeting.file_path = tts(greeting, data.npc_name)
         greetings[data.npc_name] = greeting
         return greetings[data.npc_name]

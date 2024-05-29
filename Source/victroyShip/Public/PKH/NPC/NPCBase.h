@@ -15,7 +15,18 @@ enum class ENPCType : uint8
 {
 	Mira = 0,
 	Junho,
-	Chunsik
+	Chunsik,
+	Okja
+};
+
+UENUM()
+enum class EEmotion : uint8
+{
+	none = 0,
+	joy,
+	surprise,
+	sad,
+	anger
 };
 
 UCLASS()
@@ -45,9 +56,6 @@ protected:
 	UPROPERTY(EditAnywhere)
 	FVector HomeLoc = FVector();
 
-	UPROPERTY(EditAnywhere)
-	FVector TargetLoc = FVector();
-
 public:
 	void StartConversation();
 	void EndConversation();
@@ -65,7 +73,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<class UMediaPlayer> MediaPlayer;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	FString CurEmotion;
 
 	UFUNCTION()
@@ -81,7 +89,7 @@ public:
 
 // Greeting
 protected:
-	FString GreetingText = TEXT("안녕하세요, 저한테 친절하게 인사해주세요!");
+	FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
 	bool HasIntendToGreeting = false;
 
 public:
@@ -126,10 +134,20 @@ protected:
 	int32 NormalItemValue = 3;
 	int32 PreferItemValue = 10;
 
+	UPROPERTY(EditDefaultsOnly)
+	FString PresentText = TEXT("이거 선물이야, 받아줘!");
+
 public:
 	void GivePresent(int32 NewItemId);
 
 // Job
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Work;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator WorkRotation;
+
 public:
 	virtual void DoJob();
 

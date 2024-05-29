@@ -12,6 +12,7 @@
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Animation/NPCAnimInstance.h"
+#include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 
 ANPCBase::ANPCBase()
@@ -43,6 +44,7 @@ ANPCBase::ANPCBase()
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), TEXT("미라"));
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), TEXT("이준호"));
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), TEXT("이춘식"));
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Okja), TEXT("김옥자"));
 }
 
 void ANPCBase::BeginPlay()
@@ -139,8 +141,25 @@ void ANPCBase::InitGreeting()
 
 void ANPCBase::GreetingToPlayer()
 {
+	// Set Blackboard Key & Player State
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if(nullptr == Player)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no player"));
+		return;
+	}
+	UTalkComponent* TalkComp = Cast<UTalkComponent>(Player->GetComponentByClass(UTalkComponent::StaticClass()));
+	if (nullptr == TalkComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no TalkComponent"));
+		return;
+	}
+	TalkComp->StartConversation();
+	StartConversation();
+
 	MyGameMode->RequestGreetingData(this);
 	HasIntendToGreeting = false;
+	AnimInstance->PlayMontage_Emotion(UEnum::GetValueAsString(EEmotion::joy).Mid(10, 3));
 }
 
 bool ANPCBase::IsFriendly() const
@@ -172,13 +191,16 @@ void ANPCBase::GivePresent(int32 NewItemId)
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->SendText(TEXT("이거 선물이야, 받아줘!"), this);
+	GameMode->SendText(PresentText, this);
 }
 #pragma endregion
 
 void ANPCBase::DoJob()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Do Job"), *NPCName);
+
+	SetActorRotation(WorkRotation);
+	AnimInstance->PlayMontage_Custom(Montage_Work);
 }
 
 void ANPCBase::OnDateUpdated(int32 NewDate)

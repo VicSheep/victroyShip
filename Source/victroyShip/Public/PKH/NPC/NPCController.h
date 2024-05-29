@@ -34,7 +34,7 @@ protected:
 	FTimerHandle SightHandle;
 
 	float NormalWalkSpeed = 150.0f;
-	float FastWalkSpeed = 300.0f;
+	float FastWalkSpeed = 250.0f;
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
@@ -46,18 +46,27 @@ protected:
 	void OnLostPlayer();
 
 public:
+	// Run / Stop AI
 	void RunAI();
 	void StopAI();
 
+	// Conversation
 	void StartConversation();
 	void EndConversation();
 
+	// Move
 	void SetHomeLoc(const FVector& HomeLoc);
 	FVector GetHomeLoc() const;
 
 	void MoveToTargetLoc(const FVector& TargetLoc);
 	void MoveToHome();
 
-	
+// Do Job
+protected:
+	bool IsWorking = false;
+
+public:
+	void SetIsWorking(bool InIsWorking);
+	FORCEINLINE bool GetIsWorking() const { return IsWorking; }
 
 };

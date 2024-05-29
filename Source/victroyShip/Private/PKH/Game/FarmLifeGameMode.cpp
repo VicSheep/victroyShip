@@ -18,7 +18,7 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 5.0f
+#define TIME_UPDATE_INTERVAL 2.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -90,12 +90,17 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC->StartConversation();
 
 	HttpActor->SendSpeech(FileName, FilePath);
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 }
 
 void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
+	if(nullptr == CurNPC)
+	{
+		return;
+	}
+
 	LatestSpeech = Response.Answer;
 
 	// UI 갱신
@@ -130,7 +135,10 @@ void AFarmLifeGameMode::EndConversation()
 
 void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 {
-	ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
+	if(CurNPC)
+	{
+		ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
+	}
 }
 
 // By Text
@@ -198,7 +206,7 @@ void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArr
 }
 #pragma endregion
 
-#pragma region Talk From NPC
+#pragma region Greeting
 void AFarmLifeGameMode::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
 {
 	HttpActor->InitGreeting(NPCName, NPCText, Likeability);
