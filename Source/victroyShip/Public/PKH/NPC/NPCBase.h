@@ -53,7 +53,7 @@ protected:
 	UPROPERTY()
 	TMap<FString, FString> NPCNameMap;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Locations")
 	FVector HomeLoc = FVector();
 
 public:
@@ -86,6 +86,17 @@ public:
 
 	void PlayTTS(const FString& FilePath);
 
+// Speed
+protected:
+	UPROPERTY(EditDefaultsOnly, Category="Speed")
+	float WalkSpeed = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	float RunSpeed = 270.0f;
+
+public:
+	void SetNPCWalk();
+	void SetNPCRun();
 
 // Greeting
 protected:
@@ -108,13 +119,13 @@ public:
 
 // Likeability
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="likeability")
 	int32 CurLikeability = 0;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "likeability")
 	int32 FriendlyLikeability = 50;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "likeability")
 	int32 MaxLikeability = 100;
 
 public:
@@ -131,8 +142,8 @@ public:
 protected:
 	int32 PreferItemId = 0;
 
-	int32 NormalItemValue = 3;
-	int32 PreferItemValue = 10;
+	int32 NormalItemValue = 5;
+	int32 PreferItemValue = 15;
 
 	UPROPERTY(EditDefaultsOnly)
 	FString PresentText = TEXT("이거 선물이야, 받아줘!");

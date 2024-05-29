@@ -33,9 +33,6 @@ protected:
 
 	FTimerHandle SightHandle;
 
-	float NormalWalkSpeed = 150.0f;
-	float FastWalkSpeed = 250.0f;
-
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 

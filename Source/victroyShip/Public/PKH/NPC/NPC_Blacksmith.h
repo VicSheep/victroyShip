@@ -25,7 +25,7 @@ protected:
 
 // Locations
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Locations")
 	FVector WorkLoc;
 
 // Interface

@@ -131,6 +131,18 @@ void ANPCBase::OnPlayEnded()
 }
 #pragma endregion
 
+#pragma region Speed
+void ANPCBase::SetNPCWalk()
+{
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void ANPCBase::SetNPCRun()
+{
+	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+}
+#pragma endregion
+
 
 #pragma region Greeting
 void ANPCBase::InitGreeting()

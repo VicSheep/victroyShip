@@ -105,10 +105,10 @@ protected:
 	bool Paused = false;
 
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class ADirectionalLight> SunLight;
+	TObjectPtr<AActor> SunLight;
 
-	const FRotator SunBeginRot = FRotator(200, 0, 0);
-	const FRotator SunEndRot = FRotator(350, 0, 0);
+	const FRotator SunBeginRot = FRotator(220, 0, 0);
+	const FRotator SunEndRot = FRotator(360, 0, 0);
 	const FRotator SunDeltaRot = FRotator(0.5f, 0, 0);
 
 	UFUNCTION()

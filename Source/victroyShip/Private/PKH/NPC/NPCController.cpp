@@ -63,7 +63,7 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 	if(Stimulus.WasSuccessfullySensed())
 	{
-		NPC->GetCharacterMovement()->MaxWalkSpeed = FastWalkSpeed;
+		NPC->SetNPCRun();
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
 		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
@@ -84,8 +84,11 @@ void ANPCController::OnLostPlayer()
 		return;
 	}
 
-	ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
-	NPC->GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if(NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);
