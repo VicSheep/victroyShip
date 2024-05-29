@@ -30,11 +30,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UProgressBar* bar_fertilizer;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
-	class UButton* button_grow;
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* button_grow;*/
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* text_grow;
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UTextBlock* text_grow;*/
 
 	///* Set Info *///
 	UFUNCTION(BlueprintCallable)
@@ -51,6 +51,6 @@ public:
 	void UpdatePlantInfo();
 
 	///* Click Button *///
-	UFUNCTION()
-	void ClickGrowButton();
+	/*UFUNCTION()
+	void ClickGrowButton();*/
 };
