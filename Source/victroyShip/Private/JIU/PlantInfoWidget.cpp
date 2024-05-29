@@ -39,6 +39,15 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 		{
 			text_type->SetText(FText::FromString(plant->PlantInfo.Name));
 		}
+
+		if (plant->PlantState == EPlantState::Mature)
+		{
+			text_grow->SetText(FText::FromString("Havest"));
+		}
+		else
+		{
+			text_grow->SetText(FText::FromString("Grow Up"));
+		}
 	}
 }
 
