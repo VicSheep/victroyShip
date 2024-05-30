@@ -38,8 +38,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
-	UPROPERTY(EditAnywhere)
-	class UCameraComponent* CameraComponent;
+	/*UPROPERTY(EditAnywhere)
+	class UCameraComponent* CameraComponent;*/
 
 	UPROPERTY(EditAnywhere)
 	class UChildActorComponent* ActorComponent;

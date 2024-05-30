@@ -33,8 +33,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* text_level;
 
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
-	class UButton* button_grow;*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* button_harvest;
 
 	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* text_grow;*/
@@ -58,4 +58,7 @@ public:
 	///* Click Button *///
 	/*UFUNCTION()
 	void ClickGrowButton();*/
+
+	UFUNCTION()
+	void ClickHarvestButton();
 };
