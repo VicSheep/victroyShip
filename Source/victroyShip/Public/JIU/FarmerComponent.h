@@ -64,4 +64,7 @@ public:
 
 	UFUNCTION()
 	void SwitchTool(int index);
+
+	UFUNCTION(BlueprintCallable)
+	void Harvest();
 };

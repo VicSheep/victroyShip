@@ -145,3 +145,14 @@ void UFarmerComponent::SwitchTool(int index)
 {
 	CurrentTool = index;
 }
+
+void UFarmerComponent::Harvest()
+{
+	if (Ground)
+	{
+		if (Ground->Plant)
+		{
+			Ground->Plant->HavestPlant();
+		}
+	}
+}
