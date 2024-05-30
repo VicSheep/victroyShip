@@ -60,7 +60,7 @@ public:
 	UPROPERTY()
 	FPlantStruct PlantInfo;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	EPlantState PlantState;
 
 	bool isRepeated = false;

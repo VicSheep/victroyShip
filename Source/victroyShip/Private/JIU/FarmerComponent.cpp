@@ -146,13 +146,42 @@ void UFarmerComponent::SwitchTool(int index)
 	CurrentTool = index;
 }
 
-void UFarmerComponent::Harvest()
+void UFarmerComponent::GrowPlant()
+{
+	if (Ground)
+	{
+		if (Ground->Plant)
+		{
+			Ground->Plant->GrowPlant();
+
+			PlantInfoWidget->SetPlantInfo(Ground->Plant);
+		}
+	}
+}
+
+void UFarmerComponent::HarvestPlant()
 {
 	if (Ground)
 	{
 		if (Ground->Plant)
 		{
 			Ground->Plant->HavestPlant();
+
+			PlantInfoWidget->SetPlantInfo(Ground->Plant);
+		}
+	}
+}
+
+void UFarmerComponent::RemovePlant()
+{
+	if (Ground)
+	{
+		if (Ground->Plant)
+		{
+			Ground->RemovePlant();
+
+			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			PlantInfoWidget->ground = nullptr;
 		}
 	}
 }

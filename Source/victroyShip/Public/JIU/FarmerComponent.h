@@ -66,5 +66,11 @@ public:
 	void SwitchTool(int index);
 
 	UFUNCTION(BlueprintCallable)
-	void Harvest();
+	void GrowPlant();
+
+	UFUNCTION(BlueprintCallable)
+	void HarvestPlant();
+
+	UFUNCTION(BlueprintCallable)
+	void RemovePlant();
 };

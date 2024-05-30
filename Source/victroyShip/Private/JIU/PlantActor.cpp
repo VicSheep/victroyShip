@@ -123,6 +123,8 @@ void APlantActor::GrowPlant()
 	if (PlantState == EPlantState::Seed)
 	{
 		PlantState = EPlantState::Growing;
+		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+		StartScaling();
 	}
 	else if (PlantState == EPlantState::Growing)
 	{
@@ -132,13 +134,14 @@ void APlantActor::GrowPlant()
 
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
-			return;
+		} else
+		{
+			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+			StartScaling();
 		}
 	}
 	else if (PlantState == EPlantState::Mature)
 	{
-		HavestPlant();
-		return;
 	}
 	else if (PlantState == EPlantState::Havested)
 	{
@@ -148,12 +151,8 @@ void APlantActor::GrowPlant()
 
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
-			return;
 		}
 	}
-
-	NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
-	StartScaling();
 }
 
 void APlantActor::StartScaling()

@@ -38,16 +38,29 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 		if (plant->PlantInfo.IsValid())
 		{
 			text_type->SetText(FText::FromString(plant->PlantInfo.Name));
-		}
 
-		/*if (plant->PlantState == EPlantState::Mature)
-		{
-			text_grow->SetText(FText::FromString("Havest"));
+			if (plant->PlantState == EPlantState::Seed)
+			{
+				text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), 0, plant->PlantInfo.GrowLevel)));
+			}
+			else if (plant->PlantState == EPlantState::Growing)
+			{
+				text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), plant->CurLevel, plant->PlantInfo.GrowLevel)));
+			}
+			else if (plant->PlantState == EPlantState::Havested)
+			{
+				text_level->SetText(FText::FromString(FString::Printf(TEXT("Bearing fruit... %d of %d"), plant->CurLevel, plant->PlantInfo.HavestLevel)));
+			}
+			else if (plant->PlantState == EPlantState::Mature)
+			{
+				text_level->SetText(FText::FromString(FString::Printf(TEXT("Harvest!"))));
+			}
 		}
 		else
 		{
-			text_grow->SetText(FText::FromString("Grow Up"));
-		}*/
+			this->SetVisibility(ESlateVisibility::Hidden);
+			ground = nullptr;
+		}
 	}
 }
 
