@@ -53,6 +53,8 @@ public:
 	UFUNCTION()
 	void UpdatePlantInfo();
 
+	void UpdatePlantState();
+
 	///* Click Button *///
 	/*UFUNCTION()
 	void ClickGrowButton();*/

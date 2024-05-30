@@ -146,19 +146,6 @@ void UFarmerComponent::SwitchTool(int index)
 	CurrentTool = index;
 }
 
-void UFarmerComponent::GrowPlant()
-{
-	if (Ground)
-	{
-		if (Ground->Plant)
-		{
-			Ground->Plant->GrowPlant();
-
-			PlantInfoWidget->SetPlantInfo(Ground->Plant);
-		}
-	}
-}
-
 void UFarmerComponent::HarvestPlant()
 {
 	if (Ground)

@@ -23,6 +23,25 @@ void UPlantInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	if (this->IsVisible())
 	{
 		UpdatePlantInfo();
+
+		if (ground)
+		{
+			if (ground->Plant)
+			{
+				if (ground->Plant->haveChange)
+				{
+					UpdatePlantState();
+				}
+			}
+			else
+			{
+				this->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+		else
+		{
+			this->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 }
 
@@ -70,6 +89,31 @@ void UPlantInfoWidget::UpdatePlantInfo()
 	{
 		bar_water->SetPercent(ground->WaterFigure / 100.f);
 		bar_fertilizer->SetPercent(ground->FertilizerFigure / 100.f);
+	}
+}
+
+void UPlantInfoWidget::UpdatePlantState()
+{
+	if (ground->Plant)
+	{
+		text_type->SetText(FText::FromString(ground->Plant->PlantInfo.Name));
+
+		if (ground->Plant->PlantState == EPlantState::Seed)
+		{
+			text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), 0, ground->Plant->PlantInfo.GrowLevel)));
+		}
+		else if (ground->Plant->PlantState == EPlantState::Growing)
+		{
+			text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), ground->Plant->CurLevel, ground->Plant->PlantInfo.GrowLevel)));
+		}
+		else if (ground->Plant->PlantState == EPlantState::Havested)
+		{
+			text_level->SetText(FText::FromString(FString::Printf(TEXT("Bearing fruit... %d of %d"), ground->Plant->CurLevel, ground->Plant->PlantInfo.HavestLevel)));
+		}
+		else if (ground->Plant->PlantState == EPlantState::Mature)
+		{
+			text_level->SetText(FText::FromString(FString::Printf(TEXT("Harvest!"))));
+		}
 	}
 }
 

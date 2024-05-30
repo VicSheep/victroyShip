@@ -108,4 +108,7 @@ public:
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
+
+	UPROPERTY()
+	bool haveChange = false;
 };

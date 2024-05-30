@@ -119,6 +119,7 @@ void APlantActor::GrowPlant()
 	if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
 
 	CurLevel += 1;
+	haveChange = true;
 
 	if (PlantState == EPlantState::Seed)
 	{

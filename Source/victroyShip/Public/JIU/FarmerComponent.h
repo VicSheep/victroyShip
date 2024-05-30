@@ -66,9 +66,6 @@ public:
 	void SwitchTool(int index);
 
 	UFUNCTION(BlueprintCallable)
-	void GrowPlant();
-
-	UFUNCTION(BlueprintCallable)
 	void HarvestPlant();
 
 	UFUNCTION(BlueprintCallable)

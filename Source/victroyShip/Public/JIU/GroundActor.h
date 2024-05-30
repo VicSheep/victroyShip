@@ -115,7 +115,7 @@ public:
 	void RemoveWeed();
 
 	///* Camera Blend *///
-	void MoveCamera(bool zoomin);
+	/*void MoveCamera(bool zoomin);*/
 
 	///* Others *///
 	UFUNCTION()

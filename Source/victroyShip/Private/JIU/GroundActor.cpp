@@ -33,9 +33,9 @@ AGroundActor::AGroundActor()
 	ActorComponent->SetupAttachment(RootComponent);
 	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
 
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	/*CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(RootComponent);
-	CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));
+	CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));*/
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -213,7 +213,7 @@ void AGroundActor::RemoveWeed()
 	}
 }
 
-void AGroundActor::MoveCamera(bool zoomin)
+/*void AGroundActor::MoveCamera(bool zoomin)
 {
 	if (PC && PP)
 	{
@@ -277,7 +277,7 @@ void AGroundActor::MoveCamera(bool zoomin)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No Player Controller"));
 	}
-}
+}*/
 
 void AGroundActor::SetGroundMaterial()
 {
