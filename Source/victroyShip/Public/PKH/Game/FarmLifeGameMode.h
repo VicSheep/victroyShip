@@ -35,6 +35,11 @@ protected:
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
+// Player
+protected:
+	UPROPERTY(VisibleAnywhere)
+	FVector PlayerHomLoc;
+
 // Http
 protected:
 	UPROPERTY(EditDefaultsOnly)

@@ -7,11 +7,10 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "OJS/Player/FarmLifeOjsPlayerCharacter.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "PKH/BT/BTNPCKey.h"
 #include "PKH/NPC/NPCBase.h"
-#include "PKH/Test/STTCharacter.h"
 
 #define TIME_LIMIT 3.0f
 
@@ -45,7 +44,7 @@ void ANPCController::OnPossess(APawn* InPawn)
 #pragma region AI Perception 
 void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if(false == Actor->IsA<ASTTCharacter>()) // 추후 수정할 것
+	if(false == Actor->IsA<AFarmLifeOjsPlayerCharacter>())
 	{
 		return;
 	}

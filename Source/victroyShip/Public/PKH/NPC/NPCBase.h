@@ -50,7 +50,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	ENPCType NPCType;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	TMap<FString, FString> NPCNameMap;
 
 	UPROPERTY(EditAnywhere, Category="Locations")
