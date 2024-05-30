@@ -13,7 +13,7 @@ void UPlantInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	button_grow->OnClicked.AddDynamic(this, &UPlantInfoWidget::ClickGrowButton);
+	// button_grow->OnClicked.AddDynamic(this, &UPlantInfoWidget::ClickGrowButton);
 }
 
 void UPlantInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -40,14 +40,14 @@ void UPlantInfoWidget::SetPlantInfo(APlantActor* plant)
 			text_type->SetText(FText::FromString(plant->PlantInfo.Name));
 		}
 
-		if (plant->PlantState == EPlantState::Mature)
+		/*if (plant->PlantState == EPlantState::Mature)
 		{
 			text_grow->SetText(FText::FromString("Havest"));
 		}
 		else
 		{
 			text_grow->SetText(FText::FromString("Grow Up"));
-		}
+		}*/
 	}
 }
 
@@ -60,7 +60,7 @@ void UPlantInfoWidget::UpdatePlantInfo()
 	}
 }
 
-void UPlantInfoWidget::ClickGrowButton()
+/*void UPlantInfoWidget::ClickGrowButton()
 {
 	if (ground)
 	{
@@ -93,4 +93,4 @@ void UPlantInfoWidget::ClickGrowButton()
 		}
 	}
 
-}
+}*/
