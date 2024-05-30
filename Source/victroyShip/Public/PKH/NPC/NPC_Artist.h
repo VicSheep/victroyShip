@@ -25,10 +25,10 @@ protected:
 
 // Locations
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, Category = "Locations")
 	FVector HillLoc;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, Category = "Locations")
 	FVector ParkLoc;
 
 // Interface

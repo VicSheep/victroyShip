@@ -13,12 +13,13 @@
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
 #include "Serialization/EditorBulkData.h"
+#include "YSH/skySystem.h"
 
 #define TEN_MINUTES 10
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 2.0f
+#define TIME_UPDATE_INTERVAL 5.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -55,9 +56,22 @@ void AFarmLifeGameMode::BeginPlay()
 		HttpActor = GetWorld()->SpawnActor<AHttpActor>(HttpActorClass);
 	}
 
+	// Player Home Loc
+	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		PlayerHomLoc = Player->GetActorLocation();
+	}
+
 	// Time flow
-	SunLight = Cast<ADirectionalLight>(UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass()));
-	SunLight->SetActorRotation(SunBeginRot);
+	SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass());
+	if(nullptr == SunLight)
+	{
+		SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), AskySystem::StaticClass());
+	}
+	if(SunLight)
+	{
+		SunLight->SetActorRotation(SunBeginRot);
+	}
 
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TIME_UPDATE_INTERVAL, true, TIME_UPDATE_INTERVAL);
 
@@ -80,7 +94,10 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
+	if (SunLight && false == Paused)
+	{
+		SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
+	}
 }
 
 #pragma region NPC conversation
@@ -250,7 +267,16 @@ void AFarmLifeGameMode::OnNextDay()
 	Hours = START_HOUR;
 	Minutes = 0;
 	++Date;
-	SunLight->SetActorRotation(SunBeginRot);
+	if (SunLight)
+	{
+		SunLight->SetActorRotation(SunBeginRot);
+	}
+
+	// 플레이어 위치 초기화
+	if(AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		Player->SetActorLocation(PlayerHomLoc);
+	}
 
 	// 날짜 업데이트 일괄처리
 	TArray<AActor*> OutActors;

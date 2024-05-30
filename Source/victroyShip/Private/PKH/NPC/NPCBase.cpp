@@ -44,7 +44,7 @@ ANPCBase::ANPCBase()
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), TEXT("미라"));
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), TEXT("이준호"));
 	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), TEXT("이춘식"));
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Okja), TEXT("김옥자"));
+	//NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Okja), TEXT("김옥자"));
 }
 
 void ANPCBase::BeginPlay()
@@ -128,6 +128,18 @@ void ANPCBase::OnPlayEnded()
 	{
 		MediaPlayer->Close();
 	}
+}
+#pragma endregion
+
+#pragma region Speed
+void ANPCBase::SetNPCWalk()
+{
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void ANPCBase::SetNPCRun()
+{
+	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 }
 #pragma endregion
 

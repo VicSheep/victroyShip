@@ -105,7 +105,7 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 		TArray<TObjectPtr<APlantActor>> Plants;
 		for (FOverlapResult& Res : PlantResults)
 		{
-			// TArray�� ����
+			// TArray
 			APlantActor* Plant = Cast<APlantActor>(Res.GetActor());
 			if(Plant)
 			{

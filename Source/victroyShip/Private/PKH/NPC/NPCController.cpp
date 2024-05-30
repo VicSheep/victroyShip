@@ -7,11 +7,10 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "OJS/Player/FarmLifeOjsPlayerCharacter.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "PKH/BT/BTNPCKey.h"
 #include "PKH/NPC/NPCBase.h"
-#include "PKH/Test/STTCharacter.h"
 
 #define TIME_LIMIT 3.0f
 
@@ -45,7 +44,7 @@ void ANPCController::OnPossess(APawn* InPawn)
 #pragma region AI Perception 
 void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if(false == Actor->IsA<ASTTCharacter>()) // 추후 수정할 것
+	if(false == Actor->IsA<AFarmLifeOjsPlayerCharacter>())
 	{
 		return;
 	}
@@ -63,7 +62,7 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 	if(Stimulus.WasSuccessfullySensed())
 	{
-		NPC->GetCharacterMovement()->MaxWalkSpeed = FastWalkSpeed;
+		NPC->SetNPCRun();
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
 		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
@@ -84,8 +83,11 @@ void ANPCController::OnLostPlayer()
 		return;
 	}
 
-	ACharacter* NPC = CastChecked<ACharacter>(GetPawn());
-	NPC->GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if(NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);

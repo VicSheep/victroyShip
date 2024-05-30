@@ -28,7 +28,8 @@ protected:
 protected:
 	bool InChatting = false;
 
-public:	
+public:
+	UFUNCTION(BlueprintCallable)
 	void Chat();
 
 	UFUNCTION(BlueprintCallable)
