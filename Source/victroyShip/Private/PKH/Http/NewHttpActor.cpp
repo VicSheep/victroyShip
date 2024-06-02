@@ -25,22 +25,43 @@ void ANewHttpActor::BeginPlay()
 }
 
 #pragma region NPC conversation
-void ANewHttpActor::SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath)
+void ANewHttpActor::SendSpeech(const FString& FilePath)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendSpeech;
 
+	// Read file form path
+	TArray<uint8> FileContent;
+	if (!FFileHelper::LoadFileToArray(FileContent, *FilePath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load file %s"), *FilePath);
+		return;
+	}
+
+	// Set Boundary Value
+	FString Boundary = TEXT("BoundaryString123456789012345678901234");
+	FString BeginBoundary = TEXT("--") + Boundary + TEXT("\r\n");
+	FString EndBoundary = TEXT("\r\n--") + Boundary + TEXT("--\r\n");
+
+	FString Header = BeginBoundary;
+	Header.Append(TEXT("Content-Disposition: form-data; name=\"file\"; filename=\""));
+	Header.Append(FPaths::GetCleanFilename(FilePath));
+	Header.Append(TEXT("\"\r\n"));
+	Header.Append(TEXT("Content-Type: audio/wav\r\n\r\n"));
+
+	TArray<uint8> Payload;
+	Payload.Append(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(*Header)), Header.Len());
+	Payload.Append(FileContent);
+	Payload.Append(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(*EndBoundary)), EndBoundary.Len());
+
 	// HTTP Request
-	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetVerb(TEXT("POST"));
-	HttpRequest->SetURL(FullURL);
-	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::SendSpeechComplete);
+	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
+	Request->SetVerb(TEXT("POST"));
+	Request->SetURL(FullURL);
+	Request->SetHeader("Content-Type", FString("multipart/form-data; boundary=") + Boundary);
+	Request->SetContent(Payload);
 
-	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
-	HttpRequest->SetContentAsString(JsonBody);
-
-	HttpRequest->ProcessRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::SendSpeechComplete);
+	Request->ProcessRequest();
 
 	UE_LOG(LogTemp, Warning, TEXT("Send speech to %s"), *FullURL);
 }
@@ -266,10 +287,13 @@ void ANewHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Res
 {
 	if (bConnectedSuccessfully)
 	{
-		const FString& ResultText = Response->GetContentAsString();
+		const TArray<uint8>& Data = Response->GetContent();
 
-		// TTS 출력
-		const FString& FilePath = ExtraPath + ResultText.Mid(4, ResultText.Len() - 5);
+		FString FilePath = FPaths::ProjectContentDir() + TEXT("TTSFile.wav");
+		FFileHelper::SaveArrayToFile(Data, *FilePath);
+		UE_LOG(LogTemp, Warning, TEXT("WAV file saved to %s"), *FilePath);
+
+		// Play TTS 
 		MyGameMode->PlayTTS(FilePath);
 	}
 	else
@@ -343,7 +367,7 @@ void ANewHttpActor::RequestGreetingComplete(FHttpRequestPtr Request, FHttpRespon
 	if (bConnectedSuccessfully)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Request Greeting Complete"));
-		GetGreeting();
+		GetGreetingData();
 	}
 	else
 	{
@@ -354,33 +378,69 @@ void ANewHttpActor::RequestGreetingComplete(FHttpRequestPtr Request, FHttpRespon
 	}
 }
 
-void ANewHttpActor::GetGreeting()
+void ANewHttpActor::GetGreetingData()
 {
-	const FString& FullURL = BaseURL + EndPoint_GetGreeting;
+	const FString& FullURL = BaseURL + EndPoint_GetGreetingData;
 
 	// HTTP Request
 	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
 	HttpRequest->SetVerb(TEXT("GET"));
 	HttpRequest->SetURL(FullURL);
 	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::GetGreetingComplete);
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::GetGreetingDataComplete);
 
 	HttpRequest->ProcessRequest();
-	UE_LOG(LogTemp, Warning, TEXT("Get Greeting From %s"), *FullURL);
+	UE_LOG(LogTemp, Warning, TEXT("Get Greeting Data From %s"), *FullURL);
 }
 
-void ANewHttpActor::GetGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+void ANewHttpActor::GetGreetingDataComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
 {
 	if (bConnectedSuccessfully)
 	{
 		const FString& ResultText = Response->GetContentAsString();
 		FNPCResponse NPCResponse;
 		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
-		UE_LOG(LogTemp, Warning, TEXT("Get Greeting Complete: %s"), *NPCResponse.Answer);
+		UE_LOG(LogTemp, Warning, TEXT("Get Greeting Data Complete: %s"), *NPCResponse.Answer);
 
 		// 경로 수정
-		NPCResponse.FilePath = ExtraPath + NPCResponse.FilePath.Mid(3, NPCResponse.FilePath.Len() - 3);
 		MyGameMode->GreetingToPlayer(NPCResponse);
+		GetGreetingTTS();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void ANewHttpActor::GetGreetingTTS()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetGreetingTTS;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::GetGreetingTTSComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Get Greeting TTS From %s"), *FullURL);
+}
+
+void ANewHttpActor::GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const TArray<uint8>& Data = Response->GetContent();
+
+		const FString FilePath = FPaths::ProjectContentDir() + TEXT("TTSFile.wav");
+		FFileHelper::SaveArrayToFile(Data, *FilePath);
+		UE_LOG(LogTemp, Warning, TEXT("Save Greeting TTS to %s "), *FilePath);
+
+		MyGameMode->PlayTTS(FilePath);
 	}
 	else
 	{
@@ -430,23 +490,43 @@ void ANewHttpActor::EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Re
 #pragma endregion
 
 #pragma region Talk to Plant
-
-void ANewHttpActor::TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath)
+void ANewHttpActor::TalkToPlant(const FString& FilePath)
 {
 	const FString& FullURL = BaseURL + EndPoint_TalkToPlant;
 
+	TArray<uint8> FileContent;
+	if (!FFileHelper::LoadFileToArray(FileContent, *FilePath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load file %s"), *FilePath);
+		return;
+	}
+
+	// Set Boundary Value
+	FString Boundary = TEXT("BoundaryString123456789012345678901234");
+	FString BeginBoundary = TEXT("--") + Boundary + TEXT("\r\n");
+	FString EndBoundary = TEXT("\r\n--") + Boundary + TEXT("--\r\n");
+
+	// Set Header
+	FString Header = BeginBoundary;
+	Header.Append(TEXT("Content-Disposition: form-data; name=\"file\"; filename=\""));
+	Header.Append(FPaths::GetCleanFilename(FilePath));
+	Header.Append(TEXT("\"\r\n"));
+	Header.Append(TEXT("Content-Type: audio/wav\r\n\r\n"));
+
+	TArray<uint8> Payload;
+	Payload.Append(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(*Header)), Header.Len());
+	Payload.Append(FileContent);
+	Payload.Append(reinterpret_cast<uint8*>(TCHAR_TO_UTF8(*EndBoundary)), EndBoundary.Len());
+
 	// HTTP Request
-	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetVerb(TEXT("POST"));
-	HttpRequest->SetURL(FullURL);
-	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::TalkToPlantComplete);
+	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
+	Request->SetVerb(TEXT("POST"));
+	Request->SetURL(FullURL);
+	Request->SetHeader("Content-Type", FString("multipart/form-data; boundary=") + Boundary);
+	Request->SetContent(Payload);
 
-	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"file_name\": \"%s\",\"file_path\" : \"%s\"}"), *SpeechFileName, *SpeechFilePath);
-	HttpRequest->SetContentAsString(JsonBody);
-
-	HttpRequest->ProcessRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::TalkToPlantComplete);
+	Request->ProcessRequest();
 
 	UE_LOG(LogTemp, Warning, TEXT("Talk to plant : %s"), *FullURL);
 }

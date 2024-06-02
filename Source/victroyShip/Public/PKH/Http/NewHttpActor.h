@@ -24,7 +24,7 @@ protected:
 	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString BaseURL = TEXT("http://127.0.0.1:8000");
+	FString BaseURL = TEXT("http://192.168.0.7:3172");
 
 	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -59,7 +59,10 @@ protected:
 	FString EndPoint_PostGreeting = TEXT("/post-greeting");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_GetGreeting = TEXT("/get-greeting");
+	FString EndPoint_GetGreetingData = TEXT("/get-greeting-data");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetGreetingTTS = TEXT("/get-greeting-tts");
 
 	// End Chat
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -74,7 +77,7 @@ protected:
 
 public:
 	// STT
-	void SendSpeech(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void SendSpeech(const FString& FilePath);
 	void SendSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqTextFromSpeech();
@@ -105,8 +108,11 @@ public:
 	void RequestGreeting(const FString& NPCName);
 	void RequestGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	void GetGreeting();
-	void GetGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	void GetGreetingData();
+	void GetGreetingDataComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetGreetingTTS();
+	void GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// End Chat
 	void EndChat(const FString& NPCName);
@@ -128,7 +134,7 @@ protected:
 
 public:
 	// STT
-	void TalkToPlant(const FString& SpeechFileName, const FString& SpeechFilePath);
+	void TalkToPlant(const  FString& FilePath);
 	void TalkToPlantComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void ReqScore();
@@ -140,6 +146,4 @@ public:
 
 	void ReqScoreWithText();
 	void ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
-};
-
 };

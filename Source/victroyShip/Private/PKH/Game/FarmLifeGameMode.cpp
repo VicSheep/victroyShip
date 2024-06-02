@@ -7,12 +7,12 @@
 #include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Http/HttpActor.h"
+#include "PKH/Http/NewHttpActor.h"
 #include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
-#include "Serialization/EditorBulkData.h"
 #include "YSH/skySystem.h"
 
 #define TEN_MINUTES 10
@@ -28,7 +28,8 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 
 
 	// Http Actor
-	static ConstructorHelpers::FClassFinder<AHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_HttpActor.BP_HttpActor_C"));
+	//static ConstructorHelpers::FClassFinder<AHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_HttpActor.BP_HttpActor_C"));
+	static ConstructorHelpers::FClassFinder<ANewHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_NewHttpActor.BP_NewHttpActor_C"));
 	if(HttpActorClassRef.Class)
 	{
 		HttpActorClass = HttpActorClassRef.Class;
@@ -53,7 +54,8 @@ void AFarmLifeGameMode::BeginPlay()
 
 	if(HttpActorClass)
 	{
-		HttpActor = GetWorld()->SpawnActor<AHttpActor>(HttpActorClass);
+		//HttpActor = GetWorld()->SpawnActor<AHttpActor>(HttpActorClass);
+		HttpActor = GetWorld()->SpawnActor<ANewHttpActor>(HttpActorClass);
 	}
 
 	// Player Home Loc
@@ -106,7 +108,8 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
 
-	HttpActor->SendSpeech(FileName, FilePath);
+	//HttpActor->SendSpeech(FileName, FilePath);
+	HttpActor->SendSpeech(FilePath);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
 }
@@ -190,7 +193,8 @@ void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<APlantActor>>& NewPlants)
 {
 	CurPlants = NewPlants;
-	HttpActor->TalkToPlant(FileName, FilePath);
+	//HttpActor->TalkToPlant(FileName, FilePath);
+	HttpActor->TalkToPlant(FilePath);
 }
 
 void AFarmLifeGameMode::SetTalkScore(int32 Score)
@@ -244,7 +248,6 @@ void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 	}
 
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
-	CurNPC->PlayTTS(NPCResponse.FilePath);
 }
 #pragma endregion
 

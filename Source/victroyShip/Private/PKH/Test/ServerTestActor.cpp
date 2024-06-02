@@ -138,10 +138,7 @@ void AServerTestActor::GetWavFileComplete(FHttpRequestPtr Request, FHttpResponse
 	{
 		const TArray<uint8>& Data = Response->GetContent();
 
-		// 원하는 파일 경로로 변경
 		FString FilePath = FPaths::ProjectContentDir() + "ReceivedFile.wav";
-
-		// 파일로 저장
 		FFileHelper::SaveArrayToFile(Data, *FilePath);
 
 		UE_LOG(LogTemp, Warning, TEXT("WAV file saved to %s"), *FilePath);

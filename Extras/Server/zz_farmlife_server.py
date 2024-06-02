@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Response
 import uvicorn
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -20,14 +20,16 @@ from melo.api import TTS
 
 import time
 
-app = FastAPI() #  uvicorn zz_farmlife_server:app --reload
+app = FastAPI() #  uvicorn zz_farmlife_server:app --reload --host 0.0.0.0 --port 3172
 
 load_dotenv()
 
 client = OpenAI()
 
-wav_path = "../WavFiles/Speech.wav" #tts 음성파일 저장될 경로 설정
+stt_path = "../WavFiles/Stt.wav" # stt 파일 저장할 경로
+wav_path = "../WavFiles/Speech.wav" # tts 음성파일 저장될 경로 설정
 output_path = "../WavFiles/Output.wav"
+
 
 class NPC_Name(fastapiBaseModel):
     npc_name : str
@@ -177,18 +179,16 @@ def summarizeChat(npcName):#지금까지의 대화를 요약 후 저장함, 기�
 
 eng_name = {'미라':'Mira', '이준호':'Junho', '김옥자':'Okja', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
 
-# def tts(response:NPC_Output, npc_name):
-#     begin_time = time.time()
-#     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
-#     end_time = time.time()
-#     print(f'일반 tts: {end_time - begin_time: .5f} sec')
+def tts(response:NPC_Output, npc_name):
+    model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
+    tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
+    voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
 
-#     begin_time = time.time()
-#     tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
-#     voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
-#     end_time = time.time()
-#     print(f'변조 tts: {end_time - begin_time: .5f} sec')
-#     return tts_path
+    tts_data : bytes
+    with open(tts_path, 'rb') as file:
+        tts_data = file.read()
+
+    return tts_data
 
 
 ### 목소리 변조
@@ -211,8 +211,6 @@ source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map
 
 # src_path='outputs_v2/tmp.wav'
 def voiceChange(src_path:str, out_path:str, voiceRef:str):
-    # source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
-    # Run the tone color converter
     target_se = voiceRefs[voiceRef][0]
     encode_message = "@MyShell"
     tone_color_converter.convert(
@@ -273,18 +271,17 @@ talk2plant_score = ""
 latest_npc_name = ""
 
 # 음성 파일 경로 -> 텍스트 추출
-def stt(name:str, path:str):
-    begin_time = time.time()
-    terminal_command = f"whisper {path} --language Korean --model tiny --output_format txt" 
+def stt(file: UploadFile = File(...)):
+    with open(stt_path, "wb") as buffer:
+        buffer.write(file.read())
+
+    terminal_command = f"whisper {stt_path} --language Korean --model tiny --output_format txt" 
     os.system(terminal_command)
 
-    save_path = f'{name}.txt'
+    save_path = 'Stt.txt'
     with open(save_path, 'r', encoding='UTF-8') as file:
         text = file.read()
-        end_time = time.time()
-        print(f'stt: {end_time - begin_time: .5f} sec')
         return text
-
 
 latest_dict = {}
 
@@ -292,12 +289,8 @@ latest_dict = {}
 @app.post("/post-speech")
 async def post_speech(file: UploadFile = File(...)):
     try:
-        path = f"../WavFiles/{file.filename}"
-        with open(path, "wb") as buffer:
-            buffer.write(await file.read())
-
         global latest_speech
-        latest_speech = stt(file.filename[:-4], path)
+        latest_speech = stt(file.file)
         return latest_speech
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
@@ -344,20 +337,21 @@ async def get_text():
 ### NPC TTS 가져오기
 @app.get("/get-tts")
 async def get_tts():
-    return tts(latest_dict, latest_npc_name)
+    return Response(content=tts(latest_dict, latest_npc_name), media_type="audio/wav")
 
 
 #### NPC 인사 초기화
-greetings = {}
+greetings_data = {}
+greetings_tts = {}
 requested_npc_name = ""
 
 @app.post("/init-greeting")
 async def init_greeting(data:NPC_Greeting_Input):
     try:
         greeting = talk2npc(data.npc_name, data.text, data.likeability)
-        greeting.file_path = tts(greeting, data.npc_name)
-        greetings[data.npc_name] = greeting
-        return greetings[data.npc_name]
+        greetings_data[data.npc_name] = greeting
+        greetings_tts[data.npc_name] = tts(greeting, data.npc_name)
+        return f'{data.npc_name}\'s greeting initialzied'
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
     
@@ -365,11 +359,15 @@ async def init_greeting(data:NPC_Greeting_Input):
 async def post_greeting(data:NPC_Name):
     global requested_npc_name
     requested_npc_name = data.npc_name
+    return greetings_data[requested_npc_name]
 
-@app.get("/get-greeting")
-async def get_greeting():
-    return greetings[requested_npc_name]
+@app.get("/get-greeting-data")
+async def get_greeting_data():
+    return greetings_data[requested_npc_name]
 
+@app.get("/get-greeting-tts")
+async def get_greeting_tts():
+    return Response(content=greetings_tts[requested_npc_name], media_type="audio/wav")
 
 ##### NPC 대화 기록 지우기
 @app.post("/end-chat")
@@ -380,10 +378,10 @@ def end_chat(data:NPC_Name):
 
 # 식물 칭찬/비난
 @app.post("/post-talk2plant")
-async def post_talk2plant(data:STT2Plant):
+async def post_talk2plant(file: UploadFile = File(...)):
     try:
         global latest_comment, talk2plant_score
-        latest_comment = stt(data.file_name, data.file_path)
+        latest_comment = stt(file.file)
         talk2plant_score = talk2plant(latest_comment)
         return talk2plant_score
     except Exception as e:
