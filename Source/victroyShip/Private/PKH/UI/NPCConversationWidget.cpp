@@ -122,3 +122,18 @@ void UNPCConversationWidget::StreamText()
 		break;
 	}
 }
+
+void UNPCConversationWidget::PlayNow()
+{
+	// if waiting tts, play text now
+	if(CurConvState == EConvState::Wait && false == NextText.IsEmpty())
+	{
+		CurConvState = EConvState::NPC;
+		MyGameMode->PlayNPCEmotion();
+		CurText = NextText;
+		NextText = TEXT("");
+
+		CurWaitTime = 0;
+		CurLen = 1;
+	}
+}

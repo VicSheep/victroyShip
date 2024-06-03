@@ -307,7 +307,7 @@ void ANewHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Res
 #pragma endregion
 
 #pragma region Greeting
-void ANewHttpActor::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
+void ANewHttpActor::InitGreeting(const FString& NPCName, int32 Likeability)
 {
 	const FString& FullURL = BaseURL + EndPoint_InitGreeting;
 
@@ -319,7 +319,7 @@ void ANewHttpActor::InitGreeting(const FString& NPCName, const FString& NPCText,
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::InitGreetingComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"text\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, *NPCText, Likeability);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Likeability);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();

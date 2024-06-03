@@ -24,7 +24,7 @@ protected:
 	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString BaseURL = TEXT("http://192.168.0.7:3172");
+	FString BaseURL = TEXT("http://192.168.240.91:3172"); 
 
 	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -102,7 +102,7 @@ public:
 	void GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Greeting
-	void InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability);
+	void InitGreeting(const FString& NPCName, int32 Likeability);
 	void InitGreetingComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void RequestGreeting(const FString& NPCName);

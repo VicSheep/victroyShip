@@ -100,7 +100,7 @@ public:
 
 // TalkFromNPC
 public:
-	void InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability);
+	void InitGreeting(const FString& NPCName, int32 Likeability);
 
 	void RequestGreetingData(class ANPCBase* NewNPC);
 

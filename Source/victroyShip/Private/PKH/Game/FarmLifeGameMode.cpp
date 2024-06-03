@@ -107,6 +107,7 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 {
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
+	CurNPC->SetEmotionUI(false);
 
 	//HttpActor->SendSpeech(FileName, FilePath);
 	HttpActor->SendSpeech(FilePath);
@@ -166,6 +167,7 @@ void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPC
 {
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
+	CurNPC->SetEmotionUI(false);
 	ShowPlayerText(InputText);
 
 	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
@@ -184,6 +186,7 @@ void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 {
 	if(CurNPC)
 	{
+		ConversationUI->PlayNow();
 		CurNPC->PlayTTS(FilePath);
 	}
 }
@@ -228,9 +231,9 @@ void AFarmLifeGameMode::TalkToPlantWithText(const FString& InputText, const TArr
 #pragma endregion
 
 #pragma region Greeting
-void AFarmLifeGameMode::InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability)
+void AFarmLifeGameMode::InitGreeting(const FString& NPCName, int32 Likeability)
 {
-	HttpActor->InitGreeting(NPCName, NPCText, Likeability);
+	HttpActor->InitGreeting(NPCName, Likeability);
 }
 
 void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)

@@ -15,8 +15,7 @@ enum class ENPCType : uint8
 {
 	Mira = 0,
 	Junho,
-	Chunsik,
-	Okja
+	Chunsik
 };
 
 UENUM()
@@ -39,8 +38,14 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+public:
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UWidgetComponent> EmotionUIComp;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
 
@@ -50,11 +55,23 @@ protected:
 	UPROPERTY(EditAnywhere)
 	ENPCType NPCType;
 
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, FString> NPCNameMap;
-
 	UPROPERTY(EditAnywhere, Category="Locations")
 	FVector HomeLoc = FVector();
+
+// For Mapping
+protected:
+	// Keys For Map
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Mira = TEXT("미라");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Junho = TEXT("이준호");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Chunsik = TEXT("이춘식");
+
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, FString> NPCNameMap;
 
 public:
 	void StartConversation();
@@ -81,6 +98,7 @@ protected:
 
 public:
 	void SetCurEmotion(const FString& NewEmotion);
+	void SetCurEmotion(EEmotion NewEmotion);
 
 	void PlayEmotion();
 
@@ -100,7 +118,7 @@ public:
 
 // Greeting
 protected:
-	FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
+	//FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
 	bool HasIntendToGreeting = false;
 
 public:
@@ -137,6 +155,13 @@ public:
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
 	bool IsFriendly() const;
 
+// Emotion
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UEmotionUIWidget> EmotionUI;
+
+public:
+	void SetEmotionUI(bool IsActive);
 
 // Present
 protected:

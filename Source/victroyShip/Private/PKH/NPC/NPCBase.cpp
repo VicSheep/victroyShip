@@ -6,18 +6,34 @@
 #include "MediaPlayer.h"
 #include "PKH/NPC/NPCController.h"
 #include "MediaSoundComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Microsoft/AllowMicrosoftPlatformTypes.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
+#include "OJS/Player/FarmLifeOjsPlayerCharacter.h"
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
+#include "PKH/UI/EmotionUIWidget.h"
 
 ANPCBase::ANPCBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
+	// Emotion UI
+	EmotionUIComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("EmotionUIComp"));
+	EmotionUIComp->SetupAttachment(RootComponent);
+	EmotionUIComp->SetRelativeLocation(FVector(0, 35, 120));
+	EmotionUIComp->SetRelativeScale3D(FVector(0.6f));
+	EmotionUIComp->SetDrawSize(FVector2D(400, 400));
+
+	static ConstructorHelpers::FClassFinder<UEmotionUIWidget> EmotionUIClassRef(TEXT("/Game/PKH/UI/WBP_EmotionUI.WBP_EmotionUI_C"));
+	if (EmotionUIClassRef.Class)
+	{
+		EmotionUIComp->SetWidgetClass(EmotionUIClassRef.Class);
+	}
 
 	// AI Controller
 	static ConstructorHelpers::FClassFinder<ANPCController> NPCControllerClassRef(TEXT("/Game/PKH/Blueprint/BP_NPCController.BP_NPCController_C"));
@@ -41,10 +57,9 @@ ANPCBase::ANPCBase()
 	// Media Sound Component
 	MediaComp = CreateDefaultSubobject<UMediaSoundComponent>(TEXT("MediaComp"));
 
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), TEXT("미라"));
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), TEXT("이준호"));
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), TEXT("이춘식"));
-	//NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Okja), TEXT("김옥자"));
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), Name_Mira);
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), Name_Junho);
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), Name_Chunsik);
 }
 
 void ANPCBase::BeginPlay()
@@ -58,6 +73,10 @@ void ANPCBase::BeginPlay()
 
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
+
+	EmotionUI = Cast<UEmotionUIWidget>(EmotionUIComp->GetWidget());
+	ensure(EmotionUI);
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 
 	NPCName = NPCNameMap[UEnum::GetValueAsString(NPCType)];
 
@@ -73,6 +92,16 @@ void ANPCBase::BeginPlay()
 	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
 	PlayTTS(DefaultPath);
 }
+
+void ANPCBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	const FVector CameraLoc = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation();
+	const FRotator UIRotation = (CameraLoc - GetActorLocation()).GetSafeNormal().ToOrientationRotator();
+	EmotionUIComp->SetWorldRotation(UIRotation);
+}
+
 
 void ANPCBase::StartConversation()
 {
@@ -91,6 +120,7 @@ void ANPCBase::StartConversation()
 
 void ANPCBase::EndConversation()
 {
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
 }
@@ -101,11 +131,18 @@ void ANPCBase::SetCurEmotion(const FString& NewEmotion)
 	CurEmotion = NewEmotion;
 }
 
+void ANPCBase::SetCurEmotion(EEmotion NewEmotion)
+{
+	CurEmotion = UEnum::GetValueAsString(NewEmotion).Mid(10);
+}
+
 void ANPCBase::PlayEmotion()
 {
 	if(false == CurEmotion.IsEmpty())
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
+		EmotionUI->SetEmotion(CurEmotion);
+		EmotionUI->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -147,14 +184,14 @@ void ANPCBase::SetNPCRun()
 #pragma region Greeting
 void ANPCBase::InitGreeting()
 {
-	MyGameMode->InitGreeting(NPCName, GreetingText, CurLikeability);
+	MyGameMode->InitGreeting(NPCName, CurLikeability);
 	HasIntendToGreeting = true;
 }
 
 void ANPCBase::GreetingToPlayer()
 {
 	// Set Blackboard Key & Player State
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	AFarmLifeOjsPlayerCharacter* Player = Cast<AFarmLifeOjsPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	if(nullptr == Player)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no player"));
@@ -171,12 +208,19 @@ void ANPCBase::GreetingToPlayer()
 
 	MyGameMode->RequestGreetingData(this);
 	HasIntendToGreeting = false;
-	AnimInstance->PlayMontage_Emotion(UEnum::GetValueAsString(EEmotion::joy).Mid(10, 3));
+
+	SetCurEmotion(EEmotion::joy);
+	PlayEmotion();
 }
 
 bool ANPCBase::IsFriendly() const
 {
 	return (CurLikeability >= FriendlyLikeability) && HasIntendToGreeting;
+}
+
+void ANPCBase::SetEmotionUI(bool IsActive)
+{
+	EmotionUI->SetVisibility(IsActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 #pragma endregion
 
