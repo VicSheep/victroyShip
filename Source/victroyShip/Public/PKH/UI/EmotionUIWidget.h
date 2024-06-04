@@ -47,25 +47,31 @@ protected:
 	UPROPERTY()
 	FString Emotion_Anger = TEXT("anger");
 
+	UPROPERTY()
+	FString Emotion_Noticed = TEXT("noticed");
+
 	// Textures
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UTexture2D> Texture_Joy;
+	TObjectPtr<class UMaterialInstance> MI_Joy;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UTexture2D> Texture_Surprise;
+	TObjectPtr<class UMaterialInstance> MI_Surprise;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UTexture2D> Texture_Sadness;
+	TObjectPtr<class UMaterialInstance> MI_Sadness;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UTexture2D> Texture_Anger;
+	TObjectPtr<class UMaterialInstance> MI_Anger;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UTexture2D> Texture_Indiff;
+	TObjectPtr<class UMaterialInstance> MI_Noticed;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UMaterialInstance> MI_Indiff;
 
 	// Emotion Map
 	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, class UTexture2D*> EmotionMap;
+	TMap<FString, class UMaterialInstance*> EmotionMap;
 
 // For External
 public:

@@ -25,6 +25,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString BaseURL = TEXT("http://192.168.240.91:3172"); 
+	//FString BaseURL = TEXT("http://192.168.240.81:3172");
 
 	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -63,6 +64,19 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_GetGreetingTTS = TEXT("/get-greeting-tts");
+
+	// Present
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_InitPresent = TEXT("/init-present");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_PostPresent = TEXT("/post-present");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetPresentData = TEXT("/get-present-data");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_GetPresentTTS = TEXT("/get-present-tts");
 
 	// End Chat
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -113,6 +127,19 @@ public:
 
 	void GetGreetingTTS();
 	void GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	// Present
+	void InitPresent(const FString& NPCName, int32 Likeability);
+	void InitPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void RequestPresent(const FString& NPCName, int32 IsPrefer);
+	void RequestPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetPresentData();
+	void GetPresentDataComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+	void GetPresentTTS();
+	void GetPresentTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// End Chat
 	void EndChat(const FString& NPCName);

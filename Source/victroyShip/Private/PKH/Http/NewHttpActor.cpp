@@ -4,6 +4,7 @@
 
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/Library/JsonParserLibrary.h"
@@ -436,9 +437,156 @@ void ANewHttpActor::GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpRespons
 	{
 		const TArray<uint8>& Data = Response->GetContent();
 
-		const FString FilePath = FPaths::ProjectContentDir() + TEXT("TTSFile.wav");
+		const FString FilePath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/TTSFile.wav");
 		FFileHelper::SaveArrayToFile(Data, *FilePath);
 		UE_LOG(LogTemp, Warning, TEXT("Save Greeting TTS to %s "), *FilePath);
+
+		MyGameMode->PlayTTS(FilePath);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Present
+void ANewHttpActor::InitPresent(const FString& NPCName, int32 Likeability)
+{
+	const FString& FullURL = BaseURL + EndPoint_InitPresent;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::InitPresentComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Likeability);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Init Present: %s"), *NPCName);
+}
+
+void ANewHttpActor::InitPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		FString ResultString = Response->GetContentAsString();
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *ResultString);
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void ANewHttpActor::RequestPresent(const FString& NPCName, int32 IsPrefer)
+{
+	const FString& FullURL = BaseURL + EndPoint_PostPresent;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::RequestPresentComplete);
+
+	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"prefer\": \"%d\"}"), *NPCName, IsPrefer);
+	HttpRequest->SetContentAsString(JsonBody);
+
+	HttpRequest->ProcessRequest();
+
+	UE_LOG(LogTemp, Warning, TEXT("Request Present Response to %s"), *FullURL);
+}
+
+void ANewHttpActor::RequestPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Request Present Response Complete"));
+		GetPresentData();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void ANewHttpActor::GetPresentData()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetPresentData;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::GetPresentDataComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Get Present Data From %s"), *FullURL);
+}
+
+void ANewHttpActor::GetPresentDataComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const FString& ResultText = Response->GetContentAsString();
+		FNPCResponse NPCResponse;
+		UJsonParserLibrary::ParseNPCResponse(ResultText, NPCResponse);
+		UE_LOG(LogTemp, Warning, TEXT("Get Present Data Complete: %s"), *NPCResponse.Answer);
+
+		// 경로 수정
+		MyGameMode->ResponseToPlayerForPresent(NPCResponse);
+		GetPresentTTS();
+	}
+	else
+	{
+		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
+		}
+	}
+}
+
+void ANewHttpActor::GetPresentTTS()
+{
+	const FString& FullURL = BaseURL + EndPoint_GetPresentTTS;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::GetPresentTTSComplete);
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Get Present TTS From %s"), *FullURL);
+}
+
+void ANewHttpActor::GetPresentTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	if (bConnectedSuccessfully)
+	{
+		const TArray<uint8>& Data = Response->GetContent();
+
+		const FString FilePath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/TTSFile.wav");
+		FFileHelper::SaveArrayToFile(Data, *FilePath);
+		UE_LOG(LogTemp, Warning, TEXT("Save Present TTS to %s "), *FilePath);
 
 		MyGameMode->PlayTTS(FilePath);
 	}

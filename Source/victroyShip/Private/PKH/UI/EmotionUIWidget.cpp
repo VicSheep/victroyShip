@@ -7,36 +7,44 @@
 
 UEmotionUIWidget::UEmotionUIWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_JoyRef(TEXT("/Script/Engine.Texture2D'/Game/PKH/Texture/Joy.Joy'"));
-	if(Texture_JoyRef.Object)
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_JoyRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Joy.MI_Joy'"));
+	if(MI_JoyRef.Object)
 	{
-		Texture_Joy = Texture_JoyRef.Object;
+		MI_Joy = MI_JoyRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_SurpriseRef(TEXT("/Script/Engine.Texture2D'/Game/PKH/Texture/Surprise.Surprise'"));
-	if (Texture_SurpriseRef.Object)
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_SurpriseRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Surprise.MI_Surprise'"));
+	if (MI_SurpriseRef.Object)
 	{
-		Texture_Surprise = Texture_SurpriseRef.Object;
+		MI_Surprise = MI_SurpriseRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_SadnessRef(TEXT("/Script/Engine.Texture2D'/Game/PKH/Texture/Sad.Sad'"));
-	if (Texture_SadnessRef.Object)                                                
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_SadnessRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Sad.MI_Sad'"));
+	if (MI_SadnessRef.Object)
 	{
-		Texture_Sadness = Texture_SadnessRef.Object;
+		MI_Sadness = MI_SadnessRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_AngerRef(TEXT("/Script/Engine.Texture2D'/Game/PKH/Texture/Angry.Angry'"));
-	if (Texture_AngerRef.Object)
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_AngerRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Angry.MI_Angry'"));
+	if (MI_AngerRef.Object)
 	{
-		Texture_Anger = Texture_AngerRef.Object;
+		MI_Anger = MI_AngerRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_IndiffRef(TEXT("/Script/Engine.Texture2D'/Game/PKH/Texture/Indiff.Indiff'"));
-	if (Texture_IndiffRef.Object)
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_NoticedRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Noticed.MI_Noticed'"));
+	if (MI_NoticedRef.Object)
 	{
-		Texture_Indiff = Texture_IndiffRef.Object;
+		MI_Noticed = MI_NoticedRef.Object;
 	}
 
-	EmotionMap.Add(Emotion_Joy, Texture_Joy);
-	EmotionMap.Add(Emotion_Surprise, Texture_Surprise);
-	EmotionMap.Add(Emotion_Sadness, Texture_Sadness);
-	EmotionMap.Add(Emotion_Anger, Texture_Anger);
+	// Emotion which is not in map
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MI_IndiffRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/PKH/Material/MI_Indiff.MI_Indiff'"));
+	if (MI_IndiffRef.Object)
+	{
+		MI_Indiff = MI_IndiffRef.Object;
+	}
+
+	EmotionMap.Add(Emotion_Joy, MI_Joy);
+	EmotionMap.Add(Emotion_Surprise, MI_Surprise);
+	EmotionMap.Add(Emotion_Sadness, MI_Sadness);
+	EmotionMap.Add(Emotion_Anger, MI_Anger);
+	EmotionMap.Add(Emotion_Noticed, MI_Noticed);
 }
 
 void UEmotionUIWidget::NativeConstruct()
@@ -58,10 +66,10 @@ void UEmotionUIWidget::SetEmotion(const FString& Emotion)
 {
 	if(EmotionMap.Contains(Emotion))
 	{
-		Img_Emotion->SetBrushFromTexture(EmotionMap[Emotion]);
+		Img_Emotion->SetBrushFromMaterial(EmotionMap[Emotion]);
 	}
 	else
 	{
-		Img_Emotion->SetBrushFromTexture(Texture_Indiff);
+		Img_Emotion->SetBrushFromMaterial(MI_Indiff);
 	}
 }

@@ -49,13 +49,14 @@ void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)
 		return;
 	}
 
+	CurConvState = EConvState::None;
+	Txt_Conversation->SetText(FText::FromString(TEXT("")));
+
 	// 텍스트 스트림 중이라면 해제
 	if (GetWorld()->GetTimerManager().IsTimerActive(StreamHandle)) 
 	{
 		GetWorld()->GetTimerManager().ClearTimer(StreamHandle);
 		UE_LOG(LogTemp, Error, TEXT("Stream Stop"));
-		Txt_Conversation->SetText(FText::FromString(TEXT("")));
-		CurConvState = EConvState::None;
 	}
 }
 

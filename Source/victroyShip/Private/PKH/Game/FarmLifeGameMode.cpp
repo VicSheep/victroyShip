@@ -254,6 +254,32 @@ void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 }
 #pragma endregion
 
+#pragma region Present
+void AFarmLifeGameMode::InitPresent(const FString& NPCName, int32 Likeability)
+{
+	HttpActor->InitPresent(NPCName, Likeability);
+}
+
+void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, int32 IsPrefer)
+{
+	CurNPC = NewNPC;
+	HttpActor->RequestPresent(CurNPC->GetNPCName(), IsPrefer);
+	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCResponse)
+{
+	if (nullptr == CurNPC)
+	{
+		return;
+	}
+
+	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	CurNPC->SetCurEmotion(NPCResponse.Emotion);
+	CurNPC->PlayEmotion();
+}
+#pragma endregion
+
 #pragma region Time flow
 void AFarmLifeGameMode::StartTime()
 {

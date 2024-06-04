@@ -51,7 +51,6 @@ class NPC_Output(LangChainBaseModel):
 # NPC 인사 설정
 class NPC_Greeting_Input(fastapiBaseModel):
     npc_name : str
-    text : str
     likeability : int
 
 class NPC_Greeting_Output(fastapiBaseModel):
@@ -203,7 +202,7 @@ os.makedirs(output_dir, exist_ok=True)
 voiceRefs = {}
 voice_ref_list = ['codingApple', 'hakers', 'jax', 'rammus', 'ani', 'teemo']
 for voice in voice_ref_list:
-    reference_speaker = f'OpenVoice/resources/{voice}.mp3'
+    reference_speaker = f'../ReferenceForTTS/{voice}.mp3'
     target_se, audio_name = se_extractor.get_se(reference_speaker, tone_color_converter, vad=False)
     voiceRefs[voice] = (target_se,audio_name)
 
@@ -340,7 +339,31 @@ async def get_tts():
     return Response(content=tts(latest_dict, latest_npc_name), media_type="audio/wav")
 
 
-#### NPC 인사 초기화
+#################### NPC 인사 관련 ####################
+
+greeting_template = """
+You are a person with feelings. Understand your persona, {persona}, and greet friendlily to a person who familiar to you with conversational style of no more than 100 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
+Remember that this is your first conversation with the person today.
+
+FORMAT:
+{format}
+"""
+
+greeting_prompt = PromptTemplate.from_template(template=greeting_template)
+greeting_prompt = greeting_prompt.partial(format=parser.get_format_instructions())# 프롬프트 설정
+greeting_chain = greeting_prompt | llm | parser
+
+def greet2player(npcName:str, preperence:int):
+    response = greeting_chain.invoke(
+        {
+            "persona": load_persona(npcName),
+            "dialogue_example": get_sentences_as_string(npcName,preperence),
+        }
+    )
+
+    getChatLog(npcName).add_ai_message(response.answer) # 채팅 히스토리에 답변 추가
+    return response
+
 greetings_data = {}
 greetings_tts = {}
 requested_npc_name = ""
@@ -348,7 +371,7 @@ requested_npc_name = ""
 @app.post("/init-greeting")
 async def init_greeting(data:NPC_Greeting_Input):
     try:
-        greeting = talk2npc(data.npc_name, data.text, data.likeability)
+        greeting = greet2player(data.npc_name, data.likeability)
         greetings_data[data.npc_name] = greeting
         greetings_tts[data.npc_name] = tts(greeting, data.npc_name)
         return f'{data.npc_name}\'s greeting initialzied'
@@ -369,7 +392,80 @@ async def get_greeting_data():
 async def get_greeting_tts():
     return Response(content=greetings_tts[requested_npc_name], media_type="audio/wav")
 
-##### NPC 대화 기록 지우기
+#################### NPC 선물 관련 ####################
+
+present_template = """
+You are a person with feelings. Understand your persona, {persona}, and response to the situation which you've got a present. Response in a conversational style of no more than 100 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
+Whether the present is your favorite item or not is based on prefer is true of false. If true, response more intensely.
+
+prefer:
+{is_prefer_item}
+
+FORMAT:
+{format}
+"""
+
+present_prompt = PromptTemplate.from_template(template=present_template)
+present_prompt = present_prompt.partial(format=parser.get_format_instructions())# 프롬프트 설정
+present_chain = present_prompt | llm | parser
+
+def present2player(npcName:str, preperence:int, is_prefer_item:bool):
+    response = present_chain.invoke(
+        {
+            "persona": load_persona(npcName),
+            "is_prefer_item": is_prefer_item,
+            "dialogue_example": get_sentences_as_string(npcName,preperence),
+        }
+    )
+
+    getChatLog(npcName).add_ai_message(response.answer) # 채팅 히스토리에 답변 추가
+    return response
+
+present_data = {}
+present_tts = {}
+presented_npc_name = ""
+is_prefer : int
+
+class Present_Data(fastapiBaseModel):
+    npc_name : str
+    prefer : int
+
+@app.post("/init-present")
+async def init_present(data:NPC_Greeting_Input):
+    try:
+        # 0 for non-prefer, 1 for prefer
+        data_list = []
+        data_list.append(present2player(data.npc_name, data.likeability, False))
+        data_list.append(present2player(data.npc_name, data.likeability, True))
+        present_data[data.npc_name] = data_list
+
+        tts_list = []
+        tts_list.append(tts(data_list[0], data.npc_name))
+        tts_list.append(tts(data_list[1], data.npc_name))
+        present_tts[data.npc_name] = tts_list
+
+        return f'{data.npc_name}\'s present data initialzied'
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"{str(e)}")
+    
+@app.post("/post-present")
+async def post_present(data:Present_Data):
+    global presented_npc_name, is_prefer
+    presented_npc_name = data.npc_name
+    is_prefer = data.prefer
+    return present_data[presented_npc_name][is_prefer]
+
+@app.get("/get-present-data")
+async def get_present_data():
+    return present_data[presented_npc_name][is_prefer]
+
+@app.get("/get-present-tts")
+async def get_present_tts():
+    return Response(content=present_tts[presented_npc_name][is_prefer], media_type="audio/wav")
+
+
+
+########## NPC 대화 기록 지우기 ##########
 @app.post("/end-chat")
 def end_chat(data:NPC_Name):
     return summarizeChat(data.npc_name)

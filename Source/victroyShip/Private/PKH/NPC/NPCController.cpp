@@ -64,9 +64,12 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 	if(Stimulus.WasSuccessfullySensed())
 	{
 		NPC->SetNPCRun();
+		NPC->SetCurEmotion(EEmotion::noticed);
+		NPC->PlayEmotion(true);
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
 		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
+
 		
 		GetWorldTimerManager().ClearTimer(SightHandle);
 	}
@@ -88,6 +91,7 @@ void ANPCController::OnLostPlayer()
 	if(NPC)
 	{
 		NPC->SetNPCWalk();
+		NPC->SetEmotionUI(false);
 	}
 
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);

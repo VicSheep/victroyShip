@@ -20,7 +20,7 @@
 
 ANPCBase::ANPCBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Emotion UI
 	EmotionUIComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("EmotionUIComp"));
@@ -28,6 +28,7 @@ ANPCBase::ANPCBase()
 	EmotionUIComp->SetRelativeLocation(FVector(0, 35, 120));
 	EmotionUIComp->SetRelativeScale3D(FVector(0.6f));
 	EmotionUIComp->SetDrawSize(FVector2D(400, 400));
+	EmotionUIComp->SetWidgetSpace(EWidgetSpace::Screen);
 
 	static ConstructorHelpers::FClassFinder<UEmotionUIWidget> EmotionUIClassRef(TEXT("/Game/PKH/UI/WBP_EmotionUI.WBP_EmotionUI_C"));
 	if (EmotionUIClassRef.Class)
@@ -84,25 +85,18 @@ void ANPCBase::BeginPlay()
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
+	// Init Greeting & Present Data
 	if(CurLikeability >= FriendlyLikeability)
 	{
 		InitGreeting();
 	}
+	InitPresentResponse();
 
 	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
 	PlayTTS(DefaultPath);
 }
 
-void ANPCBase::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	const FVector CameraLoc = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation();
-	const FRotator UIRotation = (CameraLoc - GetActorLocation()).GetSafeNormal().ToOrientationRotator();
-	EmotionUIComp->SetWorldRotation(UIRotation);
-}
-
-
+#pragma region Start / End Conversation
 void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
@@ -115,6 +109,7 @@ void ANPCBase::StartConversation()
 
 		NPCController->StartConversation();
 		AnimInstance->PlayMontage_Conv();
+		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -123,7 +118,10 @@ void ANPCBase::EndConversation()
 	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
+	SetNPCWalk();
 }
+#pragma endregion
+
 
 #pragma region TTS
 void ANPCBase::SetCurEmotion(const FString& NewEmotion)
@@ -136,13 +134,18 @@ void ANPCBase::SetCurEmotion(EEmotion NewEmotion)
 	CurEmotion = UEnum::GetValueAsString(NewEmotion).Mid(10);
 }
 
-void ANPCBase::PlayEmotion()
+void ANPCBase::PlayEmotion(bool IsUIOnly)
 {
-	if(false == CurEmotion.IsEmpty())
+	if(CurEmotion.IsEmpty())
+	{
+		return;
+	}
+
+	EmotionUI->SetEmotion(CurEmotion);
+	EmotionUI->SetVisibility(ESlateVisibility::Visible);
+	if(false == IsUIOnly)
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
-		EmotionUI->SetEmotion(CurEmotion);
-		EmotionUI->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -167,6 +170,7 @@ void ANPCBase::OnPlayEnded()
 	}
 }
 #pragma endregion
+
 
 #pragma region Speed
 void ANPCBase::SetNPCWalk()
@@ -240,14 +244,30 @@ bool ANPCBase::IsMaxLikeability()
 {
 	return CurLikeability == MaxLikeability;
 }
+#pragma endregion
 
-void ANPCBase::GivePresent(int32 NewItemId)
+
+#pragma region Present
+void ANPCBase::InitPresentResponse()
 {
-	UpdateLikeability(NewItemId == PreferItemId ? PreferItemValue : NormalItemValue);
+	MyGameMode->InitPresent(NPCName, CurLikeability);
+	GetPresentToday = false;
+}
+
+void ANPCBase::GivePresent(const FString& ItemName)
+{
+	/*if (GetPresentToday)
+	{
+		return;
+	}
+
+	GetPresentToday = true;*/
+	int32 bIsPrefer = ItemName == PreferItemName ? 1 : 0;
+	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->SendText(PresentText, this);
+	GameMode->RequestPresentData(this, bIsPrefer);
 }
 #pragma endregion
 
@@ -265,6 +285,7 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 	{
 		InitGreeting();
 	}
+	InitPresentResponse();
 
 	SetActorLocation(HomeLoc);
 }

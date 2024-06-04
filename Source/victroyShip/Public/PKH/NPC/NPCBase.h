@@ -25,7 +25,8 @@ enum class EEmotion : uint8
 	joy,
 	surprise,
 	sad,
-	anger
+	anger,
+	noticed
 };
 
 UCLASS()
@@ -38,9 +39,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-public:
-	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -100,7 +98,7 @@ public:
 	void SetCurEmotion(const FString& NewEmotion);
 	void SetCurEmotion(EEmotion NewEmotion);
 
-	void PlayEmotion();
+	void PlayEmotion(bool IsUIOnly = false);
 
 	void PlayTTS(const FString& FilePath);
 
@@ -118,7 +116,6 @@ public:
 
 // Greeting
 protected:
-	//FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
 	bool HasIntendToGreeting = false;
 
 public:
@@ -165,16 +162,19 @@ public:
 
 // Present
 protected:
-	int32 PreferItemId = 0;
+	bool GetPresentToday = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	FString PreferItemName = TEXT("");
 
 	int32 NormalItemValue = 5;
 	int32 PreferItemValue = 15;
 
-	UPROPERTY(EditDefaultsOnly)
-	FString PresentText = TEXT("이거 선물이야, 받아줘!");
+	void InitPresentResponse();
 
 public:
-	void GivePresent(int32 NewItemId);
+	UFUNCTION(BlueprintCallable)
+	void GivePresent(const FString& ItemName);
 
 // Job
 protected:
