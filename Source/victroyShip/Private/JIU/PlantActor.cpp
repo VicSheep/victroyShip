@@ -9,6 +9,8 @@
 #include "Curves/CurveFloat.h"
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -28,6 +30,8 @@ APlantActor::APlantActor()
 	{
 		PlantDataTable = DataTable.Object;
 	}
+
+	GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
 }
 
 // Called when the game starts or when spawned
@@ -71,7 +75,7 @@ FPlantStruct APlantActor::GetPlantData(FName RowName)
 
 		if (!Row)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
+			// UE_LOG(LogTemp, Error, TEXT("Row with name '%s' not found"), *RowName.ToString());
 			return FPlantStruct();
 		}
 
@@ -180,6 +184,11 @@ void APlantActor::HandleProgress(float Value)
 		{
 			MeshComponent->SetStaticMesh(NewMesh);
 			isChanged = false;
+
+			if (PlantState == EPlantState::Mature)
+			{
+				SpawnPaticleSystem(GrowParticleSystem);
+			}
 		}
 	}
 
@@ -190,8 +199,6 @@ void APlantActor::OnTimelineFinished()
 {
 	NewMesh = nullptr;
 	isChanged = true;
-
-	// Ground->MoveCamera(false);
 }
 
 void APlantActor::SetupTimeline()
@@ -231,5 +238,13 @@ void APlantActor::HavestPlant()
 		{
 			Destroy();
 		}
+	}
+}
+
+void APlantActor::SpawnPaticleSystem(UParticleSystem* particle)
+{
+	if (particle)
+	{
+		ParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GrowParticleSystem, GetActorLocation(), GetActorRotation());
 	}
 }

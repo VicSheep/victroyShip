@@ -102,8 +102,6 @@ public:
 	bool isChanged = true;
 
 	void SetupTimeline();
-	
-	///* Particle *///
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
@@ -111,4 +109,14 @@ public:
 
 	UPROPERTY()
 	bool haveChange = false;
+
+	///* Particle *///
+	UPROPERTY()
+	UParticleSystemComponent* ParticleComponent;
+
+	UPROPERTY()
+	UParticleSystem* GrowParticleSystem;
+
+	UFUNCTION()
+	void SpawnPaticleSystem(UParticleSystem* particle);
 };

@@ -4,15 +4,15 @@
 #include "JIU/GroundActor.h"
 
 #include "TimerManager.h"
-#include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "JIU/PlantActor.h"
 #include "JIU/WeedActor.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -50,11 +50,21 @@ AGroundActor::AGroundActor()
 		DryMaterialInterface = DryMaterialAsset.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MiddleMaterialAsset(*MiddleMaterialPath);
+	if (MiddleMaterialAsset.Succeeded())
+	{
+		MiddleMaterialInterface = MiddleMaterialAsset.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WetMaterialAsset(*WetMaterialPath);
 	if (WetMaterialAsset.Succeeded())
 	{
 		WetMaterialInterface = WetMaterialAsset.Object;
 	}
+
+	DustNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Explosion_Sand.NS_Explosion_Sand"));
+	RainNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Rain_Custom.NS_Environment_Rain_Custom"));
+	LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Leaves_Custom.NS_Environment_Leaves_Custom"));
 }
 
 // Called when the game starts or when spawned
@@ -164,6 +174,7 @@ void AGroundActor::WaterPlant()
 	if (GroundState != EGroundState::Default)
 	{
 		WaterFigure = 100.f;
+		SpawnNiagaraSystem(RainNiagaraSystem);
 		SetGroundMaterial();
 	}
 }
@@ -173,6 +184,7 @@ void AGroundActor::FertilizePlant()
 	if (GroundState != EGroundState::Default)
 	{
 		FertilizerFigure = 100.f;
+		SpawnNiagaraSystem(DustNiagaraSystem);
 		SetGroundMaterial();
 	}
 }
@@ -183,6 +195,8 @@ void AGroundActor::RemovePlant()
 	{
 		Plant->Destroy();
 		Plant = nullptr;
+
+		SpawnNiagaraSystem(LeafNiagaraSystem);
 	}
 }
 
@@ -283,12 +297,22 @@ void AGroundActor::SetGroundMaterial()
 {
 	if (GroundState == EGroundState::DryPlanter)
 	{
-		if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
+		if (WaterFigure > figureLimit || FertilizerFigure > figureLimit)
 		{
-			if (WetMaterialInterface)
+			if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
 			{
-				MeshComponent->SetMaterial(0, WetMaterialInterface);
-				SetGroundState(EGroundState::WetPlanter);
+				if (WetMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, WetMaterialInterface);
+					SetGroundState(EGroundState::WetPlanter);
+				}
+			}
+			else
+			{
+				if (MiddleMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
+				}
 			}
 		}
 	}
@@ -297,10 +321,21 @@ void AGroundActor::SetGroundMaterial()
 	{
 		if (WaterFigure < figureLimit || FertilizerFigure < figureLimit)
 		{
-			if (DryMaterialInterface)
+			if (WaterFigure < figureLimit && FertilizerFigure < figureLimit)
 			{
-				MeshComponent->SetMaterial(0, DryMaterialInterface);
-				SetGroundState(EGroundState::DryPlanter);
+				if (DryMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, DryMaterialInterface);
+					SetGroundState(EGroundState::DryPlanter);
+				}
+			}
+			else
+			{
+				if (MiddleMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
+					SetGroundState(EGroundState::DryPlanter);
+				}
 			}
 		}
 	}
@@ -316,4 +351,12 @@ void AGroundActor::SetGroundState(EGroundState state)
 	*/
 
 	GroundState = state;
+}
+
+void AGroundActor::SpawnNiagaraSystem(UNiagaraSystem* niagara)
+{
+	if (niagara)
+	{
+		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), niagara, GetActorLocation(), GetActorRotation());
+	}
 }

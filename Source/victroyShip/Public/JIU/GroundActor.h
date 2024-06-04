@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "GroundActor.generated.h"
 
+class UNiagaraSystem;
+
 UENUM()
 enum class EGroundState
 {
@@ -52,11 +54,15 @@ public:
 	UMaterialInterface* DryMaterialInterface;
 
 	UPROPERTY()
+	UMaterialInterface* MiddleMaterialInterface;
+
+	UPROPERTY()
 	UMaterialInterface* WetMaterialInterface;
 
 	FString PlanterPath = "/Game/UltimateFarming/Meshes/SM_Planter_D_02.SM_Planter_D_02";
 	FString DefaultMaterialPath = "/Game/UltimateFarming/Materials/MI_FertileGround.MI_FertileGround";
 	FString DryMaterialPath = "/Game/JIU/Materials/MI_Planter_Dry.MI_Planter_Dry";
+	FString MiddleMaterialPath = "/Game/JIU/Materials/MI_Planter_Middle.MI_Planter_Middle";
 	FString WetMaterialPath = "/Game/JIU/Materials/MI_Planter_Wet.MI_Planter_Wet";
 
 	///* Player *///
@@ -122,4 +128,20 @@ public:
 	void SetGroundMaterial();
 
 	void SetGroundState(EGroundState state);
+
+	///* Particle *///
+	UPROPERTY()
+	class UNiagaraComponent* NiagaraComponent;
+
+	UPROPERTY()
+	UNiagaraSystem* DustNiagaraSystem;
+
+	UPROPERTY()
+	UNiagaraSystem* RainNiagaraSystem;
+
+	UPROPERTY()
+	UNiagaraSystem* LeafNiagaraSystem;
+
+	UFUNCTION()
+	void SpawnNiagaraSystem(UNiagaraSystem* niagara);
 };
