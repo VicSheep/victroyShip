@@ -42,6 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OpenInfoWidget();
 
+	UFUNCTION(BlueprintCallable)
+	void CloseInfoWidget();
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UToolWidget> toolFactory;
 

@@ -23,7 +23,7 @@ AGroundActor::AGroundActor()
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	SetRootComponent(BoxComponent); // Set Component on Root Component
-	BoxComponent->SetBoxExtent(FVector(180.f, 180.f, 32.f));
+	BoxComponent->SetBoxExtent(FVector(180.f, 180.f, 180.f));
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
@@ -64,7 +64,7 @@ AGroundActor::AGroundActor()
 
 	DustNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Explosion_Sand.NS_Explosion_Sand"));
 	RainNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Rain_Custom.NS_Environment_Rain_Custom"));
-	LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Leaves_Custom.NS_Environment_Leaves_Custom"));
+	// LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Leaves_Custom.NS_Environment_Leaves_Custom"));
 }
 
 // Called when the game starts or when spawned
@@ -164,7 +164,7 @@ void AGroundActor::PlantingSeed(int id)
 {
 	if (Plant == nullptr && GroundState != EGroundState::Default)
 	{
-		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation(), FRotator(0.f));
+		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation() + FVector(0.f, 0.f, 10.f), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
 }
@@ -195,8 +195,6 @@ void AGroundActor::RemovePlant()
 	{
 		Plant->Destroy();
 		Plant = nullptr;
-
-		SpawnNiagaraSystem(LeafNiagaraSystem);
 	}
 }
 

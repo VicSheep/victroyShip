@@ -75,18 +75,25 @@ void UFarmerComponent::OpenInfoWidget()
 	{
 		if (PlantInfoWidget && Ground->Plant)
 		{
-			if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Visible)
+			if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Hidden)
 			{
-				// Ground->MoveCamera(false);
-				PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
-				PlantInfoWidget->ground = nullptr;
-			}
-			else
-			{
-				// Ground->MoveCamera(true);
 				PlantInfoWidget->SetVisibility(ESlateVisibility::Visible);
 				PlantInfoWidget->SetPlantInfo(Ground->Plant);
+				// PlantInfoWidget->UpdatePlantState();
 			}
+		}
+	}
+}
+
+void UFarmerComponent::CloseInfoWidget()
+{
+	if (PlantInfoWidget)
+	{
+		if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Visible)
+		{
+			// Ground->MoveCamera(false);
+			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			PlantInfoWidget->ground = nullptr;
 		}
 	}
 }
@@ -115,7 +122,7 @@ void UFarmerComponent::FarmingInteraction()
 	case 0:
 		if (Ground->Plant)
 		{
-			OpenInfoWidget();
+			// OpenInfoWidget();
 		}
 		else
 		{

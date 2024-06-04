@@ -84,14 +84,17 @@ void UPlantInfoWidget::UpdatePlantState()
 		if (ground->Plant->PlantState == EPlantState::Seed)
 		{
 			text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), 0, ground->Plant->PlantInfo.GrowLevel)));
+			button_harvest->SetVisibility(ESlateVisibility::Hidden);
 		}
 		else if (ground->Plant->PlantState == EPlantState::Growing)
 		{
 			text_level->SetText(FText::FromString(FString::Printf(TEXT("Growing up... %d of %d"), ground->Plant->CurLevel, ground->Plant->PlantInfo.GrowLevel)));
+			button_harvest->SetVisibility(ESlateVisibility::Hidden);
 		}
 		else if (ground->Plant->PlantState == EPlantState::Havested)
 		{
 			text_level->SetText(FText::FromString(FString::Printf(TEXT("Bearing fruit... %d of %d"), ground->Plant->CurLevel, ground->Plant->PlantInfo.HavestLevel)));
+			button_harvest->SetVisibility(ESlateVisibility::Hidden);
 		}
 		else if (ground->Plant->PlantState == EPlantState::Mature)
 		{
