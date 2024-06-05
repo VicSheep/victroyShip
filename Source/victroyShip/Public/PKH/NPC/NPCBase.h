@@ -15,8 +15,7 @@ enum class ENPCType : uint8
 {
 	Mira = 0,
 	Junho,
-	Chunsik,
-	Okja
+	Chunsik
 };
 
 UENUM()
@@ -26,7 +25,8 @@ enum class EEmotion : uint8
 	joy,
 	surprise,
 	sad,
-	anger
+	anger,
+	noticed
 };
 
 UCLASS()
@@ -41,6 +41,9 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UWidgetComponent> EmotionUIComp;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
 
@@ -50,11 +53,23 @@ protected:
 	UPROPERTY(EditAnywhere)
 	ENPCType NPCType;
 
-	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, FString> NPCNameMap;
-
 	UPROPERTY(EditAnywhere, Category="Locations")
 	FVector HomeLoc = FVector();
+
+// For Mapping
+protected:
+	// Keys For Map
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Mira = TEXT("미라");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Junho = TEXT("이준호");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Chunsik = TEXT("이춘식");
+
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, FString> NPCNameMap;
 
 public:
 	void StartConversation();
@@ -81,8 +96,9 @@ protected:
 
 public:
 	void SetCurEmotion(const FString& NewEmotion);
+	void SetCurEmotion(EEmotion NewEmotion);
 
-	void PlayEmotion();
+	void PlayEmotion(bool IsUIOnly = false);
 
 	void PlayTTS(const FString& FilePath);
 
@@ -100,7 +116,6 @@ public:
 
 // Greeting
 protected:
-	FString GreetingText = TEXT("안녕하세요, 인사 한번만 해주세요!");
 	bool HasIntendToGreeting = false;
 
 public:
@@ -137,19 +152,29 @@ public:
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
 	bool IsFriendly() const;
 
+// Emotion
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UEmotionUIWidget> EmotionUI;
+
+public:
+	void SetEmotionUI(bool IsActive);
 
 // Present
 protected:
-	int32 PreferItemId = 0;
+	bool GetPresentToday = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	FString PreferItemName = TEXT("");
 
 	int32 NormalItemValue = 5;
 	int32 PreferItemValue = 15;
 
-	UPROPERTY(EditDefaultsOnly)
-	FString PresentText = TEXT("이거 선물이야, 받아줘!");
+	void InitPresentResponse();
 
 public:
-	void GivePresent(int32 NewItemId);
+	UFUNCTION(BlueprintCallable)
+	void GivePresent(const FString& ItemName);
 
 // Job
 protected:

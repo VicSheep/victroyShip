@@ -34,5 +34,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsChatting() const;
+
+	UFUNCTION()
+	void OnChatTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 		
 };

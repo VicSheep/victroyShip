@@ -7,6 +7,7 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "OJS/Player/FarmLifeOjsPlayerCharacter.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "PKH/BT/BTNPCKey.h"
@@ -63,9 +64,12 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 	if(Stimulus.WasSuccessfullySensed())
 	{
 		NPC->SetNPCRun();
+		NPC->SetCurEmotion(EEmotion::noticed);
+		NPC->PlayEmotion(true);
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
 		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
+
 		
 		GetWorldTimerManager().ClearTimer(SightHandle);
 	}
@@ -87,6 +91,7 @@ void ANPCController::OnLostPlayer()
 	if(NPC)
 	{
 		NPC->SetNPCWalk();
+		NPC->SetEmotionUI(false);
 	}
 
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
@@ -120,12 +125,16 @@ void ANPCController::StopAI()
 #pragma region Conversation
 void ANPCController::StartConversation()
 {
-	BBComp->SetValueAsBool(KEY_IN_CONV, true); UE_LOG(LogTemp, Log, TEXT("StartConversation() In Controller"));
+	BBComp->SetValueAsBool(KEY_IN_CONV, true);
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	BBComp->SetValueAsObject(KEY_PLAYER, Player);
 }
 
 void ANPCController::EndConversation()
 {
 	BBComp->SetValueAsBool(KEY_IN_CONV, false);
+	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 	OnLostPlayer();
 }
 #pragma endregion
