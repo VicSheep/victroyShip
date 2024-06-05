@@ -55,6 +55,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plant")
     FString HavestedPath2;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plant")
+    int HarvestAmount;
+
     bool IsValid() const
     {
 	    return !Name.IsEmpty();
