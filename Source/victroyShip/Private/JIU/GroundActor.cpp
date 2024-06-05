@@ -4,15 +4,18 @@
 #include "JIU/GroundActor.h"
 
 #include "TimerManager.h"
+#include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
 #include "JIU/PlantActor.h"
 #include "JIU/WeedActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -33,9 +36,16 @@ AGroundActor::AGroundActor()
 	ActorComponent->SetupAttachment(RootComponent);
 	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
 
-	/*CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	CameraComponent->SetupAttachment(RootComponent);
-	CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));*/
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 360.f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->SetRelativeRotation(FRotator(-15.f, 0.f, 0.f));
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetupAttachment(CameraBoom);
+	CameraComponent->bUsePawnControlRotation = false;
+	// CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -225,7 +235,7 @@ void AGroundActor::RemoveWeed()
 	}
 }
 
-/*void AGroundActor::MoveCamera(bool zoomin)
+void AGroundActor::MoveCamera()
 {
 	if (PC && PP)
 	{
@@ -236,9 +246,9 @@ void AGroundActor::RemoveWeed()
 		bool bLockOutgoing = false;
 
 		// 카메라 전환
-		if (zoomin)
+		if (!isZoom)
 		{
-			FVector MyLocation = this->GetActorLocation();
+			/*FVector MyLocation = this->GetActorLocation();
 			FVector TargetLocation = PP->GetActorLocation();
 			FVector DirectionToTarget = TargetLocation - MyLocation;
 
@@ -266,7 +276,7 @@ void AGroundActor::RemoveWeed()
 			LookAtRotation.Pitch = -15.f;
 			CameraComponent->SetRelativeRotation(LookAtRotation);
 
-			PP->SetActorRotation(LookAtRotation);
+			PP->SetActorRotation(LookAtRotation);*/
 
 			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
 
@@ -274,6 +284,8 @@ void AGroundActor::RemoveWeed()
 			{
 				PrimitiveComponent->SetVisibility(false);
 			}
+
+			isZoom = true;
 		}
 		else
 		{
@@ -283,13 +295,15 @@ void AGroundActor::RemoveWeed()
 			{
 				PrimitiveComponent->SetVisibility(true);
 			}
+
+			isZoom = false;
 		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No Player Controller"));
 	}
-}*/
+}
 
 void AGroundActor::SetGroundMaterial()
 {

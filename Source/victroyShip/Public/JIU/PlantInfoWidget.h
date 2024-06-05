@@ -36,6 +36,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UButton* button_harvest;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
+	class UButton* button_zoomin;
+
 	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* text_grow;*/
 
@@ -61,4 +64,7 @@ public:
 
 	UFUNCTION()
 	void ClickHarvestButton();
+
+	UFUNCTION()
+	void ClickZoomButton();
 };

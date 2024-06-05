@@ -63,8 +63,12 @@ void UFarmerComponent::OpenPlantWidget()
 		}
 		else
 		{
-			PlantWidget->SetVisibility(ESlateVisibility::Visible);
-			PlantWidget->SetPlantWidget(Ground);
+			if (Ground->GroundState != EGroundState::Default)
+			{
+
+				PlantWidget->SetVisibility(ESlateVisibility::Visible);
+				PlantWidget->SetPlantWidget(Ground);
+			}
 		}
 	}
 }

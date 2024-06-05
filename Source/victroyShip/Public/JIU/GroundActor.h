@@ -40,8 +40,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 
-	/*UPROPERTY(EditAnywhere)
-	class UCameraComponent* CameraComponent;*/
+	UPROPERTY(EditAnywhere)
+	class UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(EditAnywhere)
 	class UChildActorComponent* ActorComponent;
@@ -121,7 +124,11 @@ public:
 	void RemoveWeed();
 
 	///* Camera Blend *///
-	/*void MoveCamera(bool zoomin);*/
+	UFUNCTION()
+	void MoveCamera();
+
+	UPROPERTY(BlueprintReadWrite)
+	bool isZoom = false;
 
 	///* Others *///
 	UFUNCTION()

@@ -14,6 +14,7 @@ void UPlantInfoWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	button_harvest->OnClicked.AddDynamic(this, &UPlantInfoWidget::ClickHarvestButton);
+	button_zoomin->OnClicked.AddDynamic(this, &UPlantInfoWidget::ClickZoomButton);
 }
 
 void UPlantInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -116,6 +117,14 @@ void UPlantInfoWidget::ClickHarvestButton()
 				button_harvest->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
+	}
+}
+
+void UPlantInfoWidget::ClickZoomButton()
+{
+	if (ground)
+	{
+		ground->MoveCamera();
 	}
 }
 
