@@ -60,7 +60,7 @@ public:
 	UPROPERTY()
 	FPlantStruct PlantInfo;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	EPlantState PlantState;
 
 	bool isRepeated = false;
@@ -102,10 +102,21 @@ public:
 	bool isChanged = true;
 
 	void SetupTimeline();
-	
-	///* Particle *///
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
 	void HavestPlant();
+
+	UPROPERTY()
+	bool haveChange = false;
+
+	///* Particle *///
+	UPROPERTY()
+	UParticleSystemComponent* ParticleComponent;
+
+	UPROPERTY()
+	UParticleSystem* GrowParticleSystem;
+
+	UFUNCTION()
+	void SpawnPaticleSystem(UParticleSystem* particle);
 };
