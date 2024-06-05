@@ -13,6 +13,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -23,7 +26,7 @@ AGroundActor::AGroundActor()
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	SetRootComponent(BoxComponent); // Set Component on Root Component
-	BoxComponent->SetBoxExtent(FVector(180.f, 180.f, 32.f));
+	BoxComponent->SetBoxExtent(FVector(180.f, 180.f, 180.f));
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
@@ -33,9 +36,16 @@ AGroundActor::AGroundActor()
 	ActorComponent->SetupAttachment(RootComponent);
 	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
 
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 360.f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->SetRelativeRotation(FRotator(-15.f, 0.f, 0.f));
+
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	CameraComponent->SetupAttachment(RootComponent);
-	CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));
+	CameraComponent->SetupAttachment(CameraBoom);
+	CameraComponent->bUsePawnControlRotation = false;
+	// CameraComponent->SetRelativeLocationAndRotation(FVector(-360.f, 0.f, 180.f), FRotator(-15.f, 0.f, 0.f));
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMaterialAsset(*DefaultMaterialPath);
 	if (DefaultMaterialAsset.Succeeded())
@@ -50,11 +60,21 @@ AGroundActor::AGroundActor()
 		DryMaterialInterface = DryMaterialAsset.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MiddleMaterialAsset(*MiddleMaterialPath);
+	if (MiddleMaterialAsset.Succeeded())
+	{
+		MiddleMaterialInterface = MiddleMaterialAsset.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WetMaterialAsset(*WetMaterialPath);
 	if (WetMaterialAsset.Succeeded())
 	{
 		WetMaterialInterface = WetMaterialAsset.Object;
 	}
+
+	DustNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Explosion_Sand.NS_Explosion_Sand"));
+	RainNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Rain_Custom.NS_Environment_Rain_Custom"));
+	// LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Leaves_Custom.NS_Environment_Leaves_Custom"));
 }
 
 // Called when the game starts or when spawned
@@ -154,7 +174,7 @@ void AGroundActor::PlantingSeed(int id)
 {
 	if (Plant == nullptr && GroundState != EGroundState::Default)
 	{
-		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation(), FRotator(0.f));
+		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation() + FVector(0.f, 0.f, 10.f), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
 }
@@ -164,6 +184,7 @@ void AGroundActor::WaterPlant()
 	if (GroundState != EGroundState::Default)
 	{
 		WaterFigure = 100.f;
+		SpawnNiagaraSystem(RainNiagaraSystem);
 		SetGroundMaterial();
 	}
 }
@@ -173,6 +194,7 @@ void AGroundActor::FertilizePlant()
 	if (GroundState != EGroundState::Default)
 	{
 		FertilizerFigure = 100.f;
+		SpawnNiagaraSystem(DustNiagaraSystem);
 		SetGroundMaterial();
 	}
 }
@@ -213,7 +235,7 @@ void AGroundActor::RemoveWeed()
 	}
 }
 
-void AGroundActor::MoveCamera(bool zoomin)
+void AGroundActor::MoveCamera()
 {
 	if (PC && PP)
 	{
@@ -224,9 +246,9 @@ void AGroundActor::MoveCamera(bool zoomin)
 		bool bLockOutgoing = false;
 
 		// 카메라 전환
-		if (zoomin)
+		if (!isZoom)
 		{
-			FVector MyLocation = this->GetActorLocation();
+			/*FVector MyLocation = this->GetActorLocation();
 			FVector TargetLocation = PP->GetActorLocation();
 			FVector DirectionToTarget = TargetLocation - MyLocation;
 
@@ -254,7 +276,7 @@ void AGroundActor::MoveCamera(bool zoomin)
 			LookAtRotation.Pitch = -15.f;
 			CameraComponent->SetRelativeRotation(LookAtRotation);
 
-			PP->SetActorRotation(LookAtRotation);
+			PP->SetActorRotation(LookAtRotation);*/
 
 			PC->SetViewTargetWithBlend(this, BlendTime, BlendFunc, BlendExp, bLockOutgoing);
 
@@ -262,6 +284,8 @@ void AGroundActor::MoveCamera(bool zoomin)
 			{
 				PrimitiveComponent->SetVisibility(false);
 			}
+
+			isZoom = true;
 		}
 		else
 		{
@@ -271,6 +295,8 @@ void AGroundActor::MoveCamera(bool zoomin)
 			{
 				PrimitiveComponent->SetVisibility(true);
 			}
+
+			isZoom = false;
 		}
 	}
 	else
@@ -283,12 +309,22 @@ void AGroundActor::SetGroundMaterial()
 {
 	if (GroundState == EGroundState::DryPlanter)
 	{
-		if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
+		if (WaterFigure > figureLimit || FertilizerFigure > figureLimit)
 		{
-			if (WetMaterialInterface)
+			if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
 			{
-				MeshComponent->SetMaterial(0, WetMaterialInterface);
-				SetGroundState(EGroundState::WetPlanter);
+				if (WetMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, WetMaterialInterface);
+					SetGroundState(EGroundState::WetPlanter);
+				}
+			}
+			else
+			{
+				if (MiddleMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
+				}
 			}
 		}
 	}
@@ -297,10 +333,21 @@ void AGroundActor::SetGroundMaterial()
 	{
 		if (WaterFigure < figureLimit || FertilizerFigure < figureLimit)
 		{
-			if (DryMaterialInterface)
+			if (WaterFigure < figureLimit && FertilizerFigure < figureLimit)
 			{
-				MeshComponent->SetMaterial(0, DryMaterialInterface);
-				SetGroundState(EGroundState::DryPlanter);
+				if (DryMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, DryMaterialInterface);
+					SetGroundState(EGroundState::DryPlanter);
+				}
+			}
+			else
+			{
+				if (MiddleMaterialInterface)
+				{
+					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
+					SetGroundState(EGroundState::DryPlanter);
+				}
 			}
 		}
 	}
@@ -316,4 +363,12 @@ void AGroundActor::SetGroundState(EGroundState state)
 	*/
 
 	GroundState = state;
+}
+
+void AGroundActor::SpawnNiagaraSystem(UNiagaraSystem* niagara)
+{
+	if (niagara)
+	{
+		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), niagara, GetActorLocation(), GetActorRotation());
+	}
 }

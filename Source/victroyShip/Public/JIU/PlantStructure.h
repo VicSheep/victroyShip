@@ -13,7 +13,7 @@ enum class EHavestType
     Once,
 };
 
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType, Blueprintable)
 struct FPlantStruct : public FTableRowBase
 {
     GENERATED_BODY()

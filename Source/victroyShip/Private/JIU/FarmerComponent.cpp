@@ -63,8 +63,12 @@ void UFarmerComponent::OpenPlantWidget()
 		}
 		else
 		{
-			PlantWidget->SetVisibility(ESlateVisibility::Visible);
-			PlantWidget->SetPlantWidget(Ground);
+			if (Ground->GroundState != EGroundState::Default)
+			{
+
+				PlantWidget->SetVisibility(ESlateVisibility::Visible);
+				PlantWidget->SetPlantWidget(Ground);
+			}
 		}
 	}
 }
@@ -75,18 +79,25 @@ void UFarmerComponent::OpenInfoWidget()
 	{
 		if (PlantInfoWidget && Ground->Plant)
 		{
-			if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Visible)
+			if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Hidden)
 			{
-				// Ground->MoveCamera(false);
-				PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
-				PlantInfoWidget->ground = nullptr;
-			}
-			else
-			{
-				// Ground->MoveCamera(true);
 				PlantInfoWidget->SetVisibility(ESlateVisibility::Visible);
 				PlantInfoWidget->SetPlantInfo(Ground->Plant);
+				// PlantInfoWidget->UpdatePlantState();
 			}
+		}
+	}
+}
+
+void UFarmerComponent::CloseInfoWidget()
+{
+	if (PlantInfoWidget)
+	{
+		if (PlantInfoWidget->GetVisibility() == ESlateVisibility::Visible)
+		{
+			// Ground->MoveCamera(false);
+			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			PlantInfoWidget->ground = nullptr;
 		}
 	}
 }
@@ -115,7 +126,7 @@ void UFarmerComponent::FarmingInteraction()
 	case 0:
 		if (Ground->Plant)
 		{
-			OpenInfoWidget();
+			// OpenInfoWidget();
 		}
 		else
 		{
@@ -146,13 +157,29 @@ void UFarmerComponent::SwitchTool(int index)
 	CurrentTool = index;
 }
 
-void UFarmerComponent::Harvest()
+void UFarmerComponent::HarvestPlant()
 {
 	if (Ground)
 	{
 		if (Ground->Plant)
 		{
 			Ground->Plant->HavestPlant();
+
+			PlantInfoWidget->SetPlantInfo(Ground->Plant);
+		}
+	}
+}
+
+void UFarmerComponent::RemovePlant()
+{
+	if (Ground)
+	{
+		if (Ground->Plant)
+		{
+			Ground->RemovePlant();
+
+			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			PlantInfoWidget->ground = nullptr;
 		}
 	}
 }
