@@ -6,7 +6,6 @@
 #include "Engine/DirectionalLight.h"
 #include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
-#include "PKH/Http/HttpActor.h"
 #include "PKH/Http/NewHttpActor.h"
 #include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
@@ -28,7 +27,6 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 
 
 	// Http Actor
-	//static ConstructorHelpers::FClassFinder<AHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_HttpActor.BP_HttpActor_C"));
 	static ConstructorHelpers::FClassFinder<ANewHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_NewHttpActor.BP_NewHttpActor_C"));
 	if(HttpActorClassRef.Class)
 	{
@@ -54,7 +52,6 @@ void AFarmLifeGameMode::BeginPlay()
 
 	if(HttpActorClass)
 	{
-		//HttpActor = GetWorld()->SpawnActor<AHttpActor>(HttpActorClass);
 		HttpActor = GetWorld()->SpawnActor<ANewHttpActor>(HttpActorClass);
 	}
 
@@ -109,7 +106,6 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC->StartConversation();
 	CurNPC->SetEmotionUI(false);
 
-	//HttpActor->SendSpeech(FileName, FilePath);
 	HttpActor->SendSpeech(FilePath);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));

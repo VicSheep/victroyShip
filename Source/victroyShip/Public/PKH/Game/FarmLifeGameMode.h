@@ -42,12 +42,6 @@ protected:
 
 // Http
 protected:
-	/*UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AHttpActor> HttpActorClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class AHttpActor> HttpActor;*/
-
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ANewHttpActor> HttpActorClass;
 

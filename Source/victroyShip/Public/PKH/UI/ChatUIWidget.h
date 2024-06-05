@@ -25,4 +25,6 @@ protected:
 public:
 	void Focus();
 	FString GetChatText() const;
+
+	FORCEINLINE TObjectPtr<class UEditableText> GetChatWidget() const {	return Editable_Chat; };
 };
