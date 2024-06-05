@@ -49,13 +49,14 @@ void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)
 		return;
 	}
 
+	CurConvState = EConvState::None;
+	Txt_Conversation->SetText(FText::FromString(TEXT("")));
+
 	// 텍스트 스트림 중이라면 해제
 	if (GetWorld()->GetTimerManager().IsTimerActive(StreamHandle)) 
 	{
 		GetWorld()->GetTimerManager().ClearTimer(StreamHandle);
 		UE_LOG(LogTemp, Error, TEXT("Stream Stop"));
-		Txt_Conversation->SetText(FText::FromString(TEXT("")));
-		CurConvState = EConvState::None;
 	}
 }
 
@@ -120,5 +121,20 @@ void UNPCConversationWidget::StreamText()
 		break;
 	default:
 		break;
+	}
+}
+
+void UNPCConversationWidget::PlayNow()
+{
+	// if waiting tts, play text now
+	if(CurConvState == EConvState::Wait && false == NextText.IsEmpty())
+	{
+		CurConvState = EConvState::NPC;
+		MyGameMode->PlayNPCEmotion();
+		CurText = NextText;
+		NextText = TEXT("");
+
+		CurWaitTime = 0;
+		CurLen = 1;
 	}
 }

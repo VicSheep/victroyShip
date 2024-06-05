@@ -69,8 +69,10 @@ protected:
 	UFUNCTION()
 	void StreamText();
 
-protected:
 	UFUNCTION()
 	void OnHidden(ESlateVisibility InVisibility);
+
+public:
+	void PlayNow();
 
 };

@@ -6,18 +6,35 @@
 #include "MediaPlayer.h"
 #include "PKH/NPC/NPCController.h"
 #include "MediaSoundComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Microsoft/AllowMicrosoftPlatformTypes.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
+#include "OJS/Player/FarmLifeOjsPlayerCharacter.h"
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
+#include "PKH/UI/EmotionUIWidget.h"
 
 ANPCBase::ANPCBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	// Emotion UI
+	EmotionUIComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("EmotionUIComp"));
+	EmotionUIComp->SetupAttachment(RootComponent);
+	EmotionUIComp->SetRelativeLocation(FVector(0, 35, 120));
+	EmotionUIComp->SetRelativeScale3D(FVector(0.6f));
+	EmotionUIComp->SetDrawSize(FVector2D(400, 400));
+	EmotionUIComp->SetWidgetSpace(EWidgetSpace::Screen);
+
+	static ConstructorHelpers::FClassFinder<UEmotionUIWidget> EmotionUIClassRef(TEXT("/Game/PKH/UI/WBP_EmotionUI.WBP_EmotionUI_C"));
+	if (EmotionUIClassRef.Class)
+	{
+		EmotionUIComp->SetWidgetClass(EmotionUIClassRef.Class);
+	}
 
 	// AI Controller
 	static ConstructorHelpers::FClassFinder<ANPCController> NPCControllerClassRef(TEXT("/Game/PKH/Blueprint/BP_NPCController.BP_NPCController_C"));
@@ -41,10 +58,9 @@ ANPCBase::ANPCBase()
 	// Media Sound Component
 	MediaComp = CreateDefaultSubobject<UMediaSoundComponent>(TEXT("MediaComp"));
 
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), TEXT("미라"));
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), TEXT("이준호"));
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), TEXT("이춘식"));
-	//NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Okja), TEXT("김옥자"));
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), Name_Mira);
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), Name_Junho);
+	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), Name_Chunsik);
 }
 
 void ANPCBase::BeginPlay()
@@ -59,21 +75,28 @@ void ANPCBase::BeginPlay()
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
 
+	EmotionUI = Cast<UEmotionUIWidget>(EmotionUIComp->GetWidget());
+	ensure(EmotionUI);
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
+
 	NPCName = NPCNameMap[UEnum::GetValueAsString(NPCType)];
 
 	// Media Player Initialize
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
+	// Init Greeting & Present Data
 	if(CurLikeability >= FriendlyLikeability)
 	{
 		InitGreeting();
 	}
+	InitPresentResponse();
 
 	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
 	PlayTTS(DefaultPath);
 }
 
+#pragma region Start / End Conversation
 void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
@@ -86,14 +109,19 @@ void ANPCBase::StartConversation()
 
 		NPCController->StartConversation();
 		AnimInstance->PlayMontage_Conv();
+		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
 void ANPCBase::EndConversation()
 {
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
+	SetNPCWalk();
 }
+#pragma endregion
+
 
 #pragma region TTS
 void ANPCBase::SetCurEmotion(const FString& NewEmotion)
@@ -101,9 +129,21 @@ void ANPCBase::SetCurEmotion(const FString& NewEmotion)
 	CurEmotion = NewEmotion;
 }
 
-void ANPCBase::PlayEmotion()
+void ANPCBase::SetCurEmotion(EEmotion NewEmotion)
 {
-	if(false == CurEmotion.IsEmpty())
+	CurEmotion = UEnum::GetValueAsString(NewEmotion).Mid(10);
+}
+
+void ANPCBase::PlayEmotion(bool IsUIOnly)
+{
+	if(CurEmotion.IsEmpty())
+	{
+		return;
+	}
+
+	EmotionUI->SetEmotion(CurEmotion);
+	EmotionUI->SetVisibility(ESlateVisibility::Visible);
+	if(false == IsUIOnly)
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
 	}
@@ -131,6 +171,7 @@ void ANPCBase::OnPlayEnded()
 }
 #pragma endregion
 
+
 #pragma region Speed
 void ANPCBase::SetNPCWalk()
 {
@@ -147,14 +188,14 @@ void ANPCBase::SetNPCRun()
 #pragma region Greeting
 void ANPCBase::InitGreeting()
 {
-	MyGameMode->InitGreeting(NPCName, GreetingText, CurLikeability);
+	MyGameMode->InitGreeting(NPCName, CurLikeability);
 	HasIntendToGreeting = true;
 }
 
 void ANPCBase::GreetingToPlayer()
 {
 	// Set Blackboard Key & Player State
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	AFarmLifeOjsPlayerCharacter* Player = Cast<AFarmLifeOjsPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	if(nullptr == Player)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no player"));
@@ -171,12 +212,19 @@ void ANPCBase::GreetingToPlayer()
 
 	MyGameMode->RequestGreetingData(this);
 	HasIntendToGreeting = false;
-	AnimInstance->PlayMontage_Emotion(UEnum::GetValueAsString(EEmotion::joy).Mid(10, 3));
+
+	SetCurEmotion(EEmotion::joy);
+	PlayEmotion();
 }
 
 bool ANPCBase::IsFriendly() const
 {
 	return (CurLikeability >= FriendlyLikeability) && HasIntendToGreeting;
+}
+
+void ANPCBase::SetEmotionUI(bool IsActive)
+{
+	EmotionUI->SetVisibility(IsActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 #pragma endregion
 
@@ -196,14 +244,30 @@ bool ANPCBase::IsMaxLikeability()
 {
 	return CurLikeability == MaxLikeability;
 }
+#pragma endregion
 
-void ANPCBase::GivePresent(int32 NewItemId)
+
+#pragma region Present
+void ANPCBase::InitPresentResponse()
 {
-	UpdateLikeability(NewItemId == PreferItemId ? PreferItemValue : NormalItemValue);
+	MyGameMode->InitPresent(NPCName, CurLikeability);
+	GetPresentToday = false;
+}
+
+void ANPCBase::GivePresent(const FString& ItemName)
+{
+	/*if (GetPresentToday)
+	{
+		return;
+	}
+
+	GetPresentToday = true;*/
+	int32 bIsPrefer = ItemName == PreferItemName ? 1 : 0;
+	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->SendText(PresentText, this);
+	GameMode->RequestPresentData(this, bIsPrefer);
 }
 #pragma endregion
 
@@ -221,6 +285,7 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 	{
 		InitGreeting();
 	}
+	InitPresentResponse();
 
 	SetActorLocation(HomeLoc);
 }

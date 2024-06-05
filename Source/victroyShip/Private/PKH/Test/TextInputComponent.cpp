@@ -4,7 +4,10 @@
 #include "PKH/Test/TextInputComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/EditableText.h"
+#include "Kismet/GameplayStatics.h"
 #include "PKH/Component/TalkComponent.h"
+#include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/ChatUIWidget.h"
 
 UTextInputComponent::UTextInputComponent()
@@ -26,8 +29,8 @@ void UTextInputComponent::BeginPlay()
 	ensure(ChatUI);
 	ChatUI->AddToViewport();
 	ChatUI->SetVisibility(ESlateVisibility::Hidden);
+	ChatUI->GetChatWidget()->OnTextCommitted.AddDynamic(this, &UTextInputComponent::OnChatTextCommitted);
 }
-
 
 #pragma region 채팅 입력
 void UTextInputComponent::Chat()
@@ -43,14 +46,20 @@ void UTextInputComponent::Chat()
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
 		InChatting = false;
 
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+		{
+			FInputModeGameAndUI InputMode;
+			PC->SetInputMode(InputMode);
+		}
+
 		FString InputText = ChatUI->GetChatText();
-		if(InputText.IsEmpty())
+		if (InputText.IsEmpty())
 		{
 			return;
 		}
-		
+
 		UTalkComponent* STTComp = Cast<UTalkComponent>(GetOwner()->GetComponentByClass(UTalkComponent::StaticClass()));
-		if(STTComp)
+		if (STTComp)
 		{
 			STTComp->CheckNearbyObjects(InputText);
 		}
@@ -60,5 +69,19 @@ void UTextInputComponent::Chat()
 bool UTextInputComponent::IsChatting() const
 {
 	return InChatting;
+}
+
+void UTextInputComponent::OnChatTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	if(false == InChatting)
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("GetEnter"))
+	if (CommitMethod == ETextCommit::OnEnter)
+	{
+		Chat();
+	}
 }
 #pragma endregion

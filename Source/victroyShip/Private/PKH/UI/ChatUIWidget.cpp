@@ -14,7 +14,7 @@ void UChatUIWidget::NativeConstruct()
 
 void UChatUIWidget::Focus()
 {
-	Editable_Chat->SetFocus();
+	Editable_Chat->SetKeyboardFocus();
 }
 
 FString UChatUIWidget::GetChatText() const

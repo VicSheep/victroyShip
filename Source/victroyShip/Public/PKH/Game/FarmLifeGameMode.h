@@ -43,10 +43,10 @@ protected:
 // Http
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AHttpActor> HttpActorClass;
+	TSubclassOf<class ANewHttpActor> HttpActorClass;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class AHttpActor> HttpActor;
+	TObjectPtr<class ANewHttpActor> HttpActor;
 
 // STT
 protected:
@@ -60,6 +60,7 @@ protected:
 	TArray<TObjectPtr<class APlantActor>> CurPlants;
 
 public:
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
 
 // Conversation
@@ -92,13 +93,21 @@ public:
 
 	void TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
-// TalkFromNPC
+// Greeting
 public:
-	void InitGreeting(const FString& NPCName, const FString& NPCText, int32 Likeability);
+	void InitGreeting(const FString& NPCName, int32 Likeability);
 
 	void RequestGreetingData(class ANPCBase* NewNPC);
 
 	void GreetingToPlayer(const FNPCResponse& NPCResponse);
+
+// Present
+public:
+	void InitPresent(const FString& NPCName, int32 Likeability);
+
+	void RequestPresentData(class ANPCBase* NewNPC, int32 IsPrefer);
+
+	void ResponseToPlayerForPresent(const FNPCResponse& NPCResponse);
 
 // Time flow
 protected:
@@ -135,11 +144,6 @@ public:
 	void OnFadeOutFinished();
 
 	void CheckDateUpdate();
-
-// TTS
-protected:
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class USoundWave> SpeechSound;
 
 // UI
 protected:
