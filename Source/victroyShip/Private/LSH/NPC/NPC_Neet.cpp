@@ -12,7 +12,7 @@
 
 ANPC_Neet::ANPC_Neet()
 {
-	NPCType = ENPCType::Mira;//임시
+	NPCType = ENPCType::Artist;//임시
 
 	HomeLoc = FVector(1450, -2180, 88);
 	HillLoc = FVector(210, -3490, 88);
