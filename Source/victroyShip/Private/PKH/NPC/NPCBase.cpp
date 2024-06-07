@@ -58,9 +58,12 @@ ANPCBase::ANPCBase()
 	// Media Sound Component
 	MediaComp = CreateDefaultSubobject<UMediaSoundComponent>(TEXT("MediaComp"));
 
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Mira), Name_Mira);
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Junho), Name_Junho);
-	NPCNameMap.Add(UEnum::GetValueAsString(ENPCType::Chunsik), Name_Chunsik);
+	NPCNameMap.Add(ENPCType::Cafe, Name_Minwoo);
+	NPCNameMap.Add(ENPCType::Artist, Name_Ayeong);
+	NPCNameMap.Add(ENPCType::Programmer, Name_Jimin);
+	NPCNameMap.Add(ENPCType::Unemployed, Name_Junho);
+	NPCNameMap.Add(ENPCType::Farmer, Name_Chawon);
+	NPCNameMap.Add(ENPCType::Fisherman, Name_Chunsik);
 }
 
 void ANPCBase::BeginPlay()
@@ -79,7 +82,7 @@ void ANPCBase::BeginPlay()
 	ensure(EmotionUI);
 	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 
-	NPCName = NPCNameMap[UEnum::GetValueAsString(NPCType)];
+	NPCName = NPCNameMap[NPCType];
 
 	// Media Player Initialize
 	MediaPlayer = NewObject<UMediaPlayer>();
@@ -90,7 +93,6 @@ void ANPCBase::BeginPlay()
 	{
 		InitGreeting();
 	}
-	InitPresentResponse();
 
 	const FString DefaultPath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/Default.wav");
 	PlayTTS(DefaultPath);
@@ -248,12 +250,6 @@ bool ANPCBase::IsMaxLikeability()
 
 
 #pragma region Present
-void ANPCBase::InitPresentResponse()
-{
-	MyGameMode->InitPresent(NPCName, CurLikeability);
-	GetPresentToday = false;
-}
-
 void ANPCBase::GivePresent(const FString& ItemName)
 {
 	/*if (GetPresentToday)
@@ -262,7 +258,7 @@ void ANPCBase::GivePresent(const FString& ItemName)
 	}
 
 	GetPresentToday = true;*/
-	int32 bIsPrefer = ItemName == PreferItemName ? 1 : 0;
+	bool bIsPrefer = ItemName == PreferItemName;
 	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
 
 	// 통신
@@ -285,7 +281,6 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 	{
 		InitGreeting();
 	}
-	InitPresentResponse();
 
 	SetActorLocation(HomeLoc);
 }

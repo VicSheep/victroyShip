@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "JIU/FarmerComponent.h"
+#include "JIU/GroundActor.h"
 
 // Sets default values
 ATestCharacter::ATestCharacter()
@@ -84,6 +85,16 @@ void ATestCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	if (FarmerComponent->Ground)
+	{
+		if (FarmerComponent->Ground->isZoom)
+		{
+
+			FarmerComponent->Ground->CameraBoom->AddRelativeRotation(FRotator((-90.f < FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch && FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch < 0.f ?  -LookAxisVector.Y : 0), LookAxisVector.X, 0));
+			return;
+		}
+	}
 
 	if (Controller != nullptr)
 	{

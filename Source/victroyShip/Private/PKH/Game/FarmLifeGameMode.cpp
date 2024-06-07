@@ -55,6 +55,9 @@ void AFarmLifeGameMode::BeginPlay()
 		HttpActor = GetWorld()->SpawnActor<ANewHttpActor>(HttpActorClass);
 	}
 
+	MyController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	ensure(MyController);
+
 	// Player Home Loc
 	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
@@ -247,19 +250,15 @@ void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 	}
 
 	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	ChangeInputMode_Both();
 }
 #pragma endregion
 
 #pragma region Present
-void AFarmLifeGameMode::InitPresent(const FString& NPCName, int32 Likeability)
-{
-	HttpActor->InitPresent(NPCName, Likeability);
-}
-
-void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, int32 IsPrefer)
+void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, bool IsPrefer)
 {
 	CurNPC = NewNPC;
-	HttpActor->RequestPresent(CurNPC->GetNPCName(), IsPrefer);
+	HttpActor->RequestPresent(CurNPC->GetNPCName(), CurNPC->GetLikeability(), IsPrefer);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
@@ -375,5 +374,19 @@ void AFarmLifeGameMode::UpdateDate()
 
 	// 페이드아웃
 	TimerUI->StartFadeOutAnim();
+}
+#pragma endregion
+
+#pragma region InputMode
+void AFarmLifeGameMode::ChangeInputMode_Game()
+{
+	MyController->SetInputMode(InputMode_Game);
+	MyController->SetShowMouseCursor(false);
+}
+
+void AFarmLifeGameMode::ChangeInputMode_Both()
+{
+	MyController->SetInputMode(InputMode_Both);
+	MyController->SetShowMouseCursor(true);
 }
 #pragma endregion

@@ -40,6 +40,7 @@ void UNPCConversationWidget::OnClicked_Exit()
 
 	SetVisibility(ESlateVisibility::Hidden);
 	MyGameMode->CheckDateUpdate();
+	MyGameMode->ChangeInputMode_Game();
 }
 
 void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)

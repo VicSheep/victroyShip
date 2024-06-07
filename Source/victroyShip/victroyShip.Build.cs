@@ -8,7 +8,7 @@ public class victroyShip : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "AudioCapture", "UMG", "Json", "AIModule", "NavigationSystem", "GameplayTasks", "MediaAssets" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "AudioCapture", "UMG", "Json", "AIModule", "NavigationSystem", "GameplayTasks", "MediaAssets", "Niagara" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
     }
