@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PKH/NPC/NPC_Blacksmith.h"
+#include "PKH/NPC/NPC_Fisherman.h"
 
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
@@ -9,9 +9,9 @@
 #define HOUR_GO_WORK 9
 #define HOUR_BACK_HOME 16
 
-ANPC_Blacksmith::ANPC_Blacksmith()
+ANPC_Fisherman::ANPC_Fisherman()
 {
-	NPCType = ENPCType::Chunsik;
+	NPCType = ENPCType::Fisherman;
 
 	HomeLoc = FVector(720, -330, 88);
 	WorkLoc = FVector(-220, -330, 88);
@@ -25,21 +25,21 @@ ANPC_Blacksmith::ANPC_Blacksmith()
 	}
 }
 
-void ANPC_Blacksmith::BeginPlay()
+void ANPC_Fisherman::BeginPlay()
 {
 	Super::BeginPlay();
 
 	
 }
 
-void ANPC_Blacksmith::DoJob()
+void ANPC_Fisherman::DoJob()
 {
 	Super::DoJob();
 
 	
 }
 
-void ANPC_Blacksmith::OnHourUpdated(int32 NewHour)
+void ANPC_Fisherman::OnHourUpdated(int32 NewHour)
 {
 	if(NewHour == HOUR_GO_WORK)
 	{

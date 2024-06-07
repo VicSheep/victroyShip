@@ -22,8 +22,8 @@ import time
 
 app = FastAPI() 
 
-# 서버 분리용:  uvicorn zz_farmlife_server:app --reload --host 0.0.0.0 --port 3172
-# 로컬 서버용:  uvicorn zz_farmlife_server:app --reload 
+# 서버 분리용:  uvicorn zzz_farmlife_server:app --reload --host 0.0.0.0 --port 3172
+# 로컬 서버용:  uvicorn zzz_farmlife_server:app --reload 
 
 load_dotenv()
 
@@ -426,46 +426,28 @@ def present2player(npcName:str, preperence:int, is_prefer_item:bool):
     return response
 
 present_data = {}
-present_tts = {}
 presented_npc_name = ""
-is_prefer : int
 
 class Present_Data(fastapiBaseModel):
     npc_name : str
-    prefer : int
-
-@app.post("/init-present")
-async def init_present(data:NPC_Greeting_Input):
-    try:
-        # 0 for non-prefer, 1 for prefer
-        data_list = []
-        data_list.append(present2player(data.npc_name, data.likeability, False))
-        data_list.append(present2player(data.npc_name, data.likeability, True))
-        present_data[data.npc_name] = data_list
-
-        tts_list = []
-        tts_list.append(tts(data_list[0], data.npc_name))
-        tts_list.append(tts(data_list[1], data.npc_name))
-        present_tts[data.npc_name] = tts_list
-
-        return f'{data.npc_name}\'s present data initialzied'
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"{str(e)}")
+    likeability : int
+    prefer : bool
     
 @app.post("/post-present")
 async def post_present(data:Present_Data):
-    global presented_npc_name, is_prefer
+    global presented_npc_name, present_data
     presented_npc_name = data.npc_name
-    is_prefer = data.prefer
-    return present_data[presented_npc_name][is_prefer]
+    present_data = present2player(data.npc_name, data.likeability, data.prefer)
+    return present_data
 
 @app.get("/get-present-data")
 async def get_present_data():
-    return present_data[presented_npc_name][is_prefer]
+    return present_data
 
 @app.get("/get-present-tts")
 async def get_present_tts():
-    return Response(content=present_tts[presented_npc_name][is_prefer], media_type="audio/wav")
+    tts_data = tts(present_data, presented_npc_name)
+    return Response(content=tts_data, media_type="audio/wav")
 
 
 

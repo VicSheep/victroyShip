@@ -26,6 +26,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString BaseURL = TEXT("http://192.168.240.91:3172"); 
 	//FString BaseURL = TEXT("http://192.168.240.81:3172");
+	FString LocalURL = TEXT("http://127.0.0.1:8000");
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bRunAsLocal = false;
 
 	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -66,9 +70,6 @@ protected:
 	FString EndPoint_GetGreetingTTS = TEXT("/get-greeting-tts");
 
 	// Present
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString EndPoint_InitPresent = TEXT("/init-present");
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_PostPresent = TEXT("/post-present");
 
@@ -129,10 +130,7 @@ public:
 	void GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Present
-	void InitPresent(const FString& NPCName, int32 Likeability);
-	void InitPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
-
-	void RequestPresent(const FString& NPCName, int32 IsPrefer);
+	void RequestPresent(const FString& NPCName, int32 Likeability, bool IsPrefer);
 	void RequestPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetPresentData();

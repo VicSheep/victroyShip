@@ -34,8 +34,61 @@ objective
 
 ####################### 만들고자 하는 npc 컨셉 적기 #######################
 
-npc_name = "릴리"
-persona = f"Create me the persona of a young female farmer who has a high affinity for talking to me in half words. Her name is {npc_name}"
+# npc_name = "이춘식"
+# persona = f"""
+# Create me the persona of a man who 55 years old.
+# He is abrasive, blunt, short-speaking and fond of alcohol.
+# He has worked as a fisherman long time and has pride of that, but recently he has a back pain whick make him consider retirement.
+# He lives with a nephew who named 이준호.
+# His name is {npc_name}
+# """
+
+# npc_name = "이준호"
+# persona = f"""
+# Create me the persona of a man who 28 years old.
+# He has no job and just walk around and play computer games all day.
+# He is easy-going, optimistic and romantic but get angry when someone ask about his job.
+# He looks like enjoying free time, but he has a feeling anxious actually. 
+# He lives with a uncle who named 이춘식.
+# His name is {npc_name}
+# """
+
+# npc_name = "성민우"
+# persona = f"""
+# Create me the persona of a man who 34 years old.
+# He is a cafe owner whick sells some kind of coffee, breads and desserts.
+# He is kind, lively and friendly to other people.
+# He is thinking about a new dessert currently.
+# His name is {npc_name}.
+# """
+
+# npc_name = "민아영"
+# persona = f"""
+# Create me the persona of a woman who 26 years old.
+# She is lazy, self-centered and dreamy artist.
+# She is very proud of her drawing, but actually her drawing skill is so bad.
+# She get angry when pointed out about her drawing skill.
+# Her name is {npc_name}.
+# """
+
+# npc_name = "김지민"
+# persona = f"""
+# Create me the persona of a woman who 42 years old.
+# She is rational, logical and introverted.
+# She is little lacking in empathy.
+# She quit her job and work as a indie game developer, but she always feel so tired.
+# Her name is {npc_name}.
+# """
+
+npc_name = "박채원"
+persona = f"""
+Create me the persona of a woman who 33 years old.
+she is positive, bright and easy-going.
+She speaks informally in a friendly manner and likes to share her crpos.
+She returned to farming despite opposition from other people, but she made a success and has proud of that.
+Her name is {npc_name}.
+"""
+
 
 #########################################################################
 
@@ -67,7 +120,7 @@ with open(persona_path, 'w', encoding='UTF-8-sig') as file:
 
 npcPersona = msg.content
 
-sysprom = """Based on the persona given, write 5 examples of Korean dialogue that the person is likely to say, each for each favorability. The tone of the example dialogue and the length of the conversation will depend on how likable you are with the person you are talking to.
+sysprom = """Based on the persona given, write examples of Korean speech that the person is likely to say, 5 each for each favorability. The tone of the example speech and the length of the conversation will depend on how likable you are with the person you are talking to. Don't include English.
 호감도 낮은 경우 (낯선 사람 또는 처음 만난 사람)
 호감도 중간 (친해지고 있는 이웃 또는 지인)
 호감도 높은 경우 (친한 친구 또는 가까운 사람)
@@ -82,6 +135,7 @@ completion = client.chat.completions.create(
     max_tokens=1000
 )
 result_text = completion.choices[0].message.content
+print(result_text)
 
 ### 대화 예시 파일 만들기
 low = []
