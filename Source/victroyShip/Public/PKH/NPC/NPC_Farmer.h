@@ -18,6 +18,19 @@ class VICTROYSHIP_API ANPC_Farmer : public ANPCBase, public IHourUpdate
 public:
 	ANPC_Farmer();
 
+protected:
+	virtual void BeginPlay() override;
+
+	virtual void DoJob() override;
+
+// Locations
+protected:
+	UPROPERTY(EditAnywhere, Category = "Locations")
+	FVector HillLoc;
+
+	UPROPERTY(EditAnywhere, Category = "Locations")
+	FVector ParkLoc;
+
 // Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;

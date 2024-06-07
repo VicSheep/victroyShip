@@ -149,6 +149,7 @@ void ANPCController::MoveToTargetLoc(const FVector& TargetLoc)
 {
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, TargetLoc);
+	UE_LOG(LogTemp, Warning, TEXT("%f, %f, %f"), TargetLoc.X, TargetLoc.Y, TargetLoc.Z);
 }
 
 void ANPCController::MoveToHome()

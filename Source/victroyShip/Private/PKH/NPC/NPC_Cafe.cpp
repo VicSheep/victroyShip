@@ -13,8 +13,8 @@ ANPC_Cafe::ANPC_Cafe()
 {
 	NPCType = ENPCType::Cafe;
 
-	HomeLoc = FVector(1270, 1790, 88);
-	WorkLoc = FVector(-1590, 1790, 88);
+	HomeLoc = FVector(-3063, 275, 613);
+	WorkLoc = FVector(3116, -3124, 1115); 
 
 	WorkRotation = FRotator(0, 0, 0);
 

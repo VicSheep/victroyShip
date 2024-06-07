@@ -14,9 +14,9 @@ ANPC_Artist::ANPC_Artist()
 {
 	NPCType = ENPCType::Artist;
 
-	HomeLoc = FVector(1450, -2180, 88);
-	HillLoc = FVector(210, -3490, 88);
-	ParkLoc = FVector(-980, -1410, 88);
+	HomeLoc = FVector(-6606, -795, -148);
+	HillLoc = FVector(-2326, -485, 628);
+	ParkLoc = FVector(853, 2724, 628);
 
 	WorkRotation = FRotator(0, 270, 0);
 

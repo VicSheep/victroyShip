@@ -57,6 +57,7 @@ void AFarmLifeGameMode::BeginPlay()
 
 	MyController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ensure(MyController);
+	ChangeInputMode_Game();
 
 	// Player Home Loc
 	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
