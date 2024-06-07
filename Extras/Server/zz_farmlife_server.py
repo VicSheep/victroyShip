@@ -20,7 +20,10 @@ from melo.api import TTS
 
 import time
 
-app = FastAPI() #  uvicorn zz_farmlife_server:app --reload --host 0.0.0.0 --port 3172
+app = FastAPI() 
+
+# 서버 분리용:  uvicorn zz_farmlife_server:app --reload --host 0.0.0.0 --port 3172
+# 로컬 서버용:  uvicorn zz_farmlife_server:app --reload 
 
 load_dotenv()
 
@@ -133,7 +136,7 @@ def set_preference(intPref:int):
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
 # 목소리 딕셔너리
-voice_dict = {'미라':'ani', '이준호':'codingApple', '김옥자':'hakers', '이춘식':'rammus', '빈칸2':'hakers', '빈칸3':'hakers'}
+voice_dict = {'김지민':'hakers', '민아영':'ani', '박채원':'hakers', '성민우':'codingApple', '이준호':'teemo', '이춘식':'rammus'}
 
 def getChatLog(session_ids : str):#npc 개별로 채팅 기록 생성, 각각 기존의 채팅 내역을 기억하고 대화에 반영함.
     if session_ids not in session_store: # 세션 기록이 없을 경우 - 유저가 대화한 적이 없을 경우 -> 새 채팅창 생성
@@ -176,7 +179,7 @@ def summarizeChat(npcName):#지금까지의 대화를 요약 후 저장함, 기�
     return SC.content
 
 
-eng_name = {'미라':'Mira', '이준호':'Junho', '김옥자':'Okja', '이춘식':'Chunsik', '빈칸2':'null', '빈칸3':'null'}
+eng_name = {'김지민':'Jimin', '민아영':'Ayeong', '박채원':'Chawon', '성민우':'Minwoo', '이준호':'Junho', '이춘식':'Chunsik'}
 
 def tts(response:NPC_Output, npc_name):
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
@@ -290,6 +293,7 @@ async def post_speech(file: UploadFile = File(...)):
     try:
         global latest_speech
         latest_speech = stt(file.file)
+        print(latest_speech)
         return latest_speech
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")

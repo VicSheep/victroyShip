@@ -93,6 +93,7 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 
 	if (PlantDataTable)
 	{
+		plantID = id;
 		PlantInfo = GetPlantData(FName(FString::FromInt(id)));
 	}
 	

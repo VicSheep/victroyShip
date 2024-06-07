@@ -13,9 +13,12 @@ DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
 UENUM()
 enum class ENPCType : uint8
 {
-	Mira = 0,
-	Junho,
-	Chunsik
+	Cafe = 0,
+	Artist,
+	Programmer,
+	Unemployed,
+	Farmer,
+	Fisherman
 };
 
 UENUM()
@@ -60,7 +63,16 @@ protected:
 protected:
 	// Keys For Map
 	UPROPERTY(EditDefaultsOnly)
-	FString Name_Mira = TEXT("미라");
+	FString Name_Jimin = TEXT("김지민");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Ayeong = TEXT("민아영");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Chawon = TEXT("박채원");
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name_Minwoo = TEXT("성민우");
 
 	UPROPERTY(EditDefaultsOnly)
 	FString Name_Junho = TEXT("이준호");
@@ -69,7 +81,7 @@ protected:
 	FString Name_Chunsik = TEXT("이춘식");
 
 	UPROPERTY(EditDefaultsOnly)
-	TMap<FString, FString> NPCNameMap;
+	TMap<ENPCType, FString> NPCNameMap;
 
 public:
 	void StartConversation();
@@ -169,8 +181,6 @@ protected:
 
 	int32 NormalItemValue = 5;
 	int32 PreferItemValue = 15;
-
-	void InitPresentResponse();
 
 public:
 	UFUNCTION(BlueprintCallable)

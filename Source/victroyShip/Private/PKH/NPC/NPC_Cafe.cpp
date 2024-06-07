@@ -11,7 +11,7 @@
 
 ANPC_Cafe::ANPC_Cafe()
 {
-	NPCType = ENPCType::Junho;
+	NPCType = ENPCType::Cafe;
 
 	HomeLoc = FVector(1270, 1790, 88);
 	WorkLoc = FVector(-1590, 1790, 88);

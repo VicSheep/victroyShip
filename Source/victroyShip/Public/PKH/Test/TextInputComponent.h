@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UChatUIWidget> ChatUI;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
+
 protected:
 	bool InChatting = false;
 
