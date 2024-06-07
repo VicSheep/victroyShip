@@ -12,7 +12,7 @@
 
 ANPC_Artist::ANPC_Artist()
 {
-	NPCType = ENPCType::Mira;
+	NPCType = ENPCType::Artist;
 
 	HomeLoc = FVector(1450, -2180, 88);
 	HillLoc = FVector(210, -3490, 88);

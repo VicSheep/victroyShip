@@ -5,7 +5,6 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Components/EditableText.h"
-#include "Kismet/GameplayStatics.h"
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/ChatUIWidget.h"
@@ -25,14 +24,18 @@ void UTextInputComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	MyGameMode = Cast< AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+	ensure(MyGameMode);
+
 	ChatUI = CreateWidget<UChatUIWidget>(GetWorld(), ChatUIClass);
 	ensure(ChatUI);
+
 	ChatUI->AddToViewport();
 	ChatUI->SetVisibility(ESlateVisibility::Hidden);
 	ChatUI->GetChatWidget()->OnTextCommitted.AddDynamic(this, &UTextInputComponent::OnChatTextCommitted);
 }
 
-#pragma region 채팅 입력
+#pragma region Text Input
 void UTextInputComponent::Chat()
 {
 	if(false == InChatting)
@@ -40,17 +43,13 @@ void UTextInputComponent::Chat()
 		ChatUI->SetVisibility(ESlateVisibility::Visible);
 		ChatUI->Focus();
 		InChatting = true;
+		MyGameMode->ChangeInputMode_Both();
 	}
 	else
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
 		InChatting = false;
-
-		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-		{
-			FInputModeGameAndUI InputMode;
-			PC->SetInputMode(InputMode);
-		}
+		MyGameMode->ChangeInputMode_Game();
 
 		FString InputText = ChatUI->GetChatText();
 		if (InputText.IsEmpty())
@@ -58,10 +57,10 @@ void UTextInputComponent::Chat()
 			return;
 		}
 
-		UTalkComponent* STTComp = Cast<UTalkComponent>(GetOwner()->GetComponentByClass(UTalkComponent::StaticClass()));
-		if (STTComp)
+		UTalkComponent* TalkComp = Cast<UTalkComponent>(GetOwner()->GetComponentByClass(UTalkComponent::StaticClass()));
+		if (TalkComp)
 		{
-			STTComp->CheckNearbyObjects(InputText);
+			TalkComp->CheckNearbyObjects(InputText);
 		}
 	}
 }
@@ -78,7 +77,6 @@ void UTextInputComponent::OnChatTextCommitted(const FText& Text, ETextCommit::Ty
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("GetEnter"))
 	if (CommitMethod == ETextCommit::OnEnter)
 	{
 		Chat();

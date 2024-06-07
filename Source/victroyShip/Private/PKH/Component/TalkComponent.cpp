@@ -6,6 +6,7 @@
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
 #include "JIU/PlantActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/NPC/NPCBase.h"
@@ -42,6 +43,8 @@ void UTalkComponent::CheckNearbyObjects(const FString& InputText)
 
 void UTalkComponent::SearchNearby(const FString& InputText)
 {
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
 	ANPCBase* CurNPC = MyGameMode->GetCurNPC();
 	if(CurNPC)
 	{
@@ -53,6 +56,8 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 		{
 			ConversationWithNPCByText(CurNPC, InputText);
 		}
+		
+		MyGameMode->ChangeInputMode_Both();
 		return;
 	}
 
@@ -93,6 +98,8 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 			{
 				ConversationWithNPCByText(TargetNPC, InputText);
 			}
+			
+			MyGameMode->ChangeInputMode_Both();
 			return;
 		}
 	}
