@@ -157,17 +157,24 @@ void UFarmerComponent::SwitchTool(int index)
 	CurrentTool = index;
 }
 
-void UFarmerComponent::HarvestPlant()
+int UFarmerComponent::HarvestPlant()
 {
+	int id = -1;
+
 	if (Ground)
 	{
 		if (Ground->Plant)
 		{
+			id = Ground->Plant->plantID;
+			HarvestAmount = Ground->Plant->PlantInfo.HarvestAmount;
+
 			Ground->Plant->HavestPlant();
 
 			PlantInfoWidget->SetPlantInfo(Ground->Plant);
 		}
 	}
+
+	return id;
 }
 
 void UFarmerComponent::RemovePlant()

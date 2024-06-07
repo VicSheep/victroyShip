@@ -4,7 +4,6 @@
 
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/Library/JsonParserLibrary.h"
@@ -13,15 +12,18 @@
 ANewHttpActor::ANewHttpActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
 }
 
 void ANewHttpActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ExtraPath = UKismetSystemLibrary::GetProjectDirectory() + ExtraFolder;
+	if (bRunAsLocal)
+	{
+		BaseURL = LocalURL;
+	}
 
+	ExtraPath = UKismetSystemLibrary::GetProjectDirectory() + ExtraFolder;
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 }
 
@@ -290,7 +292,7 @@ void ANewHttpActor::GetTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Res
 	{
 		const TArray<uint8>& Data = Response->GetContent();
 
-		FString FilePath = FPaths::ProjectContentDir() + TEXT("TTSFile.wav");
+		FString FilePath = UKismetSystemLibrary::GetProjectDirectory() + TEXT("TTSFile.wav");
 		FFileHelper::SaveArrayToFile(Data, *FilePath);
 		UE_LOG(LogTemp, Warning, TEXT("WAV file saved to %s"), *FilePath);
 
@@ -454,43 +456,7 @@ void ANewHttpActor::GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpRespons
 #pragma endregion
 
 #pragma region Present
-void ANewHttpActor::InitPresent(const FString& NPCName, int32 Likeability)
-{
-	const FString& FullURL = BaseURL + EndPoint_InitPresent;
-
-	// HTTP Request
-	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetVerb(TEXT("POST"));
-	HttpRequest->SetURL(FullURL);
-	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::InitPresentComplete);
-
-	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Likeability);
-	HttpRequest->SetContentAsString(JsonBody);
-
-	HttpRequest->ProcessRequest();
-
-	UE_LOG(LogTemp, Warning, TEXT("Init Present: %s"), *NPCName);
-}
-
-void ANewHttpActor::InitPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
-{
-	if (bConnectedSuccessfully)
-	{
-		FString ResultString = Response->GetContentAsString();
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *ResultString);
-	}
-	else
-	{
-		if (Request->GetStatus() == EHttpRequestStatus::Succeeded)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Response Failed...%d"), Response->GetResponseCode());
-		}
-	}
-}
-
-void ANewHttpActor::RequestPresent(const FString& NPCName, int32 IsPrefer)
+void ANewHttpActor::RequestPresent(const FString& NPCName, int32 Likeability, bool IsPrefer)
 {
 	const FString& FullURL = BaseURL + EndPoint_PostPresent;
 
@@ -502,7 +468,8 @@ void ANewHttpActor::RequestPresent(const FString& NPCName, int32 IsPrefer)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::RequestPresentComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"prefer\": \"%d\"}"), *NPCName, IsPrefer);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\",\"prefer\": %s}"), *NPCName, Likeability, 
+																											  IsPrefer ? TEXT("true") : TEXT("false"));
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();

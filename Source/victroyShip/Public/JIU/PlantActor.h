@@ -49,6 +49,9 @@ public:
 
 	///* Data Table *///
 	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	int plantID;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
 	UDataTable* PlantDataTable;
 
 	UFUNCTION()

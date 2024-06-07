@@ -103,9 +103,7 @@ public:
 
 // Present
 public:
-	void InitPresent(const FString& NPCName, int32 Likeability);
-
-	void RequestPresentData(class ANPCBase* NewNPC, int32 IsPrefer);
+	void RequestPresentData(class ANPCBase* NewNPC, bool IsPrefer);
 
 	void ResponseToPlayerForPresent(const FNPCResponse& NPCResponse);
 
@@ -144,6 +142,18 @@ public:
 	void OnFadeOutFinished();
 
 	void CheckDateUpdate();
+
+// InputMode
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class APlayerController> MyController;
+
+	FInputModeGameOnly InputMode_Game;
+	FInputModeGameAndUI InputMode_Both;
+
+public:
+	void ChangeInputMode_Game();
+	void ChangeInputMode_Both();
 
 // UI
 protected:

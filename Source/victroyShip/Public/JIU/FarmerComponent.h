@@ -69,7 +69,10 @@ public:
 	void SwitchTool(int index);
 
 	UFUNCTION(BlueprintCallable)
-	void HarvestPlant();
+	int HarvestPlant();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int HarvestAmount;
 
 	UFUNCTION(BlueprintCallable)
 	void RemovePlant();

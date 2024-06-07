@@ -174,7 +174,7 @@ void AGroundActor::PlantingSeed(int id)
 {
 	if (Plant == nullptr && GroundState != EGroundState::Default)
 	{
-		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation() + FVector(0.f, 0.f, 10.f), FRotator(0.f));
+		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation() + FVector(0.f, 0.f, 20.f), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
 }
