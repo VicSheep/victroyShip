@@ -5,18 +5,18 @@
 #include "CoreMinimal.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
-#include "NPC_Neet.generated.h"
+#include "NPC_Fisher.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class VICTROYSHIP_API ANPC_Neet : public ANPCBase, public IHourUpdate
+class VICTROYSHIP_API ANPC_Fisher : public ANPCBase, public IHourUpdate
 {
 	GENERATED_BODY()
 	
 public:
-	ANPC_Neet();
+	ANPC_Fisher();
 
 protected:
 	virtual void BeginPlay() override;
@@ -25,20 +25,16 @@ protected:
 
 	// Locations
 protected:
-	UPROPERTY(EditAnywhere, Category = "Locations")
-	FVector HillLoc;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
-	FVector ParkLoc;
+	FVector FishLoc;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UAnimMontage> Montage_Sleep;
+	TObjectPtr<class UAnimMontage> Montage_Fishing;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UAnimMontage> Montage_Sit;
+	TObjectPtr<class UAnimMontage> Montage_Drink;
 
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UAnimMontage> Montage_Game;
 	// Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;

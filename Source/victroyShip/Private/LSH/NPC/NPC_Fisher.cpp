@@ -1,22 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "LSH/NPC/NPC_Neet.h"
+#include "LSH/NPC/NPC_Fisher.h"
 
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
 
-#define HOUR_SLEEP 9
-#define HOUR_GO_PARK 11
-#define HOUR_BACK_HOME 14
+#define HOUR_FISHING 9
+#define HOUR_BACK_HOME 16
 
-ANPC_Neet::ANPC_Neet()
+ANPC_Fisher::ANPC_Fisher()
 {
 	NPCType = ENPCType::Artist;//юс╫ц
 
 	HomeLoc = FVector(1450, -2180, 88);
-	HillLoc = FVector(210, -3490, 88);
-	ParkLoc = FVector(-980, -1410, 88);
+	FishLoc = FVector(-980, -1410, 88);
 
 	WorkRotation = FRotator(0, 270, 0);
 
@@ -27,37 +25,26 @@ ANPC_Neet::ANPC_Neet()
 	}
 }
 
-void ANPC_Neet::BeginPlay()
+void ANPC_Fisher::BeginPlay()
 {
 	Super::BeginPlay();
 
 
 }
 
-void ANPC_Neet::DoJob()
+void ANPC_Fisher::DoJob()
 {
 	Super::DoJob();
 
 
 }
 
-void ANPC_Neet::OnHourUpdated(int32 NewHour)
+void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 {
-	if (NewHour == HOUR_SLEEP)
+	if (NewHour == HOUR_FISHING)
 	{
-		Montage_Work = Montage_Sleep;
-		NPCController->MoveToTargetLoc(HomeLoc);
-		NPCController->SetIsWorking(true);
-		return;
-	}
-
-	if (NewHour == HOUR_GO_PARK)
-	{
-		AnimInstance->StopSpecificMontage(Montage_Work);
-		Montage_Work = Montage_Sit;
-		ParkLoc = FVector(-3270, -380, 541);
-		WorkRotation = FRotator(0, -80, 0);
-		NPCController->MoveToTargetLoc(ParkLoc);
+		Montage_Work = Montage_Fishing;
+		NPCController->MoveToTargetLoc(FishLoc);
 		NPCController->SetIsWorking(true);
 		return;
 	}
@@ -65,9 +52,10 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 	if (NewHour == HOUR_BACK_HOME)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
-		Montage_Work = Montage_Game;
-		WorkRotation = FRotator(0, -80, 0);
+		Montage_Work = Montage_Drink;
 		NPCController->MoveToTargetLoc(HomeLoc);
 		NPCController->SetIsWorking(true);
+		return;
 	}
+
 }
