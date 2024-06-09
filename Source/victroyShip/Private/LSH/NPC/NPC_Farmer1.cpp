@@ -1,22 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "LSH/NPC/NPC_Neet.h"
+#include "LSH/NPC/NPC_Farmer1.h"
 
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
 
-#define HOUR_SLEEP 9
-#define HOUR_GO_PARK 11
-#define HOUR_BACK_HOME 14
+#define HOUR_WORK 9
+#define HOUR_GO_CAFE 14
+#define HOUR_WORK2 15
+#define HOUR_HOME 17
 
-ANPC_Neet::ANPC_Neet()
+
+ANPC_Farmer1::ANPC_Farmer1()
 {
-	NPCType = ENPCType::Unemployed;//юс╫ц
+	NPCType = ENPCType::Farmer;
 
 	HomeLoc = FVector(1450, -2180, 88);
-	HillLoc = FVector(210, -3490, 88);
-	ParkLoc = FVector(-980, -1410, 88);
+	FarmLoc = FVector(210, -3490, 88);
+	CafeLoc = FVector(210, -3490, 88);
 
 	WorkRotation = FRotator(0, 270, 0);
 
@@ -27,47 +29,53 @@ ANPC_Neet::ANPC_Neet()
 	}
 }
 
-void ANPC_Neet::BeginPlay()
+void ANPC_Farmer1::BeginPlay()
 {
 	Super::BeginPlay();
 
 
 }
 
-void ANPC_Neet::DoJob()
+void ANPC_Farmer1::DoJob()
 {
 	Super::DoJob();
 
 
 }
 
-void ANPC_Neet::OnHourUpdated(int32 NewHour)
+void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 {
-	if (NewHour == HOUR_SLEEP)
+	if (NewHour == HOUR_WORK)
 	{
-		Montage_Work = Montage_Sleep;
-		NPCController->MoveToTargetLoc(HomeLoc);
+		Montage_Work = Montage_FarmWork;
+		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(true);
 		return;
 	}
 
-	if (NewHour == HOUR_GO_PARK)
+	if (NewHour == HOUR_GO_CAFE)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Sit;
-		ParkLoc = FVector(-3270, -380, 541);
 		WorkRotation = FRotator(0, -80, 0);
-		NPCController->MoveToTargetLoc(ParkLoc);
+		NPCController->MoveToTargetLoc(CafeLoc);
 		NPCController->SetIsWorking(true);
 		return;
 	}
 
-	if (NewHour == HOUR_BACK_HOME)
+	if (NewHour == HOUR_WORK2)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
-		Montage_Work = Montage_Game;
+		Montage_Work = Montage_FarmWork;
 		WorkRotation = FRotator(0, -80, 0);
-		NPCController->MoveToTargetLoc(HomeLoc);
+		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(true);
+	}
+
+	if (NewHour == HOUR_HOME)
+	{
+		NPCController->MoveToHome();
+		NPCController->SetIsWorking(false);
+		AnimInstance->StopSpecificMontage(Montage_Work);
 	}
 }

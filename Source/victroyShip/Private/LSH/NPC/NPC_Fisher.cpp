@@ -11,7 +11,7 @@
 
 ANPC_Fisher::ANPC_Fisher()
 {
-	NPCType = ENPCType::Artist;//임시
+	NPCType = ENPCType::Fisherman;//임시
 
 	HomeLoc = FVector(1450, -2180, 88);
 	FishLoc = FVector(-980, -1410, 88);
