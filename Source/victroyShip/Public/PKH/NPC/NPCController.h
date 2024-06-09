@@ -58,6 +58,12 @@ public:
 	void MoveToTargetLoc(const FVector& TargetLoc);
 	void MoveToHome();
 
+	// Is NPC In Conversation?
+	bool IsInConversation();
+
+	// For Reset Keys
+	void ResetBBKeys();
+
 // Do Job
 protected:
 	bool IsWorking = false;

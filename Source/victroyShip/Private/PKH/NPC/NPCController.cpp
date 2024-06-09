@@ -149,7 +149,6 @@ void ANPCController::MoveToTargetLoc(const FVector& TargetLoc)
 {
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, TargetLoc);
-	UE_LOG(LogTemp, Warning, TEXT("%f, %f, %f"), TargetLoc.X, TargetLoc.Y, TargetLoc.Z);
 }
 
 void ANPCController::MoveToHome()
@@ -157,6 +156,21 @@ void ANPCController::MoveToHome()
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	const FVector& HomeLoc = BBComp->GetValueAsVector(KEY_HOME_LOC);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
+}
+
+bool ANPCController::IsInConversation()
+{
+	return BBComp->GetValueAsBool(KEY_IN_CONV);
+}
+
+void ANPCController::ResetBBKeys()
+{
+	BBComp->SetValueAsBool(KEY_IN_CONV, false);
+	BBComp->SetValueAsBool(KEY_IS_WORKING, false);
+	BBComp->SetValueAsBool(KEY_IS_MOVING, false);
+	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);
+
+	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 }
 
 FVector ANPCController::GetHomeLoc() const

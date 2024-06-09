@@ -184,7 +184,11 @@ eng_name = {'김지민':'Jimin', '민아영':'Ayeong', '박채원':'Chawon', '�
 def tts(response:NPC_Output, npc_name):
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
     tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
+
+    start_time = time.time()
     voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
+    end_time = time.time()
+    print(f"{end_time - start_time:.5f} sec")
 
     tts_data : bytes
     with open(tts_path, 'rb') as file:

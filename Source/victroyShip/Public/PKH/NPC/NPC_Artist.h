@@ -23,6 +23,16 @@ protected:
 
 	virtual void DoJob() override;
 
+	// override
+	virtual void StartConversation() override;
+
+	virtual void EndConversation() override;
+
+	virtual void PlayEmotion(bool IsUIOnly = false) override;
+
+	// Check for 
+	void OnConversationEnd();
+
 // Locations
 protected:
 	UPROPERTY(EditAnywhere, Category = "Locations")
@@ -30,6 +40,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Locations")
 	FVector ParkLoc;
+
+// Animation
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_StandUp;
+
+	UFUNCTION()
+	void OnStandUpEnded(UAnimMontage* Montage, bool bInterrupted);
 
 // Interface
 public:

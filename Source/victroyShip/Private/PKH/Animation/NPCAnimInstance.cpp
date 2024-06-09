@@ -19,9 +19,9 @@ UNPCAnimInstance::UNPCAnimInstance()
 	EmotionMap.Add(TEXT("sadness"), 1);
 	EmotionMap.Add(TEXT("surprise"), 2);
 	EmotionMap.Add(TEXT("anger"), 3);
-	EmotionMap.Add(TEXT("neutral"), 1);
-	EmotionMap.Add(TEXT("indifference"), 2);
-	EmotionMap.Add(TEXT("curiosity"), 3);
+	/*EmotionMap.Add(TEXT("neutral"), 4);
+	EmotionMap.Add(TEXT("indifference"), 5);
+	EmotionMap.Add(TEXT("curiosity"), 6);*/
 
 	// Emotion Montages
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_Joy(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Joyful.AM_Joyful'"));
@@ -76,6 +76,11 @@ void UNPCAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsWalking = MoveComp->Velocity.Size2D() > WalkThreshold;
 	bIsRunning = MoveComp->Velocity.Size2D() > RunThreshold;
 	bIsFalling = MoveComp->IsFalling();
+}
+
+void UNPCAnimInstance::SetMontage_Conv(UAnimMontage* NewConvMontage)
+{
+	Montage_Conv = NewConvMontage;
 }
 
 void UNPCAnimInstance::PlayMontage_Conv(float PlayRate)

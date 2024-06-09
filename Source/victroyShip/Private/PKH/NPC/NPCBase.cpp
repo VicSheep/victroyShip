@@ -64,6 +64,18 @@ ANPCBase::ANPCBase()
 	NPCNameMap.Add(ENPCType::Unemployed, Name_Junho);
 	NPCNameMap.Add(ENPCType::Farmer, Name_Chawon);
 	NPCNameMap.Add(ENPCType::Fisherman, Name_Chunsik);
+
+	// Sound
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_NoticeRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Notice.Sfx_Notice'"));
+	if (Sfx_NoticeRef.Object)
+	{
+		Sfx_Notice = Sfx_NoticeRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_EmotionRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Emotion.Sfx_Emotion'"));
+	if (Sfx_EmotionRef.Object)
+	{
+		Sfx_Emotion = Sfx_EmotionRef.Object;
+	}
 }
 
 void ANPCBase::BeginPlay()
@@ -145,9 +157,20 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 
 	EmotionUI->SetEmotion(CurEmotion);
 	EmotionUI->SetVisibility(ESlateVisibility::Visible);
-	if(false == IsUIOnly)
+	if(IsUIOnly)
+	{
+		if(Sfx_Notice)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+		}
+	}
+	else
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
+		if (Sfx_Emotion)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
+		}
 	}
 }
 
@@ -283,4 +306,5 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 	}
 
 	SetActorLocation(HomeLoc);
+	NPCController->ResetBBKeys();
 }

@@ -84,13 +84,16 @@ protected:
 	TMap<ENPCType, FString> NPCNameMap;
 
 public:
-	void StartConversation();
-	void EndConversation();
+	virtual void StartConversation();
+	virtual void EndConversation();
 
 // Animation
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UNPCAnimInstance> AnimInstance;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_Conv;
 
 // TTS 
 protected:
@@ -110,7 +113,7 @@ public:
 	void SetCurEmotion(const FString& NewEmotion);
 	void SetCurEmotion(EEmotion NewEmotion);
 
-	void PlayEmotion(bool IsUIOnly = false);
+	virtual void PlayEmotion(bool IsUIOnly = false);
 
 	void PlayTTS(const FString& FilePath);
 
@@ -196,6 +199,14 @@ protected:
 
 public:
 	virtual void DoJob();
+
+// Sound
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Notice;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Emotion;
 
 // Interface
 public:
