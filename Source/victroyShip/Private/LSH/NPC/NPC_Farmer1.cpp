@@ -5,10 +5,11 @@
 
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
+#include "Kismet/GameplayStatics.h"
 
 #define HOUR_WORK 9
 #define HOUR_GO_CAFE 14
-#define HOUR_WORK2 15
+#define HOUR_WORK2 20
 #define HOUR_HOME 17
 
 
@@ -27,19 +28,37 @@ ANPC_Farmer1::ANPC_Farmer1()
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
+
+
 }
 
 void ANPC_Farmer1::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("farming"), FoundActors);
+	for (AActor* Actor : FoundActors)
+	{
+		if (Actor == nullptr)break;
+		UE_LOG(LogTemp, Warning, TEXT("Found actor: %s"), *Actor->GetName());
+		FarmLoc = Actor->GetActorLocation();
+		WorkRotation = Actor->GetActorRotation();
+	}
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("cafeSitting"), FoundActors);
+	for (AActor* Actor : FoundActors)
+	{
+		if (Actor == nullptr)break;
+		UE_LOG(LogTemp, Warning, TEXT("Found actor: %s"), *Actor->GetName());
+		CafeLoc = Actor->GetActorLocation();
+		CafeRot = Actor->GetActorRotation();
+	}
 }
 
 void ANPC_Farmer1::DoJob()
 {
 	Super::DoJob();
-
+	
 
 }
 
@@ -48,6 +67,7 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 	if (NewHour == HOUR_WORK)
 	{
 		Montage_Work = Montage_FarmWork;
+		WorkRotation = FarmRot;
 		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(true);
 		return;
@@ -57,7 +77,7 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Sit;
-		WorkRotation = FRotator(0, -80, 0);
+		WorkRotation = CafeRot;
 		NPCController->MoveToTargetLoc(CafeLoc);
 		NPCController->SetIsWorking(true);
 		return;
@@ -67,14 +87,14 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_FarmWork;
-		WorkRotation = FRotator(0, -80, 0);
+		WorkRotation = FarmRot;
 		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(true);
 	}
 
 	if (NewHour == HOUR_HOME)
 	{
-		NPCController->MoveToHome();
+		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 	}

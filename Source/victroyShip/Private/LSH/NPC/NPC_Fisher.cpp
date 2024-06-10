@@ -5,6 +5,7 @@
 
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
+#include "Kismet/GameplayStatics.h"
 
 #define HOUR_FISHING 9
 #define HOUR_BACK_HOME 16
@@ -29,7 +30,23 @@ void ANPC_Fisher::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("fishing"), FoundActors);
+	for (AActor* Actor : FoundActors)
+	{
+		if (Actor == nullptr)break;
+		UE_LOG(LogTemp, Warning, TEXT("Found actor: %s"), *Actor->GetName());
+		FishLoc = Actor->GetActorLocation();
+		FishRot = Actor->GetActorRotation();
+	}
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("FisherHome"), FoundActors);
+	for (AActor* Actor : FoundActors)
+	{
+		if (Actor == nullptr)break;
+		UE_LOG(LogTemp, Warning, TEXT("Found actor: %s"), *Actor->GetName());
+		FisherHomeLoc = Actor->GetActorLocation();
+		FisherHomeRot = Actor->GetActorRotation();
+	}
 }
 
 void ANPC_Fisher::DoJob()
@@ -44,6 +61,7 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 	if (NewHour == HOUR_FISHING)
 	{
 		Montage_Work = Montage_Fishing;
+		WorkRotation = FishRot;
 		NPCController->MoveToTargetLoc(FishLoc);
 		NPCController->SetIsWorking(true);
 		return;
@@ -53,7 +71,8 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Drink;
-		NPCController->MoveToTargetLoc(HomeLoc);
+		NPCController->MoveToTargetLoc(FisherHomeLoc);
+		WorkRotation = FisherHomeRot;
 		NPCController->SetIsWorking(true);
 		return;
 	}

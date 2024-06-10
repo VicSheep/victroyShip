@@ -26,8 +26,17 @@ protected:
 	// Locations
 protected:
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Locations")
+	FVector FisherHomeLoc;
+
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
 	FVector FishLoc;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator FisherHomeRot;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator FishRot;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UAnimMontage> Montage_Fishing;
