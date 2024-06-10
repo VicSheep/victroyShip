@@ -91,7 +91,7 @@ void ATestCharacter::Look(const FInputActionValue& Value)
 		if (FarmerComponent->Ground->isZoom)
 		{
 
-			FarmerComponent->Ground->CameraBoom->AddRelativeRotation(FRotator((-90.f < FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch && FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch < 0.f ?  -LookAxisVector.Y : 0), LookAxisVector.X, 0));
+			FarmerComponent->Ground->CameraBoom->AddRelativeRotation(FRotator((-80.f < FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch && FarmerComponent->Ground->CameraBoom->GetRelativeRotation().Pitch < -10.f ?  -LookAxisVector.Y : 0), LookAxisVector.X, 0));
 			return;
 		}
 	}
@@ -101,6 +101,19 @@ void ATestCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ATestCharacter::Scroll(const FInputActionValue& Value)
+{
+	float ScrollAxis = Value.Get<float>();
+
+	if (FarmerComponent->Ground)
+	{
+		if (FarmerComponent->Ground->isZoom)
+		{
+			FarmerComponent->Ground->CameraBoom->TargetArmLength -= (ScrollAxis * 10);
+		}
 	}
 }
 
@@ -144,5 +157,8 @@ void ATestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATestCharacter::Look);
+
+		// Scrolling
+		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &ATestCharacter::Scroll);
 	}
 }
