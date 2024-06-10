@@ -41,6 +41,10 @@ class VICTROYSHIP_API ATestCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ScrollAction;
+
 public:
 	// Sets default values for this character's properties
 	ATestCharacter();
@@ -52,6 +56,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void Scroll(const FInputActionValue& Value);
 
 protected:
 	// Called when the game starts or when spawned
