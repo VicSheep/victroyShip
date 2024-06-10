@@ -158,6 +158,21 @@ void ANPCController::MoveToHome()
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
 }
 
+bool ANPCController::IsInConversation()
+{
+	return BBComp->GetValueAsBool(KEY_IN_CONV);
+}
+
+void ANPCController::ResetBBKeys()
+{
+	BBComp->SetValueAsBool(KEY_IN_CONV, false);
+	BBComp->SetValueAsBool(KEY_IS_WORKING, false);
+	BBComp->SetValueAsBool(KEY_IS_MOVING, false);
+	BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, false);
+
+	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
+}
+
 FVector ANPCController::GetHomeLoc() const
 {
 	return BBComp->GetValueAsVector(KEY_HOME_LOC);

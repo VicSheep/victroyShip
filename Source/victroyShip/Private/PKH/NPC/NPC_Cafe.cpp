@@ -13,8 +13,8 @@ ANPC_Cafe::ANPC_Cafe()
 {
 	NPCType = ENPCType::Cafe;
 
-	HomeLoc = FVector(1270, 1790, 88);
-	WorkLoc = FVector(-1590, 1790, 88);
+	HomeLoc = FVector(-3063, 275, 613);
+	WorkLoc = FVector(3116, -3124, 1115); 
 
 	WorkRotation = FRotator(0, 0, 0);
 
@@ -23,13 +23,22 @@ ANPC_Cafe::ANPC_Cafe()
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Listen2.AM_Listen2'"));
+	if (Montage_ConvRef.Object)
+	{
+		Montage_Conv = Montage_ConvRef.Object;
+	}
 }
 
 void ANPC_Cafe::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	if (Montage_Conv)
+	{
+		AnimInstance->SetMontage_Conv(Montage_Conv);
+	}
 }
 
 void ANPC_Cafe::DoJob()

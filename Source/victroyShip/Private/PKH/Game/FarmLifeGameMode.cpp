@@ -57,6 +57,8 @@ void AFarmLifeGameMode::BeginPlay()
 
 	MyController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ensure(MyController);
+	FTimerHandle TempHandle;
+	GetWorldTimerManager().SetTimer(TempHandle, this, &AFarmLifeGameMode::ChangeInputMode_Game, 0.1f, false);
 
 	// Player Home Loc
 	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))

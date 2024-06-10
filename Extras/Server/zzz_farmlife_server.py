@@ -184,7 +184,11 @@ eng_name = {'김지민':'Jimin', '민아영':'Ayeong', '박채원':'Chawon', '�
 def tts(response:NPC_Output, npc_name):
     model.tts_to_file(response.answer, 0, wav_path, speed=1.2)#melo tts 한국어 모델
     tts_path = f'../WavFiles/{eng_name[npc_name]}.wav'
+
+    start_time = time.time()
     voiceChange(wav_path, tts_path, voice_dict[npc_name])#음성변조
+    end_time = time.time()
+    print(f"{end_time - start_time:.5f} sec")
 
     tts_data : bytes
     with open(tts_path, 'rb') as file:
@@ -201,26 +205,61 @@ tone_color_converter = ToneColorConverter(f'{ckpt_converter}/config.json', devic
 tone_color_converter.load_ckpt(f'{ckpt_converter}/checkpoint.pth')
 os.makedirs(output_dir, exist_ok=True)
 
-### 목소리 샘플 목록
+# ### 목소리 샘플 목록
+# voiceRefs = {}
+# voice_ref_list = ['codingApple', 'hakers', 'jax', 'rammus', 'ani', 'teemo']
+# for voice in voice_ref_list:
+#     reference_speaker = f'../ReferenceForTTS/{voice}.mp3'
+#     target_se, audio_name = se_extractor.get_se(reference_speaker, tone_color_converter, vad=False)
+#     voiceRefs[voice] = (target_se,audio_name)
+
+# source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
+
+######################################################################################
+
+# 음성 레퍼런스를 저장할 딕셔너리
 voiceRefs = {}
 voice_ref_list = ['codingApple', 'hakers', 'jax', 'rammus', 'ani', 'teemo']
+
+# 저장된 학습 결과물을 저장할 디렉토리
+saved_se_dir = 'saved_se'
+
+# 저장된 학습 결과물을 저장할 디렉토리가 없으면 생성
+if not os.path.exists(saved_se_dir):
+    os.makedirs(saved_se_dir)
+
+# 음성 레퍼런스를 학습시키고 결과물을 저장 또는 불러오기
 for voice in voice_ref_list:
-    reference_speaker = f'../ReferenceForTTS/{voice}.mp3'
-    target_se, audio_name = se_extractor.get_se(reference_speaker, tone_color_converter, vad=False)
-    voiceRefs[voice] = (target_se,audio_name)
+    se_file_path = os.path.join(saved_se_dir, f'{voice}_se.pth')
+    audio_name_file_path = os.path.join(saved_se_dir, f'{voice}_audio_name.pth')
+    
+    if os.path.exists(se_file_path) and os.path.exists(audio_name_file_path):
+        # 이미 학습된 결과물이 있다면 불러오기
+        target_se = torch.load(se_file_path)
+        audio_name = torch.load(audio_name_file_path)
+    else:
+        # 학습시키고 결과물을 저장
+        reference_speaker = f'../ReferenceForTTS/{voice}.mp3'
+        target_se, audio_name = se_extractor.get_se(reference_speaker, tone_color_converter, vad=False)
+        torch.save(target_se, se_file_path)
+        torch.save(audio_name, audio_name_file_path)
+        
+    voiceRefs[voice] = (target_se, audio_name)
 
-source_se = torch.load(f'OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device)#tts 모델 경로
+######################################################################################
 
-# src_path='outputs_v2/tmp.wav'
-def voiceChange(src_path:str, out_path:str, voiceRef:str):
+source_se = torch.load('OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_location=device) # tts 모델 경로
+
+def voiceChange(src_path: str, out_path: str, voiceRef: str):
     target_se = voiceRefs[voiceRef][0]
     encode_message = "@MyShell"
     tone_color_converter.convert(
-        audio_src_path=src_path, #변조할 원본 음성
-        src_se=source_se, #??
-        tgt_se=target_se, #레퍼런스 음성
-        output_path=out_path,#저장경로
-        message=encode_message)
+        audio_src_path=src_path,  # 변조할 원본 음성
+        src_se=source_se,
+        tgt_se=target_se,  # 레퍼런스 음성
+        output_path=out_path,  # 저장경로
+        message=encode_message
+    )
     
 ###한국어 특화 tts모델
 device = "cuda:0" if torch.cuda.is_available() else "cpu"

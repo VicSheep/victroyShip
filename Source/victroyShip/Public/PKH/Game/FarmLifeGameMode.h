@@ -143,6 +143,8 @@ public:
 
 	void CheckDateUpdate();
 
+	FORCEINLINE int32 GetHour() const { return Hours; };
+
 // InputMode
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -152,7 +154,10 @@ protected:
 	FInputModeGameAndUI InputMode_Both;
 
 public:
+	UFUNCTION()
 	void ChangeInputMode_Game();
+
+	UFUNCTION()
 	void ChangeInputMode_Both();
 
 // UI
