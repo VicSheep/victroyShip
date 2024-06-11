@@ -200,13 +200,27 @@ protected:
 public:
 	virtual void DoJob();
 
+	bool CanRotateInWorking();
+
 // Sound
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> Sfx_Notice;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class USoundBase> Sfx_Emotion;
+	TObjectPtr<class USoundBase> Sfx_Joy;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Anger;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Sad;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Surprise;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Indiff;
 
 // Interface
 public:

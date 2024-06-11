@@ -13,18 +13,33 @@ ANPC_Cafe::ANPC_Cafe()
 {
 	NPCType = ENPCType::Cafe;
 
-	HomeLoc = FVector(-3063, 275, 613);
-	WorkLoc = FVector(3116, -3124, 1115); 
+	HomeLoc = FVector(1280, 5010, 634);
+	WorkLoc = FVector(2220, 4140, 632);
 
-	WorkRotation = FRotator(0, 0, 0);
+	WorkRotation = FRotator(0, -60, 0);
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_CafeWork.AM_CafeWork'"));
+	// Mesh
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_eric_rigged_001_ue4/rp_eric_rigged_001_ue4.rp_eric_rigged_001_ue4'"));
+	if (MeshRef.Object)
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+	}
+
+	// AnimInstance
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/NPC_Cafe/ABP_Cafe.ABP_Cafe_C"));
+	if (AnimRef.Class)
+	{
+		GetMesh()->SetAnimClass(AnimRef.Class);
+	}
+
+	// Montages
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Cafe/AM_CafeWork.AM_CafeWork'"));
 	if (Montage_WorkRef.Object)
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Listen2.AM_Listen2'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Cafe/AM_Listen2.AM_Listen2'"));
 	if (Montage_ConvRef.Object)
 	{
 		Montage_Conv = Montage_ConvRef.Object;

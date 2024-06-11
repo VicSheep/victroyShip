@@ -9,33 +9,49 @@
 #include "PKH/NPC/NPCController.h"
 #include "PKH/UI/EmotionUIWidget.h"
 
-#define HOUR_GO_HILL 11
-#define HOUR_GO_PARK 14
+#define HOUR_GO_HILL 9
+#define HOUR_GO_PARK 13
 #define HOUR_BACK_HOME 17
 
 ANPC_Artist::ANPC_Artist()
 {
 	NPCType = ENPCType::Artist;
 
-	HomeLoc = FVector(-6606, -795, -148);
-	HillLoc = FVector(-2326, -485, 628);
-	ParkLoc = FVector(853, 2724, 628);
+	HomeLoc = FVector(2190, 6501, 1207);
+	HillLoc = FVector(3040, 4301, 631);
+	ParkLoc = FVector(1060, 1701, 542);
 
-	WorkRotation = FRotator(0, 270, 0);
+	WorkRotation = FRotator(0, 190, 0);
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_ArtistWork.AM_ArtistWork'"));
+	// Mesh
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_sophia_rigged_003_ue4/rp_sophia_rigged_003_ue4.rp_sophia_rigged_003_ue4'"));
+	if (MeshRef.Object)
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+	}
+
+	// AnimInstance
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/NPC_Artist/ABP_Artist.ABP_Artist_C"));
+	if (AnimRef.Class)
+	{
+		GetMesh()->SetAnimClass(AnimRef.Class);
+	}
+
+
+	// Montages
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_ArtistWork.AM_ArtistWork'"));
 	if (Montage_WorkRef.Object)
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_StandUp.AM_StandUp'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_StandUp.AM_StandUp'"));
 	if (Montage_StandUpRef.Object)
 	{
 		Montage_StandUp = Montage_StandUpRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Listen1.AM_Listen1'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_Listen1.AM_Listen1'"));
 	if (Montage_ConvRef.Object)
 	{
 		Montage_Conv = Montage_ConvRef.Object;
@@ -121,13 +137,30 @@ void ANPC_Artist::PlayEmotion(bool IsUIOnly)
 	}
 	else
 	{
-		if (Sfx_Emotion)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
-		}
 		if (false == NPCController->GetIsWorking())
 		{
 			AnimInstance->PlayMontage_Emotion(CurEmotion);
+		}
+
+		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Joy, 0.6f);
+		}
+		else if (CurEmotion == "anger" && IsValid(Sfx_Anger))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Anger, 0.6f);
+		}
+		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Sad, 0.6f);
+		}
+		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Surprise, 0.6f);
+		}
+		else if (IsValid(Sfx_Indiff))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Indiff, 0.6f);
 		}
 	}
 }
