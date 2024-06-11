@@ -100,6 +100,9 @@ Content/Mobility*
 Content/Office_Desk*
 Content/SpaceGUI*
 
+Content/__ExternalActors__/Survival_02*
+Content/__ExternalObjects__/Survival_02*
+
 
 Extras/Server/OpenVoice
 Extras/WavFiles
