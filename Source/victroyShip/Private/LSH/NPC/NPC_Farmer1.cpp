@@ -43,7 +43,7 @@ void ANPC_Farmer1::BeginPlay()
 		if (Actor == nullptr)break;
 		UE_LOG(LogTemp, Warning, TEXT("Found actor: %s"), *Actor->GetName());
 		FarmLoc = Actor->GetActorLocation();
-		WorkRotation = Actor->GetActorRotation();
+		FarmRot = Actor->GetActorRotation();
 	}
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("cafeSitting"), FoundActors);
 	for (AActor* Actor : FoundActors)
