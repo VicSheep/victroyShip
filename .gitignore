@@ -81,8 +81,25 @@ Content/YSH/Landscape/*
 Content/MSPresets/*
 Content/Town/*
 Content/Greek_island/*
+
 Content/Dialogue_mocap/*
 Content/Smart_UI/*
+Content/Farming_And_Mining*
+Content/FlockPack*
+Content/footstepsbundle*
+Content/HealPositive*
+Content/LucapyAssets*
+Content/Male_6*
+Content/Survival_02*
+Content/SurvivalSounds*
+Content/Survivor_girl_V01*
+Content/AnimalVarietyPack*
+Content/CityAnimations_pack3*
+Content/Dialogue_mocap*
+Content/Mobility*
+Content/Office_Desk*
+Content/SpaceGUI*
+
 
 Extras/Server/OpenVoice
 Extras/WavFiles
