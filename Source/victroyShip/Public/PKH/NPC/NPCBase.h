@@ -222,6 +222,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> Sfx_Indiff;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAudioComponent> SfxComp;
+
+// ETC
+protected:
+	UPROPERTY(EditAnywhere)
+	float SitDistance = 0;
+
 // Interface
 public:
 	virtual void OnDateUpdated(int32 NewDate) override;

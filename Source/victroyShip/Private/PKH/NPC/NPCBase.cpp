@@ -66,6 +66,9 @@ ANPCBase::ANPCBase()
 	NPCNameMap.Add(ENPCType::Fisherman, Name_Chunsik);
 
 	// Sound
+	SfxComp = CreateDefaultSubobject<UAudioComponent>(TEXT("SfxComp"));
+	SfxComp->SetVolumeMultiplier(0.6f);
+
 	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_NoticeRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Notice.Sfx_Notice'"));
 	if (Sfx_NoticeRef.Object)
 	{
@@ -146,6 +149,7 @@ void ANPCBase::EndConversation()
 	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
+	SfxComp->Stop();
 	SetNPCWalk();
 }
 #pragma endregion
@@ -175,31 +179,38 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	{
 		if(Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice, 0.6f);
+			SfxComp->SetSound(Sfx_Notice);
+			SfxComp->Play();
 		}
 	}
 	else
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
+
 		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Joy, 0.6f);
+			SfxComp->SetSound(Sfx_Joy);
 		}
 		else if(CurEmotion == "anger" && IsValid(Sfx_Anger))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Anger, 0.6f);
+			SfxComp->SetSound(Sfx_Anger);
 		}
 		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Sad, 0.4f);
+			SfxComp->SetSound(Sfx_Sad);
 		}
 		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Surprise, 0.6f);
+			SfxComp->SetSound(Sfx_Surprise);
 		}
 		else if (IsValid(Sfx_Indiff))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Indiff, 0.6f);
+			SfxComp->SetSound(Sfx_Indiff);
+		}
+
+		if(SfxComp->Sound)
+		{
+			SfxComp->Play();
 		}
 	}
 }

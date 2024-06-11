@@ -182,4 +182,10 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UAudioComponent> BGMComp;
 
+	UPROPERTY(EditDefaultsOnly)
+	float BgmMultiplier_Normal = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float BgmMultiplier_Conv = 0.6f;
+
 };

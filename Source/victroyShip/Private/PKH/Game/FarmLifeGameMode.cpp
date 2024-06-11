@@ -122,6 +122,7 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 	CurNPC = NewNPC;
 	CurNPC->StartConversation();
 	CurNPC->SetEmotionUI(false);
+	BGMComp->SetVolumeMultiplier(BgmMultiplier_Conv);
 
 	HttpActor->SendSpeech(FilePath);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
@@ -165,6 +166,7 @@ void AFarmLifeGameMode::EndConversation()
 	CurNPC->EndConversation();
 	HttpActor->EndChat(CurNPC->GetNPCName());
 	CurNPC = nullptr;
+	BGMComp->SetVolumeMultiplier(BgmMultiplier_Normal);
 }
 
 void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)

@@ -3,6 +3,7 @@
 
 #include "PKH/NPC/NPC_Programmer.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/SlateWrapperTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Animation/NPCAnimInstance.h"
@@ -22,6 +23,8 @@ ANPC_Programmer::ANPC_Programmer()
 	ParkLoc = FVector(-640, 2680, 520);
 
 	WorkRotation = FRotator(0, 200, 0);
+
+	SitDistance = -50.0f;
 
 	// Mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_claudia_rigged_002_ue4/rp_claudia_rigged_002_ue4.rp_claudia_rigged_002_ue4'"));
@@ -131,7 +134,8 @@ void ANPC_Programmer::PlayEmotion(bool IsUIOnly)
 	{
 		if (Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+			SfxComp->SetSound(Sfx_Notice);
+			SfxComp->Play();
 		}
 	}
 	else
@@ -143,23 +147,28 @@ void ANPC_Programmer::PlayEmotion(bool IsUIOnly)
 
 		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Joy, 0.6f);
+			SfxComp->SetSound(Sfx_Joy);
 		}
 		else if (CurEmotion == "anger" && IsValid(Sfx_Anger))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Anger, 0.6f);
+			SfxComp->SetSound(Sfx_Anger);
 		}
 		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Sad, 0.6f);
+			SfxComp->SetSound(Sfx_Sad);
 		}
 		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Surprise, 0.6f);
+			SfxComp->SetSound(Sfx_Surprise);
 		}
 		else if (IsValid(Sfx_Indiff))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Indiff, 0.6f);
+			SfxComp->SetSound(Sfx_Indiff);
+		}
+
+		if (SfxComp->Sound)
+		{
+			SfxComp->Play();
 		}
 	}
 }
