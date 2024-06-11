@@ -12,7 +12,7 @@ void UAnimNotify_SitComplete::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	ANPCBase* NPC = Cast<ANPCBase>(MeshComp->GetOwner());
 	if(NPC)
 	{
-		const FVector SitLoc = NPC->GetActorLocation() + (NPC->GetActorForwardVector() * -50.0f);
+		const FVector SitLoc = NPC->GetActorLocation() + (NPC->GetActorForwardVector() * NPC->GetSitDist());
 		NPC->SetActorLocation(SitLoc);
 	}
 }

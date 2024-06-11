@@ -19,7 +19,7 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 3.0f
+#define TIME_UPDATE_INTERVAL 5.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {

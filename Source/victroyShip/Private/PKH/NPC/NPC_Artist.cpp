@@ -20,11 +20,11 @@ ANPC_Artist::ANPC_Artist()
 
 	HomeLoc = FVector(2190, 6501, 1207);
 	HillLoc = FVector(3040, 4301, 631);
-	ParkLoc = FVector(1060, 1701, 542);
+	ParkLoc = FVector(1004, 1727, 542);
 
 	WorkRotation = FRotator(0, 190, 0);
 
-	SitDistance = -45.0f;
+	SitDistance = -40.0f;
 
 	// Mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_sophia_rigged_003_ue4/rp_sophia_rigged_003_ue4.rp_sophia_rigged_003_ue4'"));

@@ -6,6 +6,7 @@
 #include "MediaPlayer.h"
 #include "PKH/NPC/NPCController.h"
 #include "MediaSoundComponent.h"
+#include "NiagaraComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -17,6 +18,7 @@
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/EmotionUIWidget.h"
+#include "NiagaraFunctionLibrary.h"
 
 ANPCBase::ANPCBase()
 {
@@ -98,6 +100,23 @@ ANPCBase::ANPCBase()
 	if (Sfx_IndiffRef.Object)
 	{
 		Sfx_Indiff = Sfx_IndiffRef.Object;
+	}
+
+	// Vfx
+	VfxComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VfxComp"));
+	VfxComp->SetupAttachment(RootComponent);
+	VfxComp->bAutoActivate = false;
+	VfxComp->SetRelativeScale3D(FVector(0.35f));
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeUpRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/HealPositive/NS/Vfx_Antidote.Vfx_Antidote'"));
+	if(Vfx_LikeUpRef.Object)
+	{
+		Vfx_LikeUp = Vfx_LikeUpRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeDownRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/HealPositive/NS/Vfx_MagicUp.Vfx_MagicUp'"));
+	if (Vfx_LikeDownRef.Object)
+	{
+		Vfx_LikeDown = Vfx_LikeDownRef.Object;
 	}
 }
 
@@ -299,6 +318,16 @@ void ANPCBase::SetEmotionUI(bool IsActive)
 void ANPCBase::UpdateLikeability(int32 InLikeability)
 {
 	CurLikeability = FMath::Clamp(CurLikeability + InLikeability, 0, MaxLikeability);
+	if(InLikeability > 0 && nullptr != Vfx_LikeUp)
+	{
+		VfxComp->SetAsset(Vfx_LikeUp);
+		VfxComp->ActivateSystem(true);
+	}
+	else if(InLikeability < 0 && nullptr != Vfx_LikeDown)
+	{
+		VfxComp->SetAsset(Vfx_LikeDown);
+		VfxComp->ActivateSystem(true);
+	}
 
 	if(OnLikeabilityChanged.IsBound())
 	{
