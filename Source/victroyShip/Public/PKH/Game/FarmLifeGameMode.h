@@ -173,4 +173,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UTimerWidget> TimerUI;
+
+// Sound
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> BGM_BackToPortland;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UAudioComponent> BGMComp;
+
 };

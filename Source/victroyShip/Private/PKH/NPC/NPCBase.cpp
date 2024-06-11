@@ -71,10 +71,30 @@ ANPCBase::ANPCBase()
 	{
 		Sfx_Notice = Sfx_NoticeRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_EmotionRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Emotion.Sfx_Emotion'"));
-	if (Sfx_EmotionRef.Object)
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_JoyRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Joy.Sfx_Joy'"));
+	if (Sfx_JoyRef.Object)
 	{
-		Sfx_Emotion = Sfx_EmotionRef.Object;
+		Sfx_Joy = Sfx_JoyRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_AngerRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Angry.Sfx_Angry'"));
+	if (Sfx_AngerRef.Object)
+	{
+		Sfx_Anger = Sfx_AngerRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_SadRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Sad.Sfx_Sad'"));
+	if (Sfx_SadRef.Object)
+	{
+		Sfx_Sad = Sfx_SadRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_SurpriseRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Surprised.Sfx_Surprised'"));
+	if (Sfx_SurpriseRef.Object)
+	{
+		Sfx_Surprise = Sfx_SurpriseRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_IndiffRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Indiff.Sfx_Indiff'"));
+	if (Sfx_IndiffRef.Object)
+	{
+		Sfx_Indiff = Sfx_IndiffRef.Object;
 	}
 }
 
@@ -115,12 +135,6 @@ void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
-		// Turn to player
-		FVector DirectionVec = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		DirectionVec.Z = 0;
-		const FRotator TargetRot= DirectionVec.ToOrientationRotator();
-		SetActorRotation(TargetRot);
-
 		NPCController->StartConversation();
 		AnimInstance->PlayMontage_Conv();
 		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
@@ -161,15 +175,31 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	{
 		if(Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice, 0.6f);
 		}
 	}
 	else
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
-		if (Sfx_Emotion)
+		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Joy, 0.6f);
+		}
+		else if(CurEmotion == "anger" && IsValid(Sfx_Anger))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Anger, 0.6f);
+		}
+		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Sad, 0.4f);
+		}
+		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Surprise, 0.6f);
+		}
+		else if (IsValid(Sfx_Indiff))
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Indiff, 0.6f);
 		}
 	}
 }
@@ -295,7 +325,20 @@ void ANPCBase::DoJob()
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Do Job"), *NPCName);
 
 	SetActorRotation(WorkRotation);
-	AnimInstance->PlayMontage_Custom(Montage_Work);
+	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work)
+	{
+		AnimInstance->PlayMontage_Custom(Montage_Work);
+	}
+}
+
+bool ANPCBase::CanRotateInWorking()
+{
+	if(NPCType == ENPCType::Artist || NPCType == ENPCType::Programmer)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void ANPCBase::OnDateUpdated(int32 NewDate)

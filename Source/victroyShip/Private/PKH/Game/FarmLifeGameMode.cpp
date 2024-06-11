@@ -3,6 +3,7 @@
 
 #include "PKH/Game/FarmLifeGameMode.h"
 
+#include "Components/AudioComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,7 +19,7 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 5.0f
+#define TIME_UPDATE_INTERVAL 3.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -43,6 +44,13 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	if (TimerUIClassRef.Class)
 	{
 		TimerUIClass = TimerUIClassRef.Class;
+	}
+
+	// Sound
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_BackToPortlandRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_BackToPortland.BGM_BackToPortland'"));
+	if (BGM_BackToPortlandRef.Object)
+	{
+		BGM_BackToPortland = BGM_BackToPortlandRef.Object;
 	}
 }
 
@@ -92,6 +100,10 @@ void AFarmLifeGameMode::BeginPlay()
 	ensure(ConversationUI);
 	ConversationUI->AddToViewport();
 	ConversationUI->SetVisibility(ESlateVisibility::Hidden);
+
+	// Sound
+	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
+	BGMComp->FadeIn(3.0f, 0.6f);
 }
 
 void AFarmLifeGameMode::Tick(float DeltaSeconds)
