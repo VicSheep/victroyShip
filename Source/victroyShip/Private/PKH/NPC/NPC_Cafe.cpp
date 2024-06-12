@@ -69,6 +69,7 @@ void ANPC_Cafe::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(WorkLoc);
 		NPCController->SetIsWorking(true);
+		SetNPCWalk();
 		return;
 	}
 
@@ -77,5 +78,6 @@ void ANPC_Cafe::OnHourUpdated(int32 NewHour)
 		NPCController->MoveToHome();
 		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
+		SetNPCWalk();
 	}
 }

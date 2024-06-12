@@ -119,6 +119,9 @@ public:
 
 // Speed
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	float PatrolSpeed = 100.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category="Speed")
 	float WalkSpeed = 200.0f;
 
@@ -126,6 +129,7 @@ protected:
 	float RunSpeed = 270.0f;
 
 public:
+	void SetNPCPatrol();
 	void SetNPCWalk();
 	void SetNPCRun();
 
@@ -166,6 +170,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UNiagaraSystem> Vfx_LikeDown;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UNiagaraSystem> Vfx_CurLike;
 
 public:
 	FOnLikeabilityChanged OnLikeabilityChanged;
@@ -209,6 +216,12 @@ protected:
 public:
 	virtual void DoJob();
 
+	virtual void StartSit();
+
+	virtual void EndSit();
+
+	virtual void StandUp();
+
 	bool CanRotateInWorking();
 
 // Sound
@@ -238,9 +251,6 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere)
 	float SitDistance = 0;
-
-public:
-	FORCEINLINE float GetSitDist() const { return SitDistance; }
 
 // Interface
 public:

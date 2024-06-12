@@ -5,6 +5,7 @@
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PKH/BT/BTNPCKey.h"
+#include "PKH/NPC/NPCBase.h"
 #include "PKH/NPC/NPCController.h"
 
 UBTTask_MoveComplete::UBTTask_MoveComplete()
@@ -22,6 +23,12 @@ EBTNodeResult::Type UBTTask_MoveComplete::ExecuteTask(UBehaviorTreeComponent& Ow
 		return EBTNodeResult::Failed;
 	}
 
+	ANPCBase* NPC = Cast<ANPCBase>(NPCController->GetPawn());
+	if(nullptr == NPC)
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
 	if (BBComp)
 	{
@@ -30,6 +37,7 @@ EBTNodeResult::Type UBTTask_MoveComplete::ExecuteTask(UBehaviorTreeComponent& Ow
 		{
 			BBComp->SetValueAsBool(KEY_IS_WORKING, true);
 		}
+		NPC->SetNPCPatrol();
 		return EBTNodeResult::Succeeded;
 	}
 

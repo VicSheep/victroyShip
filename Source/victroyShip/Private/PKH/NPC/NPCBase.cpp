@@ -106,14 +106,14 @@ ANPCBase::ANPCBase()
 	VfxComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VfxComp"));
 	VfxComp->SetupAttachment(RootComponent);
 	VfxComp->bAutoActivate = false;
-	VfxComp->SetRelativeScale3D(FVector(0.35f));
+	VfxComp->SetRelativeScale3D(FVector(0.03f));
 
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeUpRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/HealPositive/NS/Vfx_Antidote.Vfx_Antidote'"));
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeUpRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Positive.Vfx_Positive'"));
 	if(Vfx_LikeUpRef.Object)
 	{
 		Vfx_LikeUp = Vfx_LikeUpRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeDownRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/HealPositive/NS/Vfx_MagicUp.Vfx_MagicUp'"));
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeDownRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Negative.Vfx_Negative'"));
 	if (Vfx_LikeDownRef.Object)
 	{
 		Vfx_LikeDown = Vfx_LikeDownRef.Object;
@@ -142,6 +142,8 @@ void ANPCBase::BeginPlay()
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
+	SetNPCPatrol();
+
 	// Init Greeting & Present Data
 	if(CurLikeability >= FriendlyLikeability)
 	{
@@ -169,7 +171,15 @@ void ANPCBase::EndConversation()
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
 	SfxComp->Stop();
-	SetNPCWalk();
+
+	if(NPCController->IsMovingSomewhere())
+	{
+		SetNPCWalk();
+	}
+	else
+	{
+		SetNPCPatrol();
+	}
 }
 #pragma endregion
 
@@ -190,6 +200,13 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	if(CurEmotion.IsEmpty())
 	{
 		return;
+	}
+
+	if(nullptr != Vfx_CurLike)
+	{
+		VfxComp->SetAsset(Vfx_CurLike);
+		VfxComp->ActivateSystem();
+		Vfx_CurLike = nullptr;
 	}
 
 	EmotionUI->SetEmotion(CurEmotion);
@@ -258,6 +275,11 @@ void ANPCBase::OnPlayEnded()
 
 
 #pragma region Speed
+void ANPCBase::SetNPCPatrol()
+{
+	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+}
+
 void ANPCBase::SetNPCWalk()
 {
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -318,15 +340,14 @@ void ANPCBase::SetEmotionUI(bool IsActive)
 void ANPCBase::UpdateLikeability(int32 InLikeability)
 {
 	CurLikeability = FMath::Clamp(CurLikeability + InLikeability, 0, MaxLikeability);
+
 	if(InLikeability > 0 && nullptr != Vfx_LikeUp)
 	{
-		VfxComp->SetAsset(Vfx_LikeUp);
-		VfxComp->ActivateSystem(true);
+		Vfx_CurLike = Vfx_LikeUp;
 	}
 	else if(InLikeability < 0 && nullptr != Vfx_LikeDown)
 	{
-		VfxComp->SetAsset(Vfx_LikeDown);
-		VfxComp->ActivateSystem(true);
+		Vfx_CurLike = Vfx_LikeDown;
 	}
 
 	if(OnLikeabilityChanged.IsBound())
@@ -369,6 +390,18 @@ void ANPCBase::DoJob()
 	{
 		AnimInstance->PlayMontage_Custom(Montage_Work);
 	}
+}
+
+void ANPCBase::StartSit()
+{
+}
+
+void ANPCBase::EndSit()
+{
+}
+
+void ANPCBase::StandUp()
+{
 }
 
 bool ANPCBase::CanRotateInWorking()

@@ -20,7 +20,7 @@ ANPC_Artist::ANPC_Artist()
 
 	HomeLoc = FVector(2190, 6501, 1207);
 	HillLoc = FVector(3040, 4301, 631);
-	ParkLoc = FVector(1004, 1727, 542);
+	ParkLoc = FVector(1034, 1718, 542);
 
 	WorkRotation = FRotator(0, 190, 0);
 
@@ -59,6 +59,13 @@ ANPC_Artist::ANPC_Artist()
 	{
 		Montage_Conv = Montage_ConvRef.Object;
 	}
+
+	// Object
+	static ConstructorHelpers::FClassFinder<AActor> EaselClassRef(TEXT("/Game/PKH/Blueprint/BP_Easel.BP_Easel_C"));
+	if(EaselClassRef.Class)
+	{
+		EaselClass = EaselClassRef.Class;
+	}
 }
 
 void ANPC_Artist::BeginPlay()
@@ -71,6 +78,11 @@ void ANPC_Artist::BeginPlay()
 	}
 
 	AnimInstance->OnMontageEnded.AddDynamic(this, &ANPC_Artist::OnStandUpEnded);
+
+	// Object
+	Easel = GetWorld()->SpawnActor(EaselClass);
+	Easel->SetActorEnableCollision(false);
+	Easel->SetActorHiddenInGame(true);
 }
 
 void ANPC_Artist::DoJob()
@@ -78,6 +90,40 @@ void ANPC_Artist::DoJob()
 	Super::DoJob();
 
 	
+}
+
+void ANPC_Artist::StartSit()
+{
+	Super::StartSit();
+
+	const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * -50.0f;
+	SetActorLocation(TargetLoc);
+}
+
+void ANPC_Artist::EndSit()
+{
+	Super::EndSit();
+
+	if(Easel->IsHidden())
+	{
+		const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * SitDistance;
+		SetActorLocation(TargetLoc);
+
+		Easel->SetActorLocationAndRotation(GetActorLocation() + EaselLoc, GetActorRotation() + EaselRot);
+		Easel->SetActorEnableCollision(true);
+		Easel->SetActorHiddenInGame(false);
+	}
+}
+
+void ANPC_Artist::StandUp()
+{
+	Super::StandUp();
+
+	Easel->SetActorEnableCollision(false);
+	Easel->SetActorHiddenInGame(true);
+
+	const FVector TargetLoc = GetActorLocation() - (GetActorForwardVector() * SitDistance);
+	SetActorLocation(TargetLoc);
 }
 
 #pragma region override
@@ -119,6 +165,9 @@ void ANPC_Artist::OnConversationEnd()
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
 		NPCController->MoveToHome();
+
+		Easel->SetActorEnableCollision(false);
+		Easel->SetActorHiddenInGame(true);
 	}
 }
 
@@ -180,6 +229,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	if(NewHour == HOUR_GO_HILL)
 	{
 		NPCController->MoveToTargetLoc(HillLoc);
+		SetNPCWalk();
 		return;
 	}
 
@@ -187,6 +237,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(ParkLoc);
 		NPCController->SetIsWorking(true);
+		SetNPCWalk();
 		return;
 	}
 
@@ -197,6 +248,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 			NPCController->MoveToHome();
 			AnimInstance->StopSpecificMontage(Montage_Work);
 			AnimInstance->PlayMontage_Custom(Montage_StandUp);
+			SetNPCWalk();
 		}
 	}
 }

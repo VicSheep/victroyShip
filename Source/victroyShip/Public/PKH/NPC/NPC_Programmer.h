@@ -23,6 +23,12 @@ protected:
 
 	virtual void DoJob() override;
 
+	virtual void StartSit() override;
+
+	virtual void EndSit() override;
+
+	virtual void StandUp() override;
+
 	// override
 	virtual void StartConversation() override;
 
@@ -48,6 +54,17 @@ protected:
 
 	UFUNCTION()
 	void OnStandUpEnded(UAnimMontage* Montage, bool bInterrupted);
+
+// Object
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AActor> LaptopClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class AActor> Laptop;
+
+	FVector LaptopLoc = FVector(-54, -21, -25);
+	FRotator LaptopRot = FRotator(0, 90, 0);
 
 // Interface
 public:

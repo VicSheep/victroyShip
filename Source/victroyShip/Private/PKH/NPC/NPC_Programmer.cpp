@@ -58,6 +58,13 @@ ANPC_Programmer::ANPC_Programmer()
 	{
 		Montage_Conv = Montage_ConvRef.Object;
 	}
+
+	// Object
+	static ConstructorHelpers::FClassFinder<AActor> LaptopClassRef(TEXT("/Game/PKH/Blueprint/BP_Laptop.BP_Laptop_C"));
+	if (LaptopClassRef.Class)
+	{
+		LaptopClass = LaptopClassRef.Class;
+	}
 }
 
 void ANPC_Programmer::BeginPlay()
@@ -70,6 +77,11 @@ void ANPC_Programmer::BeginPlay()
 	{
 		AnimInstance->SetMontage_Conv(Montage_Conv);
 	}
+
+	// Object
+	Laptop = GetWorld()->SpawnActor(LaptopClass);
+	Laptop->SetActorEnableCollision(false);
+	Laptop->SetActorHiddenInGame(true);
 }
 
 void ANPC_Programmer::DoJob()
@@ -79,7 +91,41 @@ void ANPC_Programmer::DoJob()
 	
 }
 
+void ANPC_Programmer::StartSit()
+{
+	Super::StartSit();
+
+	const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * -60.0f;
+	SetActorLocation(TargetLoc);
+}
+
 #pragma region override
+void ANPC_Programmer::EndSit()
+{
+	Super::EndSit();
+
+	if(Laptop->IsHidden())
+	{
+		const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * SitDistance;
+		SetActorLocation(TargetLoc);
+
+		Laptop->SetActorLocationAndRotation(GetActorLocation() + LaptopLoc, GetActorRotation() + LaptopRot);
+		Laptop->SetActorEnableCollision(true);
+		Laptop->SetActorHiddenInGame(false);
+	}
+}
+
+void ANPC_Programmer::StandUp()
+{
+	Super::StandUp();
+
+	Laptop->SetActorEnableCollision(false);
+	Laptop->SetActorHiddenInGame(true);
+
+	const FVector TargetLoc = GetActorLocation() - (GetActorForwardVector() * SitDistance);
+	SetActorLocation(TargetLoc);
+}
+
 void ANPC_Programmer::StartConversation()
 {
 	if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
@@ -118,6 +164,9 @@ void ANPC_Programmer::OnConversationEnd()
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
+
+		Laptop->SetActorEnableCollision(false);
+		Laptop->SetActorHiddenInGame(true);
 	}
 }
 
@@ -180,6 +229,7 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(WorkLoc);
 		NPCController->SetIsWorking(true);
+		SetNPCWalk();
 		return;
 	}
 
@@ -192,12 +242,14 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
+		SetNPCWalk();
 		return;
 	}
 
 	if (NewHour == HOUR_BACK_HOME)
 	{
 		NPCController->MoveToHome();
+		SetNPCWalk();
 	}
 }
 
