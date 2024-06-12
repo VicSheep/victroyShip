@@ -24,6 +24,26 @@ ANPC_Fisher::ANPC_Fisher()
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
+
+	fishingTool = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("fishingTool"));
+	fishingTool->SetupAttachment(GetMesh(), TEXT("middle_01_l")); 
+	beerBottle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("beerBottle"));
+	beerBottle->SetupAttachment(GetMesh(), TEXT("middle_01_l"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> fishingToolMeshAsset(TEXT("/Game/LSH/props/Stap_za_pecanje.Stap_za_pecanje"));
+	if (fishingToolMeshAsset.Succeeded()) fishingTool->SetStaticMesh(fishingToolMeshAsset.Object);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> beerBottleMeshAsset(TEXT("/Game/LSH/props/Beer_Bottle.Beer_Bottle"));
+	if (beerBottleMeshAsset.Succeeded()) beerBottle->SetStaticMesh(beerBottleMeshAsset.Object);
+
+	fishingTool->SetVisibility(false);
+	fishingTool->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	beerBottle->SetVisibility(false);
+	beerBottle->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	fishingTool->SetRelativeScale3D(FVector(0.07));
+	fishingTool->SetRelativeLocation(FVector(-8, -2, -66));
+	fishingTool->SetRelativeRotation(FRotator(0, -90, 90));
+	beerBottle->SetRelativeScale3D(FVector(0.045));
+	beerBottle->SetRelativeLocation(FVector(3.539813, -4.180947, -4.08811));
+	beerBottle->SetRelativeRotation(FRotator(-204,17,0));
 }
 
 void ANPC_Fisher::BeginPlay()
@@ -64,6 +84,7 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 		WorkRotation = FishRot;
 		NPCController->MoveToTargetLoc(FishLoc);
 		NPCController->SetIsWorking(true);
+		fishingTool->SetVisibility(true);
 		return;
 	}
 
@@ -74,6 +95,15 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 		NPCController->MoveToTargetLoc(FisherHomeLoc);
 		WorkRotation = FisherHomeRot;
 		NPCController->SetIsWorking(true);
+		fishingTool->SetVisibility(false);
+		beerBottle->SetVisibility(true);
+		return;
+	}
+
+	if (NewHour == 18)//하루끝나면초기화
+	{
+		AnimInstance->StopSpecificMontage(Montage_Work);
+		beerBottle->SetVisibility(false);
 		return;
 	}
 
