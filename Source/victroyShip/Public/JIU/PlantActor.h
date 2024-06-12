@@ -100,6 +100,8 @@ public:
 	FVector InitialScale = FVector(1.0f, 1.0f, 1.0f);
 	FVector MaxScale = FVector(1.0f, 1.0f, 1.0f);
 
+	float ChangeTime = 0.85f;
+
 	UPROPERTY()
 	UStaticMesh* NewMesh;
 	bool isChanged = true;
@@ -122,4 +124,13 @@ public:
 
 	UFUNCTION()
 	void SpawnPaticleSystem(UParticleSystem* particle);
+
+	UPROPERTY()
+	class UNiagaraComponent* NiagaraComponent;
+
+	UPROPERTY()
+	UNiagaraSystem* GrowupNiagaraSystem;
+
+	UFUNCTION()
+	void SpawnNiagaraSystem(UNiagaraSystem* niagara);
 };
