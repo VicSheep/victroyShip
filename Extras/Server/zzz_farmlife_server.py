@@ -14,6 +14,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import json
 import torch
+import sys
 from openvoice import se_extractor
 from openvoice.api import ToneColorConverter
 from melo.api import TTS
@@ -252,12 +253,17 @@ source_se = torch.load('OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_
 
 def voiceChange(src_path: str, out_path: str, voiceRef: str):
     target_se = voiceRefs[voiceRef][0]
+
+    # Ensure target speaker embedding is on the same device
+    target_se = target_se.to(device)
+
     encode_message = "@MyShell"
+
     tone_color_converter.convert(
         audio_src_path=src_path,  # 변조할 원본 음성
-        src_se=source_se,
-        tgt_se=target_se,  # 레퍼런스 음성
-        output_path=out_path,  # 저장경로
+        src_se=source_se,         # Source speaker embedding on the same device
+        tgt_se=target_se,         # Target speaker embedding on the same device
+        output_path=out_path,     # 저장경로
         message=encode_message
     )
     

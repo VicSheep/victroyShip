@@ -158,6 +158,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "likeability")
 	int32 MaxLikeability = 100;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraComponent> VfxComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem> Vfx_LikeUp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem> Vfx_LikeDown;
+
 public:
 	FOnLikeabilityChanged OnLikeabilityChanged;
 
@@ -229,6 +238,9 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere)
 	float SitDistance = 0;
+
+public:
+	FORCEINLINE float GetSitDist() const { return SitDistance; }
 
 // Interface
 public:
