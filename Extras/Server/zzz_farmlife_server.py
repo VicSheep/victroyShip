@@ -252,6 +252,7 @@ source_se = torch.load('OpenVoice/checkpoints_v2/base_speakers/ses/kr.pth', map_
 
 def voiceChange(src_path: str, out_path: str, voiceRef: str):
     target_se = voiceRefs[voiceRef][0]
+    target_se = target_se.to(device)
     encode_message = "@MyShell"
     tone_color_converter.convert(
         audio_src_path=src_path,  # 변조할 원본 음성

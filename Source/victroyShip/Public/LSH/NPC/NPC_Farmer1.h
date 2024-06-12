@@ -25,14 +25,18 @@ protected:
 
 	// Locations
 protected:
-	UPROPERTY(EditAnywhere, Category = "Locations")
-	FVector HillLoc;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
 	FVector FarmLoc;
 
-		UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
 	FVector CafeLoc;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator FarmRot;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator CafeRot;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UAnimMontage> Montage_FarmWork;

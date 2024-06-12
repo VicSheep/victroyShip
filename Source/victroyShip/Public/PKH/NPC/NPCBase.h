@@ -119,6 +119,9 @@ public:
 
 // Speed
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	float PatrolSpeed = 100.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category="Speed")
 	float WalkSpeed = 200.0f;
 
@@ -126,6 +129,7 @@ protected:
 	float RunSpeed = 270.0f;
 
 public:
+	void SetNPCPatrol();
 	void SetNPCWalk();
 	void SetNPCRun();
 
@@ -157,6 +161,18 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "likeability")
 	int32 MaxLikeability = 100;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraComponent> VfxComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem> Vfx_LikeUp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem> Vfx_LikeDown;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UNiagaraSystem> Vfx_CurLike;
 
 public:
 	FOnLikeabilityChanged OnLikeabilityChanged;
@@ -200,13 +216,41 @@ protected:
 public:
 	virtual void DoJob();
 
+	virtual void StartSit();
+
+	virtual void EndSit();
+
+	virtual void StandUp();
+
+	bool CanRotateInWorking();
+
 // Sound
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> Sfx_Notice;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class USoundBase> Sfx_Emotion;
+	TObjectPtr<class USoundBase> Sfx_Joy;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Anger;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Sad;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Surprise;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> Sfx_Indiff;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAudioComponent> SfxComp;
+
+// ETC
+protected:
+	UPROPERTY(EditAnywhere)
+	float SitDistance = 0;
 
 // Interface
 public:

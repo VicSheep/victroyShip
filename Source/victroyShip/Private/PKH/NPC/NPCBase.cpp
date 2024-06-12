@@ -6,6 +6,7 @@
 #include "MediaPlayer.h"
 #include "PKH/NPC/NPCController.h"
 #include "MediaSoundComponent.h"
+#include "NiagaraComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -17,6 +18,7 @@
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/EmotionUIWidget.h"
+#include "NiagaraFunctionLibrary.h"
 
 ANPCBase::ANPCBase()
 {
@@ -66,15 +68,55 @@ ANPCBase::ANPCBase()
 	NPCNameMap.Add(ENPCType::Fisherman, Name_Chunsik);
 
 	// Sound
+	SfxComp = CreateDefaultSubobject<UAudioComponent>(TEXT("SfxComp"));
+	SfxComp->SetVolumeMultiplier(0.6f);
+
 	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_NoticeRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Notice.Sfx_Notice'"));
 	if (Sfx_NoticeRef.Object)
 	{
 		Sfx_Notice = Sfx_NoticeRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_EmotionRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Emotion.Sfx_Emotion'"));
-	if (Sfx_EmotionRef.Object)
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_JoyRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Joy.Sfx_Joy'"));
+	if (Sfx_JoyRef.Object)
 	{
-		Sfx_Emotion = Sfx_EmotionRef.Object;
+		Sfx_Joy = Sfx_JoyRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_AngerRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Angry.Sfx_Angry'"));
+	if (Sfx_AngerRef.Object)
+	{
+		Sfx_Anger = Sfx_AngerRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_SadRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Sad.Sfx_Sad'"));
+	if (Sfx_SadRef.Object)
+	{
+		Sfx_Sad = Sfx_SadRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_SurpriseRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Surprised.Sfx_Surprised'"));
+	if (Sfx_SurpriseRef.Object)
+	{
+		Sfx_Surprise = Sfx_SurpriseRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> Sfx_IndiffRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/Sfx_Indiff.Sfx_Indiff'"));
+	if (Sfx_IndiffRef.Object)
+	{
+		Sfx_Indiff = Sfx_IndiffRef.Object;
+	}
+
+	// Vfx
+	VfxComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VfxComp"));
+	VfxComp->SetupAttachment(RootComponent);
+	VfxComp->bAutoActivate = false;
+	VfxComp->SetRelativeScale3D(FVector(0.03f));
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeUpRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Positive.Vfx_Positive'"));
+	if(Vfx_LikeUpRef.Object)
+	{
+		Vfx_LikeUp = Vfx_LikeUpRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeDownRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Negative.Vfx_Negative'"));
+	if (Vfx_LikeDownRef.Object)
+	{
+		Vfx_LikeDown = Vfx_LikeDownRef.Object;
 	}
 }
 
@@ -100,6 +142,8 @@ void ANPCBase::BeginPlay()
 	MediaPlayer = NewObject<UMediaPlayer>();
 	MediaPlayer->OnEndReached.AddDynamic(this, &ANPCBase::OnPlayEnded);
 
+	SetNPCPatrol();
+
 	// Init Greeting & Present Data
 	if(CurLikeability >= FriendlyLikeability)
 	{
@@ -115,12 +159,6 @@ void ANPCBase::StartConversation()
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
-		// Turn to player
-		FVector DirectionVec = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		DirectionVec.Z = 0;
-		const FRotator TargetRot= DirectionVec.ToOrientationRotator();
-		SetActorRotation(TargetRot);
-
 		NPCController->StartConversation();
 		AnimInstance->PlayMontage_Conv();
 		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
@@ -132,7 +170,16 @@ void ANPCBase::EndConversation()
 	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
 	AnimInstance->StopAllMontages(0);
-	SetNPCWalk();
+	SfxComp->Stop();
+
+	if(NPCController->IsMovingSomewhere())
+	{
+		SetNPCWalk();
+	}
+	else
+	{
+		SetNPCPatrol();
+	}
 }
 #pragma endregion
 
@@ -155,21 +202,51 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 		return;
 	}
 
+	if(nullptr != Vfx_CurLike)
+	{
+		VfxComp->SetAsset(Vfx_CurLike);
+		VfxComp->ActivateSystem();
+		Vfx_CurLike = nullptr;
+	}
+
 	EmotionUI->SetEmotion(CurEmotion);
 	EmotionUI->SetVisibility(ESlateVisibility::Visible);
 	if(IsUIOnly)
 	{
 		if(Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+			SfxComp->SetSound(Sfx_Notice);
+			SfxComp->Play();
 		}
 	}
 	else
 	{
 		AnimInstance->PlayMontage_Emotion(CurEmotion);
-		if (Sfx_Emotion)
+
+		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
+			SfxComp->SetSound(Sfx_Joy);
+		}
+		else if(CurEmotion == "anger" && IsValid(Sfx_Anger))
+		{
+			SfxComp->SetSound(Sfx_Anger);
+		}
+		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
+		{
+			SfxComp->SetSound(Sfx_Sad);
+		}
+		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
+		{
+			SfxComp->SetSound(Sfx_Surprise);
+		}
+		else if (IsValid(Sfx_Indiff))
+		{
+			SfxComp->SetSound(Sfx_Indiff);
+		}
+
+		if(SfxComp->Sound)
+		{
+			SfxComp->Play();
 		}
 	}
 }
@@ -198,6 +275,11 @@ void ANPCBase::OnPlayEnded()
 
 
 #pragma region Speed
+void ANPCBase::SetNPCPatrol()
+{
+	GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+}
+
 void ANPCBase::SetNPCWalk()
 {
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -259,6 +341,15 @@ void ANPCBase::UpdateLikeability(int32 InLikeability)
 {
 	CurLikeability = FMath::Clamp(CurLikeability + InLikeability, 0, MaxLikeability);
 
+	if(InLikeability > 0 && nullptr != Vfx_LikeUp)
+	{
+		Vfx_CurLike = Vfx_LikeUp;
+	}
+	else if(InLikeability < 0 && nullptr != Vfx_LikeDown)
+	{
+		Vfx_CurLike = Vfx_LikeDown;
+	}
+
 	if(OnLikeabilityChanged.IsBound())
 	{
 		OnLikeabilityChanged.Broadcast();
@@ -295,7 +386,32 @@ void ANPCBase::DoJob()
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Do Job"), *NPCName);
 
 	SetActorRotation(WorkRotation);
-	AnimInstance->PlayMontage_Custom(Montage_Work);
+	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work)
+	{
+		AnimInstance->PlayMontage_Custom(Montage_Work);
+	}
+}
+
+void ANPCBase::StartSit()
+{
+}
+
+void ANPCBase::EndSit()
+{
+}
+
+void ANPCBase::StandUp()
+{
+}
+
+bool ANPCBase::CanRotateInWorking()
+{
+	if(NPCType == ENPCType::Artist || NPCType == ENPCType::Programmer)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void ANPCBase::OnDateUpdated(int32 NewDate)

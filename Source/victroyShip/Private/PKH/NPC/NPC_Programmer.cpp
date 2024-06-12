@@ -3,6 +3,7 @@
 
 #include "PKH/NPC/NPC_Programmer.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/SlateWrapperTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Animation/NPCAnimInstance.h"
@@ -10,35 +11,59 @@
 #include "PKH/UI/EmotionUIWidget.h"
 
 #define HOUR_GO_WORK 9
-#define HOUR_GO_PARK 11
+#define HOUR_GO_PARK 15
 #define HOUR_BACK_HOME 17
 
 ANPC_Programmer::ANPC_Programmer()
 {
 	NPCType = ENPCType::Programmer;
 
-	HomeLoc = FVector(2822, 6320, 1255); 
-	WorkLoc = FVector(1332, 7200, 1193); 
-	ParkLoc = FVector(252, 3300, 627);
+	HomeLoc = FVector(-4310, 4410, 985);
+	WorkLoc = FVector(1480, 3340, 631); 
+	ParkLoc = FVector(-640, 2680, 520);
 
-	WorkRotation = FRotator();
+	WorkRotation = FRotator(0, 200, 0);
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_ProgrammerWork.AM_ProgrammerWork'"));
+	SitDistance = -50.0f;
+
+	// Mesh
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_claudia_rigged_002_ue4/rp_claudia_rigged_002_ue4.rp_claudia_rigged_002_ue4'"));
+	if (MeshRef.Object)
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+	}
+
+	// AnimInstance
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/NPC_Programmer/ABP_Programmer.ABP_Programmer_C"));
+	if (AnimRef.Class)
+	{
+		GetMesh()->SetAnimClass(AnimRef.Class);
+	}
+
+	// Montages
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Programmer/AM_ProgrammerWork.AM_ProgrammerWork'"));
 	if (Montage_WorkRef.Object)
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_StandUp.AM_StandUp'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Programmer/AM_StandUp.AM_StandUp'"));
 	if (Montage_StandUpRef.Object)
 	{
 		Montage_StandUp = Montage_StandUpRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Listen2.AM_Listen2'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Programmer/AM_Listen2.AM_Listen2'"));
 	if (Montage_ConvRef.Object)
 	{
 		Montage_Conv = Montage_ConvRef.Object;
+	}
+
+	// Object
+	static ConstructorHelpers::FClassFinder<AActor> LaptopClassRef(TEXT("/Game/PKH/Blueprint/BP_Laptop.BP_Laptop_C"));
+	if (LaptopClassRef.Class)
+	{
+		LaptopClass = LaptopClassRef.Class;
 	}
 }
 
@@ -52,16 +77,55 @@ void ANPC_Programmer::BeginPlay()
 	{
 		AnimInstance->SetMontage_Conv(Montage_Conv);
 	}
+
+	// Object
+	Laptop = GetWorld()->SpawnActor(LaptopClass);
+	Laptop->SetActorEnableCollision(false);
+	Laptop->SetActorHiddenInGame(true);
 }
 
 void ANPC_Programmer::DoJob()
 {
 	Super::DoJob();
 
+	
+}
 
+void ANPC_Programmer::StartSit()
+{
+	Super::StartSit();
+
+	const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * -60.0f;
+	SetActorLocation(TargetLoc);
 }
 
 #pragma region override
+void ANPC_Programmer::EndSit()
+{
+	Super::EndSit();
+
+	if(Laptop->IsHidden())
+	{
+		const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * SitDistance;
+		SetActorLocation(TargetLoc);
+
+		Laptop->SetActorLocationAndRotation(GetActorLocation() + LaptopLoc, GetActorRotation() + LaptopRot);
+		Laptop->SetActorEnableCollision(true);
+		Laptop->SetActorHiddenInGame(false);
+	}
+}
+
+void ANPC_Programmer::StandUp()
+{
+	Super::StandUp();
+
+	Laptop->SetActorEnableCollision(false);
+	Laptop->SetActorHiddenInGame(true);
+
+	const FVector TargetLoc = GetActorLocation() - (GetActorForwardVector() * SitDistance);
+	SetActorLocation(TargetLoc);
+}
+
 void ANPC_Programmer::StartConversation()
 {
 	if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
@@ -101,14 +165,8 @@ void ANPC_Programmer::OnConversationEnd()
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
 
-		if(MyGameMode->GetHour() >= HOUR_BACK_HOME)
-		{
-			NPCController->MoveToHome();
-		}
-		else
-		{
-			NPCController->MoveToTargetLoc(ParkLoc);
-		}
+		Laptop->SetActorEnableCollision(false);
+		Laptop->SetActorHiddenInGame(true);
 	}
 }
 
@@ -125,18 +183,41 @@ void ANPC_Programmer::PlayEmotion(bool IsUIOnly)
 	{
 		if (Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+			SfxComp->SetSound(Sfx_Notice);
+			SfxComp->Play();
 		}
 	}
 	else
 	{
-		if (Sfx_Emotion)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
-		}
 		if (false == NPCController->GetIsWorking())
 		{
 			AnimInstance->PlayMontage_Emotion(CurEmotion);
+		}
+
+		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
+		{
+			SfxComp->SetSound(Sfx_Joy);
+		}
+		else if (CurEmotion == "anger" && IsValid(Sfx_Anger))
+		{
+			SfxComp->SetSound(Sfx_Anger);
+		}
+		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
+		{
+			SfxComp->SetSound(Sfx_Sad);
+		}
+		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
+		{
+			SfxComp->SetSound(Sfx_Surprise);
+		}
+		else if (IsValid(Sfx_Indiff))
+		{
+			SfxComp->SetSound(Sfx_Indiff);
+		}
+
+		if (SfxComp->Sound)
+		{
+			SfxComp->Play();
 		}
 	}
 }
@@ -148,6 +229,7 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(WorkLoc);
 		NPCController->SetIsWorking(true);
+		SetNPCWalk();
 		return;
 	}
 
@@ -158,24 +240,24 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 			return;
 		}
 
-		NPCController->MoveToTargetLoc(ParkLoc);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
+		SetNPCWalk();
 		return;
 	}
 
 	if (NewHour == HOUR_BACK_HOME)
 	{
 		NPCController->MoveToHome();
+		SetNPCWalk();
 	}
 }
 
 void ANPC_Programmer::OnStandUpEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	if(Montage != Montage_StandUp)
+	if(Montage == Montage_StandUp)
 	{
-		return;
+		NPCController->SetIsWorking(false);
+		NPCController->MoveToTargetLoc(ParkLoc);
 	}
-	
-	NPCController->SetIsWorking(false); 
 }

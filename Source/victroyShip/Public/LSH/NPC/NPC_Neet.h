@@ -25,11 +25,24 @@ protected:
 
 	// Locations
 protected:
-	UPROPERTY(EditAnywhere, Category = "Locations")
-	FVector HillLoc;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
-	FVector ParkLoc;
+	FVector NeetSleepingLoc;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
+	FVector NeetSittingLoc;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "Locations")
+	FVector NeetDancingLoc;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator NeetSleepingRot;
+
+	UPROPERTY(EditDefaultsOnly)
+	FRotator NeetSittingRot;
+	
+	UPROPERTY(EditDefaultsOnly)
+	FRotator NeetDancingRot;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UAnimMontage> Montage_Sleep;
@@ -38,7 +51,7 @@ protected:
 	TObjectPtr<class UAnimMontage> Montage_Sit;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UAnimMontage> Montage_Game;
+	TObjectPtr<class UAnimMontage> Montage_Dance;
 	// Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;

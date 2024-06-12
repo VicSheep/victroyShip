@@ -3,42 +3,68 @@
 
 #include "PKH/NPC/NPC_Artist.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/SlateWrapperTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
 #include "PKH/UI/EmotionUIWidget.h"
 
-#define HOUR_GO_HILL 11
-#define HOUR_GO_PARK 14
+#define HOUR_GO_HILL 9
+#define HOUR_GO_PARK 13
 #define HOUR_BACK_HOME 17
 
 ANPC_Artist::ANPC_Artist()
 {
 	NPCType = ENPCType::Artist;
 
-	HomeLoc = FVector(-6606, -795, -148);
-	HillLoc = FVector(-2326, -485, 628);
-	ParkLoc = FVector(853, 2724, 628);
+	HomeLoc = FVector(2190, 6501, 1207);
+	HillLoc = FVector(3040, 4301, 631);
+	ParkLoc = FVector(1034, 1718, 542);
 
-	WorkRotation = FRotator(0, 270, 0);
+	WorkRotation = FRotator(0, 190, 0);
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_ArtistWork.AM_ArtistWork'"));
+	SitDistance = -40.0f;
+
+	// Mesh
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_sophia_rigged_003_ue4/rp_sophia_rigged_003_ue4.rp_sophia_rigged_003_ue4'"));
+	if (MeshRef.Object)
+	{
+		GetMesh()->SetSkeletalMesh(MeshRef.Object);
+	}
+
+	// AnimInstance
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/NPC_Artist/ABP_Artist.ABP_Artist_C"));
+	if (AnimRef.Class)
+	{
+		GetMesh()->SetAnimClass(AnimRef.Class);
+	}
+
+
+	// Montages
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WorkRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_ArtistWork.AM_ArtistWork'"));
 	if (Montage_WorkRef.Object)
 	{
 		Montage_Work = Montage_WorkRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_StandUp.AM_StandUp'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_StandUpRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_StandUp.AM_StandUp'"));
 	if (Montage_StandUpRef.Object)
 	{
 		Montage_StandUp = Montage_StandUpRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_Listen1.AM_Listen1'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_ConvRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/NPC_Artist/AM_Listen1.AM_Listen1'"));
 	if (Montage_ConvRef.Object)
 	{
 		Montage_Conv = Montage_ConvRef.Object;
+	}
+
+	// Object
+	static ConstructorHelpers::FClassFinder<AActor> EaselClassRef(TEXT("/Game/PKH/Blueprint/BP_Easel.BP_Easel_C"));
+	if(EaselClassRef.Class)
+	{
+		EaselClass = EaselClassRef.Class;
 	}
 }
 
@@ -52,6 +78,11 @@ void ANPC_Artist::BeginPlay()
 	}
 
 	AnimInstance->OnMontageEnded.AddDynamic(this, &ANPC_Artist::OnStandUpEnded);
+
+	// Object
+	Easel = GetWorld()->SpawnActor(EaselClass);
+	Easel->SetActorEnableCollision(false);
+	Easel->SetActorHiddenInGame(true);
 }
 
 void ANPC_Artist::DoJob()
@@ -59,6 +90,40 @@ void ANPC_Artist::DoJob()
 	Super::DoJob();
 
 	
+}
+
+void ANPC_Artist::StartSit()
+{
+	Super::StartSit();
+
+	const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * -50.0f;
+	SetActorLocation(TargetLoc);
+}
+
+void ANPC_Artist::EndSit()
+{
+	Super::EndSit();
+
+	if(Easel->IsHidden())
+	{
+		const FVector TargetLoc = GetActorLocation() + GetActorForwardVector() * SitDistance;
+		SetActorLocation(TargetLoc);
+
+		Easel->SetActorLocationAndRotation(GetActorLocation() + EaselLoc, GetActorRotation() + EaselRot);
+		Easel->SetActorEnableCollision(true);
+		Easel->SetActorHiddenInGame(false);
+	}
+}
+
+void ANPC_Artist::StandUp()
+{
+	Super::StandUp();
+
+	Easel->SetActorEnableCollision(false);
+	Easel->SetActorHiddenInGame(true);
+
+	const FVector TargetLoc = GetActorLocation() - (GetActorForwardVector() * SitDistance);
+	SetActorLocation(TargetLoc);
 }
 
 #pragma region override
@@ -100,6 +165,9 @@ void ANPC_Artist::OnConversationEnd()
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
 		NPCController->MoveToHome();
+
+		Easel->SetActorEnableCollision(false);
+		Easel->SetActorHiddenInGame(true);
 	}
 }
 
@@ -116,18 +184,41 @@ void ANPC_Artist::PlayEmotion(bool IsUIOnly)
 	{
 		if (Sfx_Notice)
 		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Notice);
+			SfxComp->SetSound(Sfx_Notice);
+			SfxComp->Play();
 		}
 	}
 	else
 	{
-		if (Sfx_Emotion)
-		{
-			UGameplayStatics::PlaySound2D(GetWorld(), Sfx_Emotion);
-		}
 		if (false == NPCController->GetIsWorking())
 		{
 			AnimInstance->PlayMontage_Emotion(CurEmotion);
+		}
+
+		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
+		{
+			SfxComp->SetSound(Sfx_Joy);
+		}
+		else if (CurEmotion == "anger" && IsValid(Sfx_Anger))
+		{
+			SfxComp->SetSound(Sfx_Anger);
+		}
+		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
+		{
+			SfxComp->SetSound(Sfx_Sad);
+		}
+		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
+		{
+			SfxComp->SetSound(Sfx_Surprise);
+		}
+		else if (IsValid(Sfx_Indiff))
+		{
+			SfxComp->SetSound(Sfx_Indiff);
+		}
+
+		if (SfxComp->Sound)
+		{
+			SfxComp->Play();
 		}
 	}
 }
@@ -138,6 +229,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	if(NewHour == HOUR_GO_HILL)
 	{
 		NPCController->MoveToTargetLoc(HillLoc);
+		SetNPCWalk();
 		return;
 	}
 
@@ -145,6 +237,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(ParkLoc);
 		NPCController->SetIsWorking(true);
+		SetNPCWalk();
 		return;
 	}
 
@@ -155,6 +248,7 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 			NPCController->MoveToHome();
 			AnimInstance->StopSpecificMontage(Montage_Work);
 			AnimInstance->PlayMontage_Custom(Montage_StandUp);
+			SetNPCWalk();
 		}
 	}
 }

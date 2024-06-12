@@ -163,6 +163,11 @@ bool ANPCController::IsInConversation()
 	return BBComp->GetValueAsBool(KEY_IN_CONV);
 }
 
+bool ANPCController::IsMovingSomewhere()
+{
+	return BBComp->GetValueAsBool(KEY_IS_MOVING);
+}
+
 void ANPCController::ResetBBKeys()
 {
 	BBComp->SetValueAsBool(KEY_IN_CONV, false);

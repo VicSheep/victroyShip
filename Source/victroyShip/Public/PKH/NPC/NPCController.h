@@ -61,6 +61,8 @@ public:
 	// Is NPC In Conversation?
 	bool IsInConversation();
 
+	bool IsMovingSomewhere();
+
 	// For Reset Keys
 	void ResetBBKeys();
 
