@@ -93,4 +93,11 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 		WorkRotation = NeetDancingRot;
 		NPCController->SetIsWorking(true);
 	}
+
+
+	if (NewHour == 18)//하루끝나면초기화
+	{
+		AnimInstance->StopSpecificMontage(Montage_Work);
+		return;
+	}
 }
