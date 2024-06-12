@@ -110,3 +110,8 @@ Content/__ExternalActors__/*
 Content/__ExternalObjects__/*
 Content/ArchViz/*
 Content/StarterContent/*
+
+# Jiu
+Content/SpaceGUI/*
+Content/SurvivalSounds/*
+Content/HealPositive/*
