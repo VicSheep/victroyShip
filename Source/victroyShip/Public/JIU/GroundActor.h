@@ -151,4 +151,7 @@ public:
 
 	UFUNCTION()
 	void SpawnNiagaraSystem(UNiagaraSystem* niagara);
+
+	///* Widget *///
+	bool haveChange = false;
 };

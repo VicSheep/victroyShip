@@ -44,6 +44,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UAnimMontage> Montage_Drink;
 
+	UPROPERTY(EditAnywhere, Category = "Held Object")
+	UStaticMeshComponent* fishingTool;
+
+	UPROPERTY(EditAnywhere, Category = "Held Object")
+	UStaticMeshComponent* beerBottle;
+
 	// Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;

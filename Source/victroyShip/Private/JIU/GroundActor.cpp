@@ -11,10 +11,8 @@
 #include "JIU/PlantActor.h"
 #include "JIU/WeedActor.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "NiagaraFunctionLibrary.h"
-#include "NiagaraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -74,7 +72,7 @@ AGroundActor::AGroundActor()
 
 	DustNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Explosion_Sand.NS_Explosion_Sand"));
 	RainNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Rain_Custom.NS_Environment_Rain_Custom"));
-	// LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Leaves_Custom.NS_Environment_Leaves_Custom"));
+	LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Realistic_Starter_VFX_Pack_Niagara/Niagara/Environment/NS_Environment_Leaves_Vortex.NS_Environment_Leaves_Vortex"));
 }
 
 // Called when the game starts or when spawned
@@ -201,10 +199,14 @@ void AGroundActor::FertilizePlant()
 
 void AGroundActor::RemovePlant()
 {
+	haveChange = true;
+
 	if (Plant)
 	{
 		Plant->Destroy();
 		Plant = nullptr;
+
+		SpawnNiagaraSystem(LeafNiagaraSystem);
 	}
 }
 

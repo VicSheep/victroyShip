@@ -10,6 +10,7 @@
 #include "Engine/Engine.h"
 #include "JIU/GroundActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Particles/ParticleSystem.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -32,6 +33,7 @@ APlantActor::APlantActor()
 	}
 
 	GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
+	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/HealPositive/NS/Vfx_GrowUp.Vfx_GrowUp"));
 }
 
 // Called when the game starts or when spawned
@@ -129,11 +131,17 @@ void APlantActor::GrowPlant()
 	if (PlantState == EPlantState::Seed)
 	{
 		PlantState = EPlantState::Growing;
+		SpawnNiagaraSystem(GrowupNiagaraSystem);
+
+		ChangeTime = 0.0f;
+
 		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
 		StartScaling();
 	}
 	else if (PlantState == EPlantState::Growing)
 	{
+		SpawnNiagaraSystem(GrowupNiagaraSystem);
+
 		if (CurLevel > MaxGrowLevel)
 		{
 			PlantState = EPlantState::Mature;
@@ -142,6 +150,7 @@ void APlantActor::GrowPlant()
 			StartScaling();
 		} else
 		{
+
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
 			StartScaling();
 		}
@@ -154,6 +163,7 @@ void APlantActor::GrowPlant()
 		if (CurLevel > MaxHavestLevel)
 		{
 			PlantState = EPlantState::Mature;
+			SpawnNiagaraSystem(GrowupNiagaraSystem);
 
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
@@ -179,7 +189,7 @@ void APlantActor::HandleProgress(float Value)
 
 	FVector NewScale = FMath::Lerp(InitialScale, TempMaxScale, Value);
 
-	if (Value >= 0.85f && isChanged)
+	if (Value >= ChangeTime && isChanged)
 	{
 		if (NewMesh)
 		{
@@ -200,6 +210,8 @@ void APlantActor::OnTimelineFinished()
 {
 	NewMesh = nullptr;
 	isChanged = true;
+
+	ChangeTime = 0.85f;
 }
 
 void APlantActor::SetupTimeline()
@@ -246,6 +258,14 @@ void APlantActor::SpawnPaticleSystem(UParticleSystem* particle)
 {
 	if (particle)
 	{
-		ParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GrowParticleSystem, GetActorLocation(), GetActorRotation());
+		ParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), particle, GetActorLocation(), GetActorRotation());
+	}
+}
+
+void APlantActor::SpawnNiagaraSystem(UNiagaraSystem* niagara)
+{
+	if (niagara)
+	{
+		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), niagara, GetActorLocation(), GetActorRotation());
 	}
 }
