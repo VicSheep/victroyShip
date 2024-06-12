@@ -83,6 +83,9 @@ Content/Town/*
 Content/Greek_island/*
 Content/Dialogue_mocap/*
 Content/Smart_UI/*
+Content/SpaceGUI/*
+Content/SurvivalSounds/*
+Content/HealPositive/*
 
 Extras/Server/OpenVoice
 Extras/WavFiles
