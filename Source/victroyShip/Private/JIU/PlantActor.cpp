@@ -32,7 +32,7 @@ APlantActor::APlantActor()
 		PlantDataTable = DataTable.Object;
 	}
 
-	GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
+	// GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
 	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/HealPositive/NS/Vfx_GrowUp.Vfx_GrowUp"));
 }
 
@@ -198,7 +198,7 @@ void APlantActor::HandleProgress(float Value)
 
 			if (PlantState == EPlantState::Mature)
 			{
-				SpawnPaticleSystem(GrowParticleSystem);
+				// SpawnPaticleSystem(GrowParticleSystem);
 			}
 		}
 	}

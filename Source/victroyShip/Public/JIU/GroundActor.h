@@ -8,8 +8,8 @@
 
 class UNiagaraSystem;
 
-UENUM()
-enum class EGroundState
+UENUM(BlueprintType)
+enum class EGroundState : uint8
 {
 	Default,
 	DryPlanter,
@@ -46,7 +46,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UChildActorComponent* ActorComponent;
 
 	///* Mesh or Material *///
@@ -79,6 +79,7 @@ public:
 	class UPrimitiveComponent* PrimitiveComponent;
 
 	///* Variable *///
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EGroundState GroundState = EGroundState::Default;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -154,4 +155,26 @@ public:
 
 	///* Widget *///
 	bool haveChange = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UPlantInfoWidget> WidgetClass;
+
+	UPROPERTY()
+	TArray<UUserWidget*> FoundWidgets;
+
+	///* Sound *///
+	UFUNCTION()
+	void PlaySound(USoundWave* sound);
+	
+	UPROPERTY()
+	USoundWave* HoeSoundWave;
+
+	UPROPERTY()
+	USoundWave* WaterSoundWave;
+
+	UPROPERTY()
+	USoundWave* SandSoundWave;
+
+	UPROPERTY()
+	USoundWave* AxeSoundWave;
 };

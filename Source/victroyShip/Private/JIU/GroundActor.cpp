@@ -13,7 +13,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Math/UnrealMathUtility.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "JIU/PlantInfoWidget.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -73,6 +75,30 @@ AGroundActor::AGroundActor()
 	DustNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Explosion_Sand.NS_Explosion_Sand"));
 	RainNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/NS_Environment_Rain_Custom.NS_Environment_Rain_Custom"));
 	LeafNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Realistic_Starter_VFX_Pack_Niagara/Niagara/Environment/NS_Environment_Leaves_Vortex.NS_Environment_Leaves_Vortex"));
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> HoeSoundAsset(TEXT("/Game/JIU/Sounds/Hoe_Sound.Hoe_Sound"));
+	if (HoeSoundAsset.Succeeded())
+	{
+		HoeSoundWave = HoeSoundAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> WaterSoundAsset(TEXT("/Game/JIU/Sounds/water_splash.water_splash"));
+	if (WaterSoundAsset.Succeeded())
+	{
+		WaterSoundWave = WaterSoundAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> SandSoundAsset(TEXT("/Game/JIU/Sounds/Sand_Sound.Sand_Sound"));
+	if (SandSoundAsset.Succeeded())
+	{
+		SandSoundWave = SandSoundAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> AxeSoundAsset(TEXT("/Game/JIU/Sounds/axe_hitting_wood.axe_hitting_wood"));
+	if (AxeSoundAsset.Succeeded())
+	{
+		AxeSoundWave = AxeSoundAsset.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -175,6 +201,18 @@ void AGroundActor::PlantingSeed(int id)
 		Plant = GetWorld()->SpawnActor<APlantActor>(PlantFactory, BoxComponent->GetComponentLocation() + FVector(0.f, 0.f, 20.f), FRotator(0.f));
 		Plant->SetPlant(id, this);
 	}
+
+	// TArray<UUserWidget*> FoundWidgets;
+	UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, WidgetClass, true);
+
+	for (UUserWidget* Widget : FoundWidgets)
+	{
+		UPlantInfoWidget* InfoWidget = Cast<UPlantInfoWidget>(Widget);
+		if (InfoWidget)
+		{
+			InfoWidget->ground;
+		}
+	}
 }
 
 void AGroundActor::WaterPlant()
@@ -184,6 +222,8 @@ void AGroundActor::WaterPlant()
 		WaterFigure = 100.f;
 		SpawnNiagaraSystem(RainNiagaraSystem);
 		SetGroundMaterial();
+
+		PlaySound(WaterSoundWave);
 	}
 }
 
@@ -194,6 +234,8 @@ void AGroundActor::FertilizePlant()
 		FertilizerFigure = 100.f;
 		SpawnNiagaraSystem(DustNiagaraSystem);
 		SetGroundMaterial();
+
+		PlaySound(SandSoundWave);
 	}
 }
 
@@ -223,6 +265,8 @@ void AGroundActor::ProwGround()
 			{
 				MeshComponent->SetMaterial(0, DryMaterialInterface);
 			}
+
+			PlaySound(HoeSoundWave);
 		}
 	}
 }
@@ -234,6 +278,8 @@ void AGroundActor::RemoveWeed()
 		isWeed = false;
 		WeedActor->SetVisible(false);
 		Cushion = 0;
+
+		PlaySound(AxeSoundWave);
 	}
 }
 
@@ -372,5 +418,13 @@ void AGroundActor::SpawnNiagaraSystem(UNiagaraSystem* niagara)
 	if (niagara)
 	{
 		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), niagara, GetActorLocation(), GetActorRotation());
+	}
+}
+
+void AGroundActor::PlaySound(USoundWave* sound)
+{
+	if (sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation());
 	}
 }
