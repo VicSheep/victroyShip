@@ -136,9 +136,11 @@ void ANPC_Programmer::BeginPlay()
 
 void ANPC_Programmer::DoJob()
 {
-	Super::DoJob();
-
-	
+	SetActorRotation(WorkRotation);
+	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work && AnimInstance->GetCurrentActiveMontage() != Montage_StandUp)
+	{
+		AnimInstance->PlayMontage_Custom(Montage_Work);
+	}
 }
 
 void ANPC_Programmer::StartSit()
@@ -182,9 +184,6 @@ void ANPC_Programmer::OnConversationEnd()
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
-
-		Laptop->SetActorEnableCollision(false);
-		Laptop->SetActorHiddenInGame(true);
 	}
 }
 

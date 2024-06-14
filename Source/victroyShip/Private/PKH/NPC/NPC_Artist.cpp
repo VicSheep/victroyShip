@@ -15,7 +15,7 @@ ANPC_Artist::ANPC_Artist()
 	NPCType = ENPCType::Artist;
 
 	HomeLoc = FVector(2104, 6720, 1207);
-	HillLoc = FVector(3040, 4301, 631);
+	HillLoc = FVector(260, 4210, 639);
 	ParkLoc = FVector(1030, 1670, 537);
 
 	WorkRotation = FRotator(0, 190, 0);
@@ -137,9 +137,11 @@ void ANPC_Artist::BeginPlay()
 
 void ANPC_Artist::DoJob()
 {
-	Super::DoJob();
-
-	
+	SetActorRotation(WorkRotation);
+	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work && AnimInstance->GetCurrentActiveMontage() != Montage_StandUp)
+	{
+		AnimInstance->PlayMontage_Custom(Montage_Work);
+	}
 }
 
 void ANPC_Artist::StartSit()
@@ -181,15 +183,8 @@ void ANPC_Artist::OnConversationEnd()
 {
 	if (NPCController->GetIsWorking() && MyGameMode->GetHour() >= HOUR_BACK_HOME)
 	{
-		if(AnimInstance->GetCurrentActiveMontage() == Montage_Work)
-		{
-			AnimInstance->StopSpecificMontage(Montage_Work);
-			AnimInstance->PlayMontage_Custom(Montage_StandUp);
-		}
-		NPCController->MoveToHome();
-
-		Easel->SetActorEnableCollision(false);
-		Easel->SetActorHiddenInGame(true);
+		AnimInstance->StopSpecificMontage(Montage_Work);
+		AnimInstance->PlayMontage_Custom(Montage_StandUp);
 	}
 }
 
