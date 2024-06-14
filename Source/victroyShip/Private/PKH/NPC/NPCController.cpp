@@ -90,7 +90,15 @@ void ANPCController::OnLostPlayer()
 	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
 	if(NPC)
 	{
-		NPC->SetNPCWalk();
+		if(BBComp->GetValueAsBool(KEY_IS_MOVING))
+		{
+			NPC->SetNPCWalk();
+		}
+		else
+		{
+			NPC->SetNPCPatrol();
+		}
+		
 		NPC->SetEmotionUI(false);
 	}
 
@@ -149,6 +157,12 @@ void ANPCController::MoveToTargetLoc(const FVector& TargetLoc)
 {
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, TargetLoc);
+	
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if (NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 }
 
 void ANPCController::MoveToHome()
@@ -156,6 +170,12 @@ void ANPCController::MoveToHome()
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	const FVector& HomeLoc = BBComp->GetValueAsVector(KEY_HOME_LOC);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
+
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if (NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 }
 
 bool ANPCController::IsInConversation()

@@ -200,7 +200,6 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(WorkLoc);
 		NPCController->SetIsWorking(true);
-		SetNPCWalk();
 		return;
 	}
 
@@ -213,14 +212,12 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
-		SetNPCWalk();
 		return;
 	}
 
 	if (NewHour == HOUR_BACK_HOME)
 	{
 		NPCController->MoveToHome();
-		SetNPCWalk();
 	}
 }
 

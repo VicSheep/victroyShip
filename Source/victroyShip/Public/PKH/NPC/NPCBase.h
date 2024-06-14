@@ -120,13 +120,13 @@ public:
 
 // Speed
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	UPROPERTY(EditAnywhere, Category = "Speed")
 	float PatrolSpeed = 100.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category="Speed")
+	UPROPERTY(EditAnywhere, Category="Speed")
 	float WalkSpeed = 200.0f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	UPROPERTY(EditAnywhere, Category = "Speed")
 	float RunSpeed = 270.0f;
 
 public:

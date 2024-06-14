@@ -116,6 +116,9 @@ protected:
 	int32 Date = 1;
 	bool Paused = false;
 
+	UPROPERTY(EditAnywhere)
+	float TimeUpdateInterval = 5.0f;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AActor> SunLight;
 

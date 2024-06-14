@@ -19,7 +19,6 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 2.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -85,7 +84,7 @@ void AFarmLifeGameMode::BeginPlay()
 		SunLight->SetActorRotation(SunBeginRot);
 	}
 
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TIME_UPDATE_INTERVAL, true, TIME_UPDATE_INTERVAL);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TimeUpdateInterval, true, TimeUpdateInterval);
 
 	// UI
 	TimerUI = CreateWidget<UTimerWidget>(GetWorld(), TimerUIClass);

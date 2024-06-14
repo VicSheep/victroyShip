@@ -204,7 +204,6 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	if(NewHour == HOUR_GO_HILL)
 	{
 		NPCController->MoveToTargetLoc(HillLoc);
-		SetNPCWalk();
 		return;
 	}
 
@@ -212,7 +211,6 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(ParkLoc);
 		NPCController->SetIsWorking(true);
-		SetNPCWalk();
 		return;
 	}
 
@@ -222,7 +220,6 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 		{
 			AnimInstance->StopSpecificMontage(Montage_Work);
 			AnimInstance->PlayMontage_Custom(Montage_StandUp);
-			SetNPCWalk();
 		}
 	}
 }
