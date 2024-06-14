@@ -10,8 +10,8 @@
 
 class AGroundActor;
 
-UENUM()
-enum class EPlantState
+UENUM(BlueprintType)
+enum class EPlantState : uint8
 {
 	Seed,
 	Growing,
@@ -119,8 +119,8 @@ public:
 	UPROPERTY()
 	UParticleSystemComponent* ParticleComponent;
 
-	UPROPERTY()
-	UParticleSystem* GrowParticleSystem;
+	/*UPROPERTY()
+	UParticleSystem* GrowParticleSystem;*/
 
 	UFUNCTION()
 	void SpawnPaticleSystem(UParticleSystem* particle);

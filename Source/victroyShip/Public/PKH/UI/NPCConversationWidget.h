@@ -46,11 +46,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UButton> Btn_Exit;
 
+// Portraits
+public:
+	void UpdatePortrait(class UTexture2D* NewPortrait);
+
 public:
 	UFUNCTION()
 	void OnClicked_Exit();
 
-	void UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream = false, bool FromNPC = false);
+	void UpdateConversationUI(const FString& NewConversation, bool DoStream = false, bool FromNPC = false);
 
 // Stream
 protected:

@@ -9,6 +9,7 @@
 #include "JIU/PlantInfoWidget.h"
 #include "JIU/PlantWidget.h"
 #include "JIU/ToolWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UFarmerComponent::UFarmerComponent()
@@ -41,7 +42,9 @@ void UFarmerComponent::BeginPlay()
 	ToolWidget->SetVisibility(ESlateVisibility::Hidden);
 	ToolWidget->SetToolWidget(this);
 
-	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
+	// GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
+
+	PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 }
 
 
@@ -84,6 +87,9 @@ void UFarmerComponent::OpenInfoWidget()
 				PlantInfoWidget->SetVisibility(ESlateVisibility::Visible);
 				PlantInfoWidget->SetPlantInfo(Ground->Plant);
 				// PlantInfoWidget->UpdatePlantState();
+
+				PlayerController->SetInputMode(FInputModeGameAndUI());
+				PlayerController->bShowMouseCursor = true;
 			}
 		}
 	}
@@ -98,6 +104,9 @@ void UFarmerComponent::CloseInfoWidget()
 			// Ground->MoveCamera(false);
 			PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
 			PlantInfoWidget->ground = nullptr;
+
+			PlayerController->SetInputMode(FInputModeGameOnly());
+			PlayerController->bShowMouseCursor = false;
 		}
 	}
 }
@@ -113,6 +122,9 @@ void UFarmerComponent::OpenToolWidget()
 		else
 		{
 			ToolWidget->SetVisibility(ESlateVisibility::Visible);
+
+			PlayerController->SetInputMode(FInputModeGameAndUI());
+			PlayerController->bShowMouseCursor = true;
 		}
 	}
 }

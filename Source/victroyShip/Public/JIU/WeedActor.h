@@ -26,18 +26,19 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* BoxComp;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* MeshComp1;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* MeshComp2;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UStaticMeshComponent* MeshComp3;
 
 	FString MeshPath1 = "/Game/UltimateFarming/Meshes/SM_Wheat_A_Harvested.SM_Wheat_A_Harvested";
 	FString MeshPath2 = "/Game/UltimateFarming/Meshes/SM_Wheat_B_Harvested.SM_Wheat_B_Harvested";
 	FString MeshPath3 = "/Game/UltimateFarming/Meshes/SM_Wheat_C_Harvested.SM_Wheat_C_Harvested";
 
+	UFUNCTION(BlueprintCallable)
 	void SetVisible(bool isVisible);
 };

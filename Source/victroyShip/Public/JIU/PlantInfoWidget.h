@@ -46,7 +46,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetPlantInfo(APlantActor* plant);
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	class AGroundActor* ground;
 
 	UPROPERTY()

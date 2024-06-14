@@ -4,6 +4,7 @@
 #include "PKH/UI/NPCConversationWidget.h"
 
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Component/TalkComponent.h"
@@ -23,6 +24,11 @@ void UNPCConversationWidget::NativeConstruct()
 
 	Btn_Exit->OnClicked.AddDynamic(this, &UNPCConversationWidget::OnClicked_Exit);
 	OnVisibilityChanged.AddDynamic(this, &UNPCConversationWidget::OnHidden);
+}
+
+void UNPCConversationWidget::UpdatePortrait(class UTexture2D* NewPortrait)
+{
+	Img_Portrait->SetBrushFromTexture(NewPortrait);
 }
 
 void UNPCConversationWidget::OnClicked_Exit()
@@ -61,10 +67,8 @@ void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)
 	}
 }
 
-void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const FString& NewConversation, bool DoStream, bool FromNPC)
+void UNPCConversationWidget::UpdateConversationUI(const FString& NewConversation, bool DoStream, bool FromNPC)
 {
-	Txt_NPCName->SetText(FText::FromString(NPCName));
-
 	if(DoStream)
 	{
 		if(CurConvState != EConvState::None)
@@ -73,9 +77,10 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NPCName, const 
 		}
 		else
 		{
-			CurText = NewConversation;
+			CurText = NewConversation; 
 			CurLen = 1;
 			CurConvState = FromNPC ? EConvState::NPC : EConvState::Player;
+			Txt_NPCName->SetText(FromNPC ? FText::FromString(MyGameMode->GetCurNPC()->GetNPCName()) : FText::FromString(TEXT("플레이어")));
 			GetWorld()->GetTimerManager().SetTimer(StreamHandle, this, &UNPCConversationWidget::StreamText, StreamDeltaTime, true);
 		}
 	}
@@ -107,6 +112,10 @@ void UNPCConversationWidget::StreamText()
 	{
 	case EConvState::Player:
 		CurConvState = EConvState::Wait;
+		if (MyGameMode->GetCurNPC())
+		{
+			Txt_NPCName->SetText(FText::FromString(MyGameMode->GetCurNPC()->GetNPCName()));
+		}
 		Txt_Conversation->SetText(FText::FromString(FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *MyGameMode->GetCurNPC()->GetNPCName() )));
 		break;
 	case EConvState::Wait:

@@ -24,6 +24,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	APlayerController* PlayerController;
+
 	///* UI *///
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UPlantWidget> plantFactory;

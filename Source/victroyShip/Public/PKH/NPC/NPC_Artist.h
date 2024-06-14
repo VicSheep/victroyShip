@@ -18,6 +18,7 @@ class VICTROYSHIP_API ANPC_Artist : public ANPCBase, public IHourUpdate
 public:
 	ANPC_Artist();
 
+// Override
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,15 +30,9 @@ protected:
 
 	virtual void StandUp() override;
 
-	// override
-	virtual void StartConversation() override;
+	virtual bool CanRotateInWorking() override;
 
-	virtual void EndConversation() override;
-
-	virtual void PlayEmotion(bool IsUIOnly = false) override;
-
-	// Check for 
-	void OnConversationEnd();
+	virtual void OnConversationEnd() override;
 
 // Locations
 protected:

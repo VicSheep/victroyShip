@@ -13,10 +13,12 @@ ANPC_Cafe::ANPC_Cafe()
 {
 	NPCType = ENPCType::Cafe;
 
-	HomeLoc = FVector(1280, 5010, 634);
+	HomeLoc = FVector(1455, 4502, 632);
 	WorkLoc = FVector(2220, 4140, 632);
 
 	WorkRotation = FRotator(0, -60, 0);
+
+	PreferItemName = TEXT("Cacao,Watermelon");
 
 	// Mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_eric_rigged_001_ue4/rp_eric_rigged_001_ue4.rp_eric_rigged_001_ue4'"));
@@ -43,6 +45,58 @@ ANPC_Cafe::ANPC_Cafe()
 	if (Montage_ConvRef.Object)
 	{
 		Montage_Conv = Montage_ConvRef.Object;
+	}
+
+	// Portraits
+	// Joy
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Joy%d.Cafe_Joy%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
+		if (Portrait_JoyRef.Object)
+		{
+			Portraits_Joy.Add(Portrait_JoyRef.Object);
+		}
+	}
+	// Surprise
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Surprise%d.Cafe_Surprise%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
+		if (Portrait_SurpriseRef.Object)
+		{
+			Portraits_Surprise.Add(Portrait_SurpriseRef.Object);
+		}
+	}
+	// Sad
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Sad%d.Cafe_Sad%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
+		if (Portrait_SadRef.Object)
+		{
+			Portraits_Sadness.Add(Portrait_SadRef.Object);
+		}
+	}
+	// Anger
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Anger%d.Cafe_Anger%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
+		if (Portrait_AngerRef.Object)
+		{
+			Portraits_Anger.Add(Portrait_AngerRef.Object);
+		}
+	}
+	// Default
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Default%d.Cafe_Default%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
+		if (Portrait_DefaultRef.Object)
+		{
+			Portraits_Default.Add(Portrait_DefaultRef.Object);
+		}
 	}
 }
 

@@ -105,8 +105,8 @@ ANPCBase::ANPCBase()
 	// Vfx
 	VfxComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("VfxComp"));
 	VfxComp->SetupAttachment(RootComponent);
+	VfxComp->AddRelativeLocation(FVector(0, 0, 20));
 	VfxComp->bAutoActivate = false;
-	VfxComp->SetRelativeScale3D(FVector(0.03f));
 
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_LikeUpRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Positive.Vfx_Positive'"));
 	if(Vfx_LikeUpRef.Object)
@@ -155,13 +155,22 @@ void ANPCBase::BeginPlay()
 }
 
 #pragma region Start / End Conversation
-void ANPCBase::StartConversation()
+void ANPCBase::StartConversation(bool IsStart)
 {
 	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
 		NPCController->StartConversation();
-		AnimInstance->PlayMontage_Conv();
+		if (CanRotateInWorking() || false == NPCController->GetIsWorking())
+		{
+			AnimInstance->PlayMontage_Conv();
+		}
 		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
+
+		if(IsStart && false == Portraits_Default.IsEmpty())
+		{
+			const int32 Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
+			MyGameMode->UpdatePortrait(Portraits_Default[Idx]);
+		}
 	}
 }
 
@@ -169,7 +178,10 @@ void ANPCBase::EndConversation()
 {
 	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
 	NPCController->EndConversation();
-	AnimInstance->StopAllMontages(0);
+	if (CanRotateInWorking() || AnimInstance->GetCurrentActiveMontage() != Montage_Work)
+	{
+		AnimInstance->StopAllMontages(0);
+	}
 	SfxComp->Stop();
 
 	if(NPCController->IsMovingSomewhere())
@@ -180,6 +192,11 @@ void ANPCBase::EndConversation()
 	{
 		SetNPCPatrol();
 	}
+	OnConversationEnd();
+}
+
+void ANPCBase::OnConversationEnd()
+{
 }
 #pragma endregion
 
@@ -188,11 +205,13 @@ void ANPCBase::EndConversation()
 void ANPCBase::SetCurEmotion(const FString& NewEmotion)
 {
 	CurEmotion = NewEmotion;
+	SetCurPortrait();
 }
 
 void ANPCBase::SetCurEmotion(EEmotion NewEmotion)
 {
 	CurEmotion = UEnum::GetValueAsString(NewEmotion).Mid(10);
+	SetCurPortrait();
 }
 
 void ANPCBase::PlayEmotion(bool IsUIOnly)
@@ -221,7 +240,14 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	}
 	else
 	{
-		AnimInstance->PlayMontage_Emotion(CurEmotion);
+		if(CanRotateInWorking() || false ==  NPCController->GetIsWorking())
+		{
+			AnimInstance->PlayMontage_Emotion(CurEmotion);
+		}
+		if(nullptr != CurPortrait)
+		{
+			MyGameMode->UpdatePortrait(CurPortrait);
+		}
 
 		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
 		{
@@ -315,7 +341,7 @@ void ANPCBase::GreetingToPlayer()
 		return;
 	}
 	TalkComp->StartConversation();
-	StartConversation();
+	StartConversation(true);
 
 	MyGameMode->RequestGreetingData(this);
 	HasIntendToGreeting = false;
@@ -372,7 +398,7 @@ void ANPCBase::GivePresent(const FString& ItemName)
 	}
 
 	GetPresentToday = true;*/
-	bool bIsPrefer = ItemName == PreferItemName;
+	bool bIsPrefer = PreferItemName.Contains(ItemName);
 	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
 
 	// 통신
@@ -381,10 +407,9 @@ void ANPCBase::GivePresent(const FString& ItemName)
 }
 #pragma endregion
 
+# pragma region for override
 void ANPCBase::DoJob()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Do Job"), *NPCName);
-
 	SetActorRotation(WorkRotation);
 	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work)
 	{
@@ -406,17 +431,64 @@ void ANPCBase::StandUp()
 
 bool ANPCBase::CanRotateInWorking()
 {
-	if(NPCType == ENPCType::Artist || NPCType == ENPCType::Programmer)
-	{
-		return false;
-	}
-
 	return true;
+}
+#pragma endregion
+
+void ANPCBase::SetCurPortrait()
+{
+	int32 Idx = 0;
+
+	if(CurEmotion == UEnum::GetValueAsString(EEmotion::joy).Mid(10))
+	{
+		if (Portraits_Joy.IsEmpty())
+		{
+			return;
+		}
+		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1);
+		CurPortrait = Portraits_Joy[Idx];
+	}
+	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::surprise).Mid(10))
+	{
+		if (Portraits_Surprise.IsEmpty())
+		{
+			return;
+		}
+		Idx = FMath::RandRange(0, Portraits_Surprise.Num() - 1);
+		CurPortrait = Portraits_Surprise[Idx];
+	}
+	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::sadness).Mid(10))
+	{
+		if (Portraits_Sadness.IsEmpty())
+		{
+			return;
+		}
+		Idx = FMath::RandRange(0, Portraits_Sadness.Num() - 1);
+		CurPortrait = Portraits_Sadness[Idx];
+	}
+	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::anger).Mid(10))
+	{
+		if (Portraits_Anger.IsEmpty())
+		{
+			return;
+		}
+		Idx = FMath::RandRange(0, Portraits_Anger.Num() - 1);
+		CurPortrait = Portraits_Anger[Idx];
+	}
+	else
+	{
+		if (Portraits_Default.IsEmpty())
+		{
+			return;
+		}
+		Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
+		CurPortrait = Portraits_Default[Idx];
+	}
 }
 
 void ANPCBase::OnDateUpdated(int32 NewDate)
 {
-	if(CurLikeability >= FriendlyLikeability)
+	if (CurLikeability >= FriendlyLikeability)
 	{
 		InitGreeting();
 	}
