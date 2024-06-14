@@ -174,6 +174,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UTimerWidget> TimerUI;
 
+public:
+	void UpdatePortrait(class UTexture2D* NewPortrait);
+
 // Sound
 protected:
 	UPROPERTY(EditDefaultsOnly)

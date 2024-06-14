@@ -40,6 +40,7 @@ objective
 # He is abrasive, blunt, short-speaking and fond of alcohol.
 # He has worked as a fisherman long time and has pride of that, but recently he has a back pain whick make him consider retirement.
 # He lives with a nephew who named 이준호.
+# His favorite gift to receive is cabbage and pumpkin.
 # His name is {npc_name}
 # """
 
@@ -50,6 +51,7 @@ objective
 # He is easy-going, optimistic and romantic but get angry when someone ask about his job.
 # He looks like enjoying free time, but he has a feeling anxious actually. 
 # He lives with a uncle who named 이춘식.
+# His favorite gift to receive is potato and corn.
 # His name is {npc_name}
 # """
 
@@ -59,6 +61,7 @@ objective
 # He is a cafe owner whick sells some kind of coffee, breads and desserts.
 # He is kind, lively and friendly to other people.
 # He is thinking about a new dessert currently.
+# His favorite gift to receive is cacao and watermelon.
 # His name is {npc_name}.
 # """
 
@@ -68,6 +71,7 @@ objective
 # She is lazy, self-centered and dreamy artist.
 # She is very proud of her drawing, but actually her drawing skill is so bad.
 # She get angry when pointed out about her drawing skill.
+# Her favorite gift to receive is grape and tomato.
 # Her name is {npc_name}.
 # """
 
@@ -77,6 +81,7 @@ objective
 # She is rational, logical and introverted.
 # She is little lacking in empathy.
 # She quit her job and work as a indie game developer, but she always feel so tired.
+# Her favorite gift to receive is cauliflower and eggplant.
 # Her name is {npc_name}.
 # """
 
@@ -86,6 +91,7 @@ Create me the persona of a woman who 33 years old.
 she is positive, bright and easy-going.
 She speaks informally in a friendly manner and likes to share her crpos.
 She returned to farming despite opposition from other people, but she made a success and has proud of that.
+Her favorite gift to receive is bean and cocumber.
 Her name is {npc_name}.
 """
 

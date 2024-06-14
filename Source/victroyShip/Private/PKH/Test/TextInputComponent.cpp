@@ -30,7 +30,7 @@ void UTextInputComponent::BeginPlay()
 	ChatUI = CreateWidget<UChatUIWidget>(GetWorld(), ChatUIClass);
 	ensure(ChatUI);
 
-	ChatUI->AddToViewport();
+	ChatUI->AddToViewport(2);
 	ChatUI->SetVisibility(ESlateVisibility::Hidden);
 	ChatUI->GetChatWidget()->OnTextCommitted.AddDynamic(this, &UTextInputComponent::OnChatTextCommitted);
 }

@@ -19,7 +19,7 @@
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 5.0f
+#define TIME_UPDATE_INTERVAL 2.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -98,7 +98,7 @@ void AFarmLifeGameMode::BeginPlay()
 
 	ConversationUI = CreateWidget<UNPCConversationWidget>(GetWorld(), ConversationUIClass);
 	ensure(ConversationUI);
-	ConversationUI->AddToViewport();
+	ConversationUI->AddToViewport(1);
 	ConversationUI->SetVisibility(ESlateVisibility::Hidden);
 
 	// Sound
@@ -119,14 +119,15 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
-	CurNPC->StartConversation();
+	CurNPC->StartConversation(IsStart);
 	CurNPC->SetEmotionUI(false);
 	BGMComp->SetVolumeMultiplier(BgmMultiplier_Conv);
 
 	HttpActor->SendSpeech(FilePath);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), TEXT("플레이어의 입력을 처리중입니다..."));
+	ConversationUI->UpdateConversationUI(TEXT("플레이어의 입력을 처리중입니다..."));
 }
 
 void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
@@ -141,7 +142,7 @@ void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 	// UI 갱신
 	if(ConversationUI->IsVisible())
 	{
-		ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), LatestSpeech, true);
+		ConversationUI->UpdateConversationUI(LatestSpeech, true);
 		CurNPC->SetCurEmotion(Response.Emotion);
 	}
 
@@ -173,15 +174,16 @@ void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 {
 	if(CurNPC)
 	{
-		ConversationUI->UpdateConversationUI(TEXT("플레이어"), PlayerInputText, true);
+		ConversationUI->UpdateConversationUI(PlayerInputText, true);
 	}
 }
 
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	const bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
-	CurNPC->StartConversation();
+	CurNPC->StartConversation(IsStart);
 	CurNPC->SetEmotionUI(false);
 	ShowPlayerText(InputText);
 
@@ -265,7 +267,7 @@ void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 		return;
 	}
 
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	ConversationUI->UpdateConversationUI(NPCResponse.Answer, true, true);
 	ChangeInputMode_Both();
 }
 #pragma endregion
@@ -285,7 +287,7 @@ void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCRespon
 		return;
 	}
 
-	ConversationUI->UpdateConversationUI(CurNPC->GetNPCName(), NPCResponse.Answer, true, true);
+	ConversationUI->UpdateConversationUI(NPCResponse.Answer, true, true);
 	CurNPC->SetCurEmotion(NPCResponse.Emotion);
 	CurNPC->PlayEmotion();
 }
@@ -406,3 +408,8 @@ void AFarmLifeGameMode::ChangeInputMode_Both()
 	MyController->SetShowMouseCursor(true);
 }
 #pragma endregion
+
+void AFarmLifeGameMode::UpdatePortrait(UTexture2D* NewPortrait)
+{
+	ConversationUI->UpdatePortrait(NewPortrait);
+}

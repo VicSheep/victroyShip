@@ -27,7 +27,7 @@ enum class EEmotion : uint8
 	none = 0,
 	joy,
 	surprise,
-	sad,
+	sadness,
 	anger,
 	noticed
 };
@@ -84,8 +84,9 @@ protected:
 	TMap<ENPCType, FString> NPCNameMap;
 
 public:
-	virtual void StartConversation();
+	virtual void StartConversation(bool IsStart);
 	virtual void EndConversation();
+	virtual void OnConversationEnd();
 
 // Animation
 protected:
@@ -222,7 +223,29 @@ public:
 
 	virtual void StandUp();
 
-	bool CanRotateInWorking();
+	virtual bool CanRotateInWorking();
+
+// Portraits
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UTexture2D>> Portraits_Joy;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UTexture2D>> Portraits_Surprise;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UTexture2D>> Portraits_Sadness;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UTexture2D>> Portraits_Anger;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<class UTexture2D>> Portraits_Default;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UTexture2D> CurPortrait;
+
+	void SetCurPortrait();
 
 // Sound
 protected:

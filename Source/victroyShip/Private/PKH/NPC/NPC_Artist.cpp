@@ -3,12 +3,8 @@
 
 #include "PKH/NPC/NPC_Artist.h"
 
-#include "Components/AudioComponent.h"
-#include "Components/SlateWrapperTypes.h"
-#include "Kismet/GameplayStatics.h"
 #include "PKH/Animation/NPCAnimInstance.h"
 #include "PKH/NPC/NPCController.h"
-#include "PKH/UI/EmotionUIWidget.h"
 
 #define HOUR_GO_HILL 9
 #define HOUR_GO_PARK 13
@@ -18,13 +14,15 @@ ANPC_Artist::ANPC_Artist()
 {
 	NPCType = ENPCType::Artist;
 
-	HomeLoc = FVector(2190, 6501, 1207);
+	HomeLoc = FVector(2104, 6720, 1207);
 	HillLoc = FVector(3040, 4301, 631);
-	ParkLoc = FVector(1034, 1718, 542);
+	ParkLoc = FVector(1030, 1670, 537);
 
 	WorkRotation = FRotator(0, 190, 0);
 
 	SitDistance = -40.0f;
+
+	PreferItemName = TEXT("Grape,Tomato");
 
 	// Mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/Scanned3DPeoplePack/RP_Character/rp_sophia_rigged_003_ue4/rp_sophia_rigged_003_ue4.rp_sophia_rigged_003_ue4'"));
@@ -65,6 +63,58 @@ ANPC_Artist::ANPC_Artist()
 	if(EaselClassRef.Class)
 	{
 		EaselClass = EaselClassRef.Class;
+	}
+
+	// Portraits
+	// Joy
+	for(int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Joy%d.Artist_Joy%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
+		if (Portrait_JoyRef.Object)
+		{
+			Portraits_Joy.Add(Portrait_JoyRef.Object);
+		}
+	}
+	// Surprise
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Surprise%d.Artist_Surprise%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
+		if (Portrait_SurpriseRef.Object)
+		{
+			Portraits_Surprise.Add(Portrait_SurpriseRef.Object);
+		}
+	}
+	// Sad
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Sad%d.Artist_Sad%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
+		if (Portrait_SadRef.Object)
+		{
+			Portraits_Sadness.Add(Portrait_SadRef.Object);
+		}
+	}
+	// Anger
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Anger%d.Artist_Anger%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
+		if (Portrait_AngerRef.Object)
+		{
+			Portraits_Anger.Add(Portrait_AngerRef.Object);
+		}
+	}
+	// Default
+	for (int i = 1; i < 5; ++i)
+	{
+		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Default%d.Artist_Default%d'"), i, i);
+		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
+		if (Portrait_DefaultRef.Object)
+		{
+			Portraits_Default.Add(Portrait_DefaultRef.Object);
+		}
 	}
 }
 
@@ -127,43 +177,15 @@ void ANPC_Artist::StandUp()
 }
 
 #pragma region override
-void ANPC_Artist::StartConversation()
-{
-	if (ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
-	{
-		// Turn to player
-		FVector DirectionVec = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-		DirectionVec.Z = 0;
-		const FRotator TargetRot = DirectionVec.ToOrientationRotator();
-		SetActorRotation(TargetRot);
-
-		NPCController->StartConversation();
-		if (false == NPCController->GetIsWorking())
-		{
-			AnimInstance->PlayMontage_Conv();
-		}
-		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
-	}
-}
-
-void ANPC_Artist::EndConversation()
-{
-	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
-	NPCController->EndConversation();
-	if (false == NPCController->GetIsWorking())
-	{
-		AnimInstance->StopAllMontages(0);
-	}
-	SetNPCWalk();
-	OnConversationEnd();
-}
-
 void ANPC_Artist::OnConversationEnd()
 {
 	if (NPCController->GetIsWorking() && MyGameMode->GetHour() >= HOUR_BACK_HOME)
 	{
-		AnimInstance->StopSpecificMontage(Montage_Work);
-		AnimInstance->PlayMontage_Custom(Montage_StandUp);
+		if(AnimInstance->GetCurrentActiveMontage() == Montage_Work)
+		{
+			AnimInstance->StopSpecificMontage(Montage_Work);
+			AnimInstance->PlayMontage_Custom(Montage_StandUp);
+		}
 		NPCController->MoveToHome();
 
 		Easel->SetActorEnableCollision(false);
@@ -171,56 +193,9 @@ void ANPC_Artist::OnConversationEnd()
 	}
 }
 
-void ANPC_Artist::PlayEmotion(bool IsUIOnly)
+bool ANPC_Artist::CanRotateInWorking()
 {
-	if (CurEmotion.IsEmpty())
-	{
-		return;
-	}
-
-	EmotionUI->SetEmotion(CurEmotion);
-	EmotionUI->SetVisibility(ESlateVisibility::Visible);
-	if (IsUIOnly)
-	{
-		if (Sfx_Notice)
-		{
-			SfxComp->SetSound(Sfx_Notice);
-			SfxComp->Play();
-		}
-	}
-	else
-	{
-		if (false == NPCController->GetIsWorking())
-		{
-			AnimInstance->PlayMontage_Emotion(CurEmotion);
-		}
-
-		if (CurEmotion == "joy" && IsValid(Sfx_Joy))
-		{
-			SfxComp->SetSound(Sfx_Joy);
-		}
-		else if (CurEmotion == "anger" && IsValid(Sfx_Anger))
-		{
-			SfxComp->SetSound(Sfx_Anger);
-		}
-		else if (CurEmotion == "sadness" && IsValid(Sfx_Sad))
-		{
-			SfxComp->SetSound(Sfx_Sad);
-		}
-		else if (CurEmotion == "surprise" && IsValid(Sfx_Surprise))
-		{
-			SfxComp->SetSound(Sfx_Surprise);
-		}
-		else if (IsValid(Sfx_Indiff))
-		{
-			SfxComp->SetSound(Sfx_Indiff);
-		}
-
-		if (SfxComp->Sound)
-		{
-			SfxComp->Play();
-		}
-	}
+	return false;
 }
 #pragma endregion
 
@@ -245,7 +220,6 @@ void ANPC_Artist::OnHourUpdated(int32 NewHour)
 	{
 		if(false == NPCController->IsInConversation())
 		{
-			NPCController->MoveToHome();
 			AnimInstance->StopSpecificMontage(Montage_Work);
 			AnimInstance->PlayMontage_Custom(Montage_StandUp);
 			SetNPCWalk();
@@ -261,4 +235,5 @@ void ANPC_Artist::OnStandUpEnded(UAnimMontage* Montage, bool bInterrupted)
 	}
 
 	NPCController->SetIsWorking(false);
+	NPCController->MoveToHome();
 }
