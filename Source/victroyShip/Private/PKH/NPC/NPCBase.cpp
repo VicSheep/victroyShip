@@ -486,6 +486,14 @@ void ANPCBase::SetCurPortrait()
 	}
 }
 
+void ANPCBase::StopAI()
+{
+	if(NPCController)
+	{
+		NPCController->StopAI();
+	}
+}
+
 void ANPCBase::OnDateUpdated(int32 NewDate)
 {
 	if (CurLikeability >= FriendlyLikeability)

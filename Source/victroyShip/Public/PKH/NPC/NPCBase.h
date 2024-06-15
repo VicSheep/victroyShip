@@ -275,6 +275,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float SitDistance = 0;
 
+public:
+	void StopAI();
+
 // Interface
 public:
 	virtual void OnDateUpdated(int32 NewDate) override;

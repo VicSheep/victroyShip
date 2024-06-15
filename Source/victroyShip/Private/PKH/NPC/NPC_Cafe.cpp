@@ -49,7 +49,7 @@ ANPC_Cafe::ANPC_Cafe()
 
 	// Portraits
 	// Joy
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Joy%d.Cafe_Joy%d'"), i, i);
 		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
@@ -59,7 +59,7 @@ ANPC_Cafe::ANPC_Cafe()
 		}
 	}
 	// Surprise
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Surprise%d.Cafe_Surprise%d'"), i, i);
 		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
@@ -69,7 +69,7 @@ ANPC_Cafe::ANPC_Cafe()
 		}
 	}
 	// Sad
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Sad%d.Cafe_Sad%d'"), i, i);
 		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
@@ -79,7 +79,7 @@ ANPC_Cafe::ANPC_Cafe()
 		}
 	}
 	// Anger
-	for (int i = 1; i < 5; ++i)
+	for (int i = 1; i < 3; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Cafe/Cafe_Anger%d.Cafe_Anger%d'"), i, i);
 		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);

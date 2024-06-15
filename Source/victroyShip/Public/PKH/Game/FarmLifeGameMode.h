@@ -113,7 +113,10 @@ protected:
 
 	int32 Hours = 8;
 	int32 Minutes = 0;
+
+	UPROPERTY(EditDefaultsOnly)
 	int32 Date = 1;
+
 	bool Paused = false;
 
 	UPROPERTY(EditAnywhere)
@@ -193,5 +196,37 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float BgmMultiplier_Conv = 0.6f;
+
+// Ending
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UEndingUI_Fail> EndingUI_FailClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UEndingUI_Success> EndingUI_SuccessClass;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UEndingUI_Fail> EndingUI_Fail;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UEndingUI_Success> EndingUI_Success;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> BGM_EndingFail;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> BGM_EndingSuccess;
+
+	// Threshold
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxDate = 8;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 EndingSuccessCount = 3;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 EndingSuccessLikeability = 80;
+
+	void EndGame();
 
 };

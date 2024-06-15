@@ -11,6 +11,8 @@
 #include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
+#include "PKH/UI/EndingUI_Fail.h"
+#include "PKH/UI/EndingUI_Success.h"
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
 #include "YSH/skySystem.h"
@@ -50,6 +52,29 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	if (BGM_BackToPortlandRef.Object)
 	{
 		BGM_BackToPortland = BGM_BackToPortlandRef.Object;
+	}
+
+	// For Ending
+	static ConstructorHelpers::FClassFinder<UEndingUI_Fail> EndingUI_FailClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Fail.WBP_EndingUI_Fail_C"));
+	if (EndingUI_FailClassRef.Class)
+	{
+		EndingUI_FailClass = EndingUI_FailClassRef.Class;
+	}
+	static ConstructorHelpers::FClassFinder<UEndingUI_Success> EndingUI_SuccessClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Success.WBP_EndingUI_Success_C"));
+	if (EndingUI_SuccessClassRef.Class)
+	{
+		EndingUI_SuccessClass = EndingUI_SuccessClassRef.Class;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingFailRef(TEXT(""));
+	if (BGM_EndingFailRef.Object)
+	{
+		BGM_EndingFail = BGM_EndingFailRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingSuccessRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingSuccessShort.BGM_EndingSuccessShort'"));
+	if (BGM_EndingSuccessRef.Object)
+	{
+		BGM_EndingSuccess = BGM_EndingSuccessRef.Object;
 	}
 }
 
@@ -311,6 +336,12 @@ void AFarmLifeGameMode::OnNextDay()
 	Hours = START_HOUR;
 	Minutes = 0;
 	++Date;
+	if(Date == MaxDate)
+	{
+		EndGame();
+		return;
+	}
+
 	if (SunLight)
 	{
 		SunLight->SetActorRotation(SunBeginRot);
@@ -412,3 +443,48 @@ void AFarmLifeGameMode::UpdatePortrait(UTexture2D* NewPortrait)
 {
 	ConversationUI->UpdatePortrait(NewPortrait);
 }
+
+#pragma region Ending
+void AFarmLifeGameMode::EndGame()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+	TimerUI->FadeOutFinished.Clear();
+	TimerUI->FadeInFinished.Clear();
+
+	TArray<AActor*> NPCArray;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), NPCArray);
+
+	int32 Count = 0;
+	for(int i = 0; i < NPCArray.Num(); ++i)
+	{
+		ANPCBase* NPC = Cast<ANPCBase>(NPCArray[i]);
+		if(NPC->GetLikeability() >= EndingSuccessLikeability)
+		{
+			++Count;
+		}
+		NPC->StopAI();
+	}
+	BGMComp->FadeOut(2.0f, 0);
+
+	if(Count >= EndingSuccessCount)
+	{
+		EndingUI_Success = CreateWidget<UEndingUI_Success>(GetWorld(), EndingUI_SuccessClass);
+		EndingUI_Success->AddToViewport(10);
+		if(BGM_EndingSuccess)
+		{
+			BGMComp->SetSound(BGM_EndingSuccess);
+			BGMComp->FadeIn(3.0f, 0.6f);
+		}
+	}
+	else
+	{
+		EndingUI_Fail = CreateWidget<UEndingUI_Fail>(GetWorld(), EndingUI_FailClass);
+		EndingUI_Fail->AddToViewport(10);
+		if(BGM_EndingFail)
+		{
+			BGMComp->SetSound(BGM_EndingFail);
+			BGMComp->FadeIn(2.0f, 0.6f);
+		}
+	}
+}
+#pragma endregion
