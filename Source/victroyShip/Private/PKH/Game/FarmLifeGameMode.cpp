@@ -473,7 +473,7 @@ void AFarmLifeGameMode::EndGame()
 		if(BGM_EndingSuccess)
 		{
 			BGMComp->SetSound(BGM_EndingSuccess);
-			BGMComp->FadeIn(3.0f, 0.6f);
+			BGMComp->FadeIn(3.0f, 0.5f);
 		}
 	}
 	else
@@ -483,7 +483,7 @@ void AFarmLifeGameMode::EndGame()
 		if(BGM_EndingFail)
 		{
 			BGMComp->SetSound(BGM_EndingFail);
-			BGMComp->FadeIn(2.0f, 0.6f);
+			BGMComp->FadeIn(3.0f, 0.5f);
 		}
 	}
 }

@@ -124,10 +124,10 @@ protected:
 	float PatrolSpeed = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category="Speed")
-	float WalkSpeed = 200.0f;
+	float WalkSpeed = 250.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Speed")
-	float RunSpeed = 270.0f;
+	float RunSpeed = 300.0f;
 
 public:
 	void SetNPCPatrol();

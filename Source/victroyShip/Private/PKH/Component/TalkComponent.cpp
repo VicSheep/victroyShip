@@ -66,7 +66,6 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
 	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"), FCollisionShape::MakeSphere(300.0f), Params);
-	DrawDebugSphere(GetWorld(), Origin, 300.0f, 16, FColor::Red, false, 2.0f);
 
 	if (NPCOverlapped)
 	{
