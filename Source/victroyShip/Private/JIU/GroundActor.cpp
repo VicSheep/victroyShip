@@ -153,7 +153,7 @@ void AGroundActor::BeginPlay()
 		}
 		else
 		{
-			if (Cushion < 10)
+			if (Cushion < 30)
 			{
 				Cushion += 1;
 				return;
