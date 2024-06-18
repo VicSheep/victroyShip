@@ -136,7 +136,7 @@ def set_preference(intPref:int):
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
 # 목소리 딕셔너리
-voice_dict = {'김지민':'hakers', '민아영':'ani', '박채원':'hakers', '성민우':'codingApple', '이준호':'teemo', '이춘식':'rammus'}
+voice_dict = {'김지민':'hakers', '민아영':'ani', '박채원':'hakers', '성민우':'codingApple', '이준호':'ryze', '이춘식':'rammus'}
 
 def getChatLog(session_ids : str):#npc 개별로 채팅 기록 생성, 각각 기존의 채팅 내역을 기억하고 대화에 반영함.
     if session_ids not in session_store: # 세션 기록이 없을 경우 - 유저가 대화한 적이 없을 경우 -> 새 채팅창 생성
@@ -219,7 +219,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # 음성 레퍼런스를 저장할 딕셔너리
 voiceRefs = {}
-voice_ref_list = ['codingApple', 'hakers', 'jax', 'rammus', 'ani', 'teemo']
+voice_ref_list = ['codingApple', 'hakers', 'jax', 'rammus', 'ani', 'ryze']
 
 # 저장된 학습 결과물을 저장할 디렉토리
 saved_se_dir = 'saved_se'

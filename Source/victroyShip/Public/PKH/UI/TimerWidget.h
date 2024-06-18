@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	TObjectPtr<class UImage> Img_Fade;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<class UImage> Img_Record;
+
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidgetAnim), Transient)
 	TObjectPtr<class UWidgetAnimation> FadeOut;
 
@@ -50,4 +53,7 @@ public:
 	FWidgetAnimationDynamicEvent FadeInFinished;
 
 	void BindOnFinished();
+
+	void RecordOn();
+	void RecordOff();
 };

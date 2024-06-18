@@ -22,7 +22,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ACharacter> Player;
 
 // Directory
@@ -60,5 +60,21 @@ public:
 	FORCEINLINE void StartConversation() { InConversation = true; };
 	FORCEINLINE void EndConversation() { InConversation = false; };
 	FORCEINLINE bool IsInConversation() const { return InConversation; }
+
+// Effect
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraSystem> Vfx_Talk;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UNiagaraComponent> VfxComp;
+
+// UI
+public:
+	UFUNCTION(BlueprintCallable)
+	void RecordOn();
+
+	UFUNCTION(BlueprintCallable)
+	void RecordOff();
 		
 };
