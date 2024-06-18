@@ -15,6 +15,7 @@
 #include "PKH/UI/EndingUI_Success.h"
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
+#include "Sound/AmbientSound.h"
 #include "YSH/skySystem.h"
 
 #define TEN_MINUTES 10
@@ -66,7 +67,7 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 		EndingUI_SuccessClass = EndingUI_SuccessClassRef.Class;
 	}
 
-	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingFailRef(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingFailRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingFail.BGM_EndingFail'"));
 	if (BGM_EndingFailRef.Object)
 	{
 		BGM_EndingFail = BGM_EndingFailRef.Object;
@@ -299,7 +300,6 @@ void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)
 {
 	CurNPC = NewNPC;
 	HttpActor->RequestGreeting(CurNPC->GetNPCName());
-	UpdatePortrait();
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
@@ -482,6 +482,16 @@ void AFarmLifeGameMode::EndGame()
 	TimerUI->FadeOutFinished.Clear();
 	TimerUI->FadeInFinished.Clear();
 
+	// Ambient Sound Off
+	TArray<AActor*> AmbientArray;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAmbientSound::StaticClass(), AmbientArray);
+	for(AActor* AmbActor : AmbientArray)
+	{
+		AAmbientSound* Amb = Cast<AAmbientSound>(AmbActor);
+		Amb->GetAudioComponent()->Deactivate();
+	}
+
+	// NPC Count
 	TArray<AActor*> NPCArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), NPCArray);
 

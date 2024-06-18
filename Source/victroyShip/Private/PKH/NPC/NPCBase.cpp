@@ -408,6 +408,7 @@ void ANPCBase::GivePresent(const FString& ItemName)
 	GetPresentToday = true;*/
 	bool bIsPrefer = PreferItemName.Contains(ItemName);
 	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
+	SetCurEmotion(EEmotion::joy);
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());

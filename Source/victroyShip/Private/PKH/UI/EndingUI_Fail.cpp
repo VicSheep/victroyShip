@@ -14,10 +14,11 @@ void UEndingUI_Fail::NativeConstruct()
 
 	PlayAnimation(Anim_Ending_Fail);
 
-	TitleLevelName = TEXT("");
+	TitleLevelName = TEXT("0_Title");
 }
 
 void UEndingUI_Fail::OnEndingFinished()
 {
 	//UGameplayStatics::OpenLevel(GetWorld(), TitleLevelName);
+	UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, false);
 }
