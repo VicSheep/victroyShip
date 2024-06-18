@@ -33,7 +33,7 @@ APlantActor::APlantActor()
 	}
 
 	// GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
-	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/HealPositive/NS/Vfx_GrowUp.Vfx_GrowUp"));
+	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/Vfx_GrowUp.Vfx_GrowUp"));
 }
 
 // Called when the game starts or when spawned
