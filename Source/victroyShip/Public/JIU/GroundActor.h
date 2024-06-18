@@ -119,6 +119,8 @@ public:
 
 	int32 RandomNumber = 0;
 	int32 Cushion = 0;
+
+	UPROPERTY(BlueprintReadWrite)
 	bool isWeed = false;
 
 	UFUNCTION(BlueprintCallable)
