@@ -128,10 +128,6 @@ void AFarmLifeGameMode::BeginPlay()
 	// Sound
 	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
 	BGMComp->FadeIn(3.0f, 0.6f);
-
-	// Post Process
-	PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(FVector(0, 0, -1000), FRotator());
-	PostProcessVolume->bUnbound = true;
 }
 
 void AFarmLifeGameMode::Tick(float DeltaSeconds)
@@ -475,16 +471,6 @@ void AFarmLifeGameMode::RecordOn()
 void AFarmLifeGameMode::RecordOff()
 {
 	TimerUI->RecordOff();
-}
-
-void AFarmLifeGameMode::NPCOutlineOn()
-{
-	PostProcessVolume->bUnbound = true;
-}
-
-void AFarmLifeGameMode::NPCOutlineOff()
-{
-	PostProcessVolume->bUnbound = false;
 }
 #pragma endregion
 

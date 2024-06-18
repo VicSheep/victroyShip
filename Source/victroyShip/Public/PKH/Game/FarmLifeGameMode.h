@@ -168,18 +168,6 @@ public:
 	UFUNCTION()
 	void ChangeInputMode_Both();
 
-// Outline
-protected:
-	UPROPERTY()
-	TObjectPtr<class APostProcessVolume> PostProcessVolume;
-
-public:
-	UFUNCTION(BlueprintCallable)
-	void NPCOutlineOn();
-
-	UFUNCTION(BlueprintCallable)
-	void NPCOutlineOff();
-
 // UI
 protected:
 	UPROPERTY(EditDefaultsOnly)

@@ -87,6 +87,7 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NewConversation
 	else
 	{
 		Txt_Conversation->SetText(FText::FromString(NewConversation));
+		Txt_NPCName->SetText(FText::FromString(TEXT("플레이어")));
 		CurConvState = EConvState::None;
 	}
 }
