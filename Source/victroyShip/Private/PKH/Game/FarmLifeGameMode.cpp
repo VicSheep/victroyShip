@@ -299,6 +299,7 @@ void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)
 {
 	CurNPC = NewNPC;
 	HttpActor->RequestGreeting(CurNPC->GetNPCName());
+	UpdatePortrait();
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 
