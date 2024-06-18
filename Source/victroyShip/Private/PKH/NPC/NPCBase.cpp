@@ -157,21 +157,29 @@ void ANPCBase::BeginPlay()
 #pragma region Start / End Conversation
 void ANPCBase::StartConversation(bool IsStart)
 {
-	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if(nullptr == Player)
 	{
-		NPCController->StartConversation();
-		if (CanRotateInWorking() || false == NPCController->GetIsWorking())
-		{
-			AnimInstance->PlayMontage_Conv();
-		}
-		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
-
-		if(IsStart && false == Portraits_Default.IsEmpty())
-		{
-			const int32 Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
-			MyGameMode->UpdatePortrait(Portraits_Default[Idx]);
-		}
+		return;
 	}
+
+	NPCController->StartConversation();
+	if (CanRotateInWorking() || false == NPCController->GetIsWorking())
+	{
+		AnimInstance->PlayMontage_Conv();
+	}
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
+
+	if(IsStart && false == Portraits_Default.IsEmpty())
+	{
+		const int32 Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
+		MyGameMode->UpdatePortrait(Portraits_Default[Idx]);
+	}
+	OnConversationBegin();
+}
+
+void ANPCBase::OnConversationBegin()
+{
 }
 
 void ANPCBase::EndConversation()
@@ -378,7 +386,7 @@ void ANPCBase::UpdateLikeability(int32 InLikeability)
 
 	if(OnLikeabilityChanged.IsBound())
 	{
-		OnLikeabilityChanged.Broadcast();
+		OnLikeabilityChanged.Broadcast((int32)NPCType);
 	}
 }
 

@@ -3,6 +3,8 @@
 
 #include "PKH/UI/EndingUI_Fail.h"
 
+#include "Kismet/GameplayStatics.h"
+
 void UEndingUI_Fail::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -11,8 +13,11 @@ void UEndingUI_Fail::NativeConstruct()
 	BindToAnimationFinished(Anim_Ending_Fail, OnEndingFinishedDelegate);
 
 	PlayAnimation(Anim_Ending_Fail);
+
+	TitleLevelName = TEXT("");
 }
 
 void UEndingUI_Fail::OnEndingFinished()
 {
+	//UGameplayStatics::OpenLevel(GetWorld(), TitleLevelName);
 }

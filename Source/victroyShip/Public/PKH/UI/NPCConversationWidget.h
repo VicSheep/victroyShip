@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UTextBlock> Txt_Conversation;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	TObjectPtr<class UTextBlock> Txt_Notice;
+
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidget))
 	TObjectPtr<class UImage> Img_Portrait;
 
@@ -79,4 +82,15 @@ protected:
 public:
 	void PlayNow();
 
+// Notice
+protected:
+	FTimerHandle NoticeHandle;
+
+	UFUNCTION()
+	void SetNoticeHidden();
+
+public:
+	bool CanMoveToNextTalk();
+
+	void NoticeForWaiting();
 };

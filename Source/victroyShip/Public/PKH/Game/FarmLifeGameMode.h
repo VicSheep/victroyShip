@@ -93,6 +93,8 @@ public:
 
 	void TalkToPlantWithText(const FString& InputText, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
 
+	bool IsInConversation();
+
 // Greeting
 public:
 	void InitGreeting(const FString& NPCName, int32 Likeability);
@@ -166,6 +168,18 @@ public:
 	UFUNCTION()
 	void ChangeInputMode_Both();
 
+// Outline
+protected:
+	UPROPERTY()
+	TObjectPtr<class APostProcessVolume> PostProcessVolume;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void NPCOutlineOn();
+
+	UFUNCTION(BlueprintCallable)
+	void NPCOutlineOff();
+
 // UI
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -182,6 +196,9 @@ protected:
 
 public:
 	void UpdatePortrait(class UTexture2D* NewPortrait);
+
+	void RecordOn();
+	void RecordOff();
 
 // Sound
 protected:

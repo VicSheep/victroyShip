@@ -5,6 +5,7 @@
 
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
 
 UTimerWidget::UTimerWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -51,4 +52,14 @@ void UTimerWidget::BindOnFinished()
 {
 	BindToAnimationFinished(FadeOut, FadeOutFinished);
 	BindToAnimationFinished(FadeIn, FadeInFinished);
+}
+
+void UTimerWidget::RecordOn()
+{
+	Img_Record->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UTimerWidget::RecordOff()
+{
+	Img_Record->SetVisibility(ESlateVisibility::Hidden);
 }

@@ -148,3 +148,22 @@ void UNPCConversationWidget::PlayNow()
 		CurLen = 1;
 	}
 }
+
+bool UNPCConversationWidget::CanMoveToNextTalk()
+{
+	return CurConvState == EConvState::None;
+}
+
+void UNPCConversationWidget::NoticeForWaiting()
+{
+	if(false == GetWorld()->GetTimerManager().IsTimerActive(NoticeHandle))
+	{
+		Txt_Notice->SetVisibility(ESlateVisibility::Visible);
+		GetWorld()->GetTimerManager().SetTimer(NoticeHandle, this, &UNPCConversationWidget::SetNoticeHidden, 3.0f, false);
+	}
+}
+
+void UNPCConversationWidget::SetNoticeHidden()
+{
+	Txt_Notice->SetVisibility(ESlateVisibility::Hidden);
+}

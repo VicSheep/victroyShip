@@ -128,6 +128,10 @@ void AFarmLifeGameMode::BeginPlay()
 	// Sound
 	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
 	BGMComp->FadeIn(3.0f, 0.6f);
+
+	// Post Process
+	PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>(FVector(0, 0, -1000), FRotator());
+	PostProcessVolume->bUnbound = true;
 }
 
 void AFarmLifeGameMode::Tick(float DeltaSeconds)
@@ -143,6 +147,12 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	if(false == ConversationUI->CanMoveToNextTalk())
+	{
+		ConversationUI->NoticeForWaiting();
+		return;
+	}
+
 	bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
 	CurNPC->StartConversation(IsStart);
@@ -205,6 +215,12 @@ void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	if (false == ConversationUI->CanMoveToNextTalk())
+	{
+		ConversationUI->NoticeForWaiting();
+		return;
+	}
+
 	const bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
 	CurNPC->StartConversation(IsStart);
@@ -225,11 +241,17 @@ void AFarmLifeGameMode::PlayNPCEmotion()
 
 void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 {
-	if(CurNPC)
+	// NPC가 말하는 상황에서만 실행
+	if(ConversationUI->IsVisible() && nullptr != CurNPC)
 	{
 		ConversationUI->PlayNow();
 		CurNPC->PlayTTS(FilePath);
 	}
+}
+
+bool AFarmLifeGameMode::IsInConversation()
+{
+	return ConversationUI->IsVisible();
 }
 #pragma endregion
 
@@ -439,10 +461,32 @@ void AFarmLifeGameMode::ChangeInputMode_Both()
 }
 #pragma endregion
 
+#pragma region UI & Post Process
 void AFarmLifeGameMode::UpdatePortrait(UTexture2D* NewPortrait)
 {
 	ConversationUI->UpdatePortrait(NewPortrait);
 }
+
+void AFarmLifeGameMode::RecordOn()
+{
+	TimerUI->RecordOn();
+}
+
+void AFarmLifeGameMode::RecordOff()
+{
+	TimerUI->RecordOff();
+}
+
+void AFarmLifeGameMode::NPCOutlineOn()
+{
+	PostProcessVolume->bUnbound = true;
+}
+
+void AFarmLifeGameMode::NPCOutlineOff()
+{
+	PostProcessVolume->bUnbound = false;
+}
+#pragma endregion
 
 #pragma region Ending
 void AFarmLifeGameMode::EndGame()

@@ -8,17 +8,17 @@
 #include "PKH/Interface/DateUpdate.h"
 #include "NPCBase.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnLikeabilityChanged)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLikeabilityChanged, int32, NPCIndex);
 
 UENUM()
 enum class ENPCType : uint8
 {
-	Cafe = 0,
-	Artist,
-	Programmer,
-	Unemployed,
+	Artist = 0,
+	Cafe,
 	Farmer,
-	Fisherman
+	Fisherman,
+	Unemployed,
+	Programmer
 };
 
 UENUM()
@@ -85,6 +85,8 @@ protected:
 
 public:
 	virtual void StartConversation(bool IsStart);
+	virtual void OnConversationBegin();
+
 	virtual void EndConversation();
 	virtual void OnConversationEnd();
 
@@ -150,6 +152,8 @@ protected:
 
 public:
 	FORCEINLINE void SetNPCName(const FString& NewName) { NPCName = NewName; }
+
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FString GetNPCName() const { return NPCName; }
 
 // Likeability
@@ -176,12 +180,15 @@ protected:
 	TObjectPtr<class UNiagaraSystem> Vfx_CurLike;
 
 public:
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FOnLikeabilityChanged OnLikeabilityChanged;
 
 	void UpdateLikeability(int32 InLikeability);
 	bool IsMaxLikeability();
 
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE int32 GetLikeability() const { return CurLikeability; }
+
 	bool IsFriendly() const;
 
 // Emotion

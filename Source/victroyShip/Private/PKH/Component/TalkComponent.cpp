@@ -3,6 +3,8 @@
 
 #include "PKH/Component/TalkComponent.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Character.h"
 #include "JIU/PlantActor.h"
@@ -19,6 +21,12 @@ UTalkComponent::UTalkComponent()
 	// Speech File
 	RecordFileDir = UKismetSystemLibrary::GetProjectDirectory() + TEXT("Extras/WavFiles/");
 	RecordFilePath = RecordFileDir + RecordFileName + TEXT(".wav");
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> Vfx_TalkRef(TEXT("/Script/Niagara.NiagaraSystem'/Game/PKH/NS/Vfx_Talk.Vfx_Talk'"));
+	if(Vfx_TalkRef.Object)
+	{
+		Vfx_Talk = Vfx_TalkRef.Object;
+	}
 }
 
 void UTalkComponent::BeginPlay()
@@ -66,6 +74,18 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
 	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"), FCollisionShape::MakeSphere(300.0f), Params);
+	if(nullptr == VfxComp)
+	{
+		VfxComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Vfx_Talk, FVector(Origin.X, Origin.Y, Origin.Z - 90.0f));
+		VfxComp->SetAutoDestroy(false);
+	}
+	else
+	{
+		FVector VfxLoc = Origin;
+		VfxLoc.Z -= 90.0f;
+		VfxComp->SetWorldLocation(VfxLoc);
+		VfxComp->Activate();
+	}
 
 	if (NPCOverlapped)
 	{
@@ -119,6 +139,11 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 			}
 		}
 
+		if(Plants.IsEmpty())
+		{
+			return;
+		}
+
 		if(InputText.IsEmpty())
 		{
 			TalkToPlant(Plants);
@@ -156,3 +181,13 @@ void UTalkComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& Ne
 	MyGameMode->TalkToPlantWithText(InputText, NewPlants);
 }
 #pragma endregion
+
+void UTalkComponent::RecordOn()
+{
+	MyGameMode->RecordOn();
+}
+
+void UTalkComponent::RecordOff()
+{
+	MyGameMode->RecordOff();
+}

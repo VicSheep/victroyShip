@@ -25,6 +25,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta=(BindWidgetAnim), Transient)
 	TObjectPtr<class UWidgetAnimation> Anim_Ending_Fail;
 
+	UPROPERTY(EditDefaultsOnly)
+	FName TitleLevelName;
+
 public:
 	FWidgetAnimationDynamicEvent OnEndingFinishedDelegate;
 
