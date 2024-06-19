@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UFarmerComponent> FarmerComp;
+
 protected:
 	bool InChatting = false;
 

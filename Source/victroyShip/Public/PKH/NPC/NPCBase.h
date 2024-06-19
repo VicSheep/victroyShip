@@ -202,6 +202,7 @@ public:
 // Present
 protected:
 	bool GetPresentToday = false;
+	bool IsPreferItem = false;
 
 	UPROPERTY(EditDefaultsOnly)
 	FString PreferItemName = TEXT("");
@@ -212,6 +213,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void GivePresent(const FString& ItemName);
+
+	void ResponseToPresent();
 
 // Job
 protected:

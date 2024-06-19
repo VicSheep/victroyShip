@@ -225,3 +225,8 @@ void ANPCController::SetIsWorking(bool InIsWorking)
 		BBComp->SetValueAsBool(KEY_IS_WORKING, false);
 	}
 }
+
+bool ANPCController::IsWorkInNow()
+{
+	return BBComp->GetValueAsBool(KEY_IS_WORKING);
+}

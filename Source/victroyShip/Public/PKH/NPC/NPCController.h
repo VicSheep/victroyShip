@@ -74,4 +74,6 @@ public:
 	void SetIsWorking(bool InIsWorking);
 	FORCEINLINE bool GetIsWorking() const { return IsWorking; }
 
+	bool IsWorkInNow();
+
 };

@@ -87,7 +87,17 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NewConversation
 	else
 	{
 		Txt_Conversation->SetText(FText::FromString(NewConversation));
-		Txt_NPCName->SetText(FText::FromString(TEXT("플레이어")));
+		// Present
+		if(FromNPC)
+		{
+			const FString& NPCName = MyGameMode->GetCurNPC()->GetNPCName();
+			Txt_NPCName->SetText(FText::FromString(NPCName));
+			Txt_Conversation->SetText(FText::FromString(FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *NPCName)));
+		}
+		else
+		{
+			Txt_NPCName->SetText(FText::FromString(TEXT("플레이어")));
+		}
 		CurConvState = EConvState::None;
 	}
 }
