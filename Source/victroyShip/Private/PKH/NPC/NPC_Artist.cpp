@@ -67,50 +67,50 @@ ANPC_Artist::ANPC_Artist()
 
 	// Portraits
 	// Joy
-	for(int i = 1; i < 5; ++i)
+	for(int32 i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Joy%d.Artist_Joy%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
 		if (Portrait_JoyRef.Object)
 		{
 			Portraits_Joy.Add(Portrait_JoyRef.Object);
 		}
 	}
 	// Surprise
-	for (int i = 1; i < 5; ++i)
+	for (int32 i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Surprise%d.Artist_Surprise%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
 		if (Portrait_SurpriseRef.Object)
 		{
 			Portraits_Surprise.Add(Portrait_SurpriseRef.Object);
 		}
 	}
 	// Sad
-	for (int i = 1; i < 5; ++i)
+	for (int32 i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Sad%d.Artist_Sad%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
 		if (Portrait_SadRef.Object)
 		{
 			Portraits_Sadness.Add(Portrait_SadRef.Object);
 		}
 	}
 	// Anger
-	for (int i = 1; i < 5; ++i)
+	for (int32 i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Anger%d.Artist_Anger%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
 		if (Portrait_AngerRef.Object)
 		{
 			Portraits_Anger.Add(Portrait_AngerRef.Object);
 		}
 	}
 	// Default
-	for (int i = 1; i < 5; ++i)
+	for (int32 i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Artist/Artist_Default%d.Artist_Default%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
 		if (Portrait_DefaultRef.Object)
 		{
 			Portraits_Default.Add(Portrait_DefaultRef.Object);

@@ -144,9 +144,8 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
-	if(false == ConversationUI->CanMoveToNextTalk())
+	if(false == CanTalkOrPresent())
 	{
-		ConversationUI->NoticeForWaiting();
 		return;
 	}
 
@@ -212,9 +211,8 @@ void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
-	if (false == ConversationUI->CanMoveToNextTalk())
+	if (false == CanTalkOrPresent())
 	{
-		ConversationUI->NoticeForWaiting();
 		return;
 	}
 
@@ -320,7 +318,10 @@ void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, bool IsPrefer)
 {
 	CurNPC = NewNPC;
 	HttpActor->RequestPresent(CurNPC->GetNPCName(), CurNPC->GetLikeability(), IsPrefer);
+
+	ConversationUI->UpdateConversationUI(TEXT(""), false, true);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+	ChangeInputMode_Both();
 }
 
 void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCResponse)
@@ -331,8 +332,7 @@ void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCRespon
 	}
 
 	ConversationUI->UpdateConversationUI(NPCResponse.Answer, true, true);
-	CurNPC->SetCurEmotion(NPCResponse.Emotion);
-	CurNPC->PlayEmotion();
+	CurNPC->ResponseToPresent();
 }
 #pragma endregion
 
@@ -472,6 +472,17 @@ void AFarmLifeGameMode::RecordOn()
 void AFarmLifeGameMode::RecordOff()
 {
 	TimerUI->RecordOff();
+}
+
+bool AFarmLifeGameMode::CanTalkOrPresent()
+{
+	if(ConversationUI->CanMoveToNextTalk())
+	{
+		return true;
+	}
+
+	ConversationUI->NoticeForWaiting();
+	return false;
 }
 #pragma endregion
 

@@ -164,7 +164,7 @@ void ANPCBase::StartConversation(bool IsStart)
 	}
 
 	NPCController->StartConversation();
-	if (CanRotateInWorking() || false == NPCController->GetIsWorking())
+	if (CanRotateInWorking() || false == NPCController->IsWorkInNow())
 	{
 		AnimInstance->PlayMontage_Conv();
 	}
@@ -248,7 +248,7 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	}
 	else
 	{
-		if(CanRotateInWorking() || false ==  NPCController->GetIsWorking())
+		if(CanRotateInWorking() || false ==  NPCController->IsWorkInNow())
 		{
 			AnimInstance->PlayMontage_Emotion(CurEmotion);
 		}
@@ -400,19 +400,36 @@ bool ANPCBase::IsMaxLikeability()
 #pragma region Present
 void ANPCBase::GivePresent(const FString& ItemName)
 {
-	/*if (GetPresentToday)
+	IsPreferItem = PreferItemName.Contains(ItemName);
+
+	// Set Blackboard Key & Player State
+	AFarmLifeOjsPlayerCharacter* Player = Cast<AFarmLifeOjsPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (nullptr == Player)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no player"));
 		return;
 	}
-
-	GetPresentToday = true;*/
-	bool bIsPrefer = PreferItemName.Contains(ItemName);
-	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
-	SetCurEmotion(EEmotion::joy);
+	UTalkComponent* TalkComp = Cast<UTalkComponent>(Player->GetComponentByClass(UTalkComponent::StaticClass()));
+	if (nullptr == TalkComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no TalkComponent"));
+		return;
+	}
+	TalkComp->StartConversation();
+	StartConversation(true);
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->RequestPresentData(this, bIsPrefer);
+	GameMode->RequestPresentData(this, IsPreferItem);
+}
+
+void ANPCBase::ResponseToPresent()
+{
+	UpdateLikeability(IsPreferItem ? PreferItemValue : NormalItemValue);
+	IsPreferItem = false;
+
+	SetCurEmotion(EEmotion::joy);
+	PlayEmotion();
 }
 #pragma endregion
 
@@ -454,7 +471,7 @@ void ANPCBase::SetCurPortrait()
 		{
 			return;
 		}
-		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1);
+		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1); UE_LOG(LogTemp, Warning, TEXT("[SetCurPortrait] Idx : %d"), Idx);
 		CurPortrait = Portraits_Joy[Idx];
 	}
 	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::surprise).Mid(10))
