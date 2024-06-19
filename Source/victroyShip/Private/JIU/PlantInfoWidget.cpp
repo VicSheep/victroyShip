@@ -113,8 +113,8 @@ void UPlantInfoWidget::ClickHarvestButton()
 		{
 			if (ground->Plant->PlantState == EPlantState::Mature)
 			{
-				ground->Plant->HavestPlant();
-				button_harvest->SetVisibility(ESlateVisibility::Hidden);
+				// ground->Plant->HavestPlant();
+				// button_harvest->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
 	}

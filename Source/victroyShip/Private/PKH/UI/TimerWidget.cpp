@@ -3,9 +3,9 @@
 
 #include "PKH/UI/TimerWidget.h"
 
-#include "Animation/WidgetAnimation.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
 
 UTimerWidget::UTimerWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -14,6 +14,9 @@ UTimerWidget::UTimerWidget(const FObjectInitializer& ObjectInitializer) : Super(
 	DayMap.Add(3, TEXT("수요일"));
 	DayMap.Add(4, TEXT("목요일"));
 	DayMap.Add(5, TEXT("금요일"));
+	DayMap.Add(6, TEXT("토요일"));
+	DayMap.Add(7, TEXT("일요일"));
+	DayMap.Add(8, TEXT("월요일"));
 }
 
 void UTimerWidget::NativeConstruct()
@@ -49,4 +52,14 @@ void UTimerWidget::BindOnFinished()
 {
 	BindToAnimationFinished(FadeOut, FadeOutFinished);
 	BindToAnimationFinished(FadeIn, FadeInFinished);
+}
+
+void UTimerWidget::RecordOn()
+{
+	Img_Record->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UTimerWidget::RecordOff()
+{
+	Img_Record->SetVisibility(ESlateVisibility::Hidden);
 }

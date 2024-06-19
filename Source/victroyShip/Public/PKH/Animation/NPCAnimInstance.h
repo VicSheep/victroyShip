@@ -30,7 +30,7 @@ protected:
 
 protected:
 	float WalkThreshold = 5.0f;
-	float RunThreshold = 210.0f;
+	float RunThreshold = 260.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 bIsIdle : 1;
