@@ -53,4 +53,10 @@ protected:
 	// Interface
 public:
 	virtual void OnHourUpdated(int32 NewHour) override;
+
+	virtual void OnConversationBegin() override;
+	virtual void OnConversationEnd() override;
+
+	void SetHendleObjectVisible(UStaticMeshComponent* object, bool isVisible);
+	UStaticMeshComponent* rememberedMesh;
 };
