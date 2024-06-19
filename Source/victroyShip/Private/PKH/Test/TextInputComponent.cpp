@@ -5,6 +5,8 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Components/EditableText.h"
+#include "JIU/FarmerComponent.h"
+#include "JIU/PlantInfoWidget.h"
 #include "PKH/Component/TalkComponent.h"
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/ChatUIWidget.h"
@@ -33,6 +35,10 @@ void UTextInputComponent::BeginPlay()
 	ChatUI->AddToViewport(2);
 	ChatUI->SetVisibility(ESlateVisibility::Hidden);
 	ChatUI->GetChatWidget()->OnTextCommitted.AddDynamic(this, &UTextInputComponent::OnChatTextCommitted);
+
+	// FarmerComp
+	FarmerComp = Cast<UFarmerComponent>(GetOwner()->GetComponentByClass(UFarmerComponent::StaticClass()));
+	ensure(FarmerComp);
 }
 
 #pragma region Text Input
@@ -49,7 +55,15 @@ void UTextInputComponent::Chat()
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
 		InChatting = false;
-		MyGameMode->ChangeInputMode_Game();
+		if(FarmerComp->PlantInfoWidget->IsVisible())
+		{
+			MyGameMode->ChangeInputMode_Game();
+			MyGameMode->ChangeInputMode_Both();
+		}
+		else
+		{
+			MyGameMode->ChangeInputMode_Game();
+		}
 
 		FString InputText = ChatUI->GetChatText();
 		if (InputText.IsEmpty())

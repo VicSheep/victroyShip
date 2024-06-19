@@ -69,7 +69,7 @@ ANPC_Programmer::ANPC_Programmer()
 	for (int i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Programmer/Programmer_Joy%d.Programmer_Joy%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_JoyRef(*RefText);
 		if (Portrait_JoyRef.Object)
 		{
 			Portraits_Joy.Add(Portrait_JoyRef.Object);
@@ -79,7 +79,7 @@ ANPC_Programmer::ANPC_Programmer()
 	for (int i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Programmer/Programmer_Surprise%d.Programmer_Surprise%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SurpriseRef(*RefText);
 		if (Portrait_SurpriseRef.Object)
 		{
 			Portraits_Surprise.Add(Portrait_SurpriseRef.Object);
@@ -89,7 +89,7 @@ ANPC_Programmer::ANPC_Programmer()
 	for (int i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Programmer/Programmer_Sad%d.Programmer_Sad%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_SadRef(*RefText);
 		if (Portrait_SadRef.Object)
 		{
 			Portraits_Sadness.Add(Portrait_SadRef.Object);
@@ -99,7 +99,7 @@ ANPC_Programmer::ANPC_Programmer()
 	for (int i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Programmer/Programmer_Anger%d.Programmer_Anger%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_AngerRef(*RefText);
 		if (Portrait_AngerRef.Object)
 		{
 			Portraits_Anger.Add(Portrait_AngerRef.Object);
@@ -109,7 +109,7 @@ ANPC_Programmer::ANPC_Programmer()
 	for (int i = 1; i < 5; ++i)
 	{
 		FString RefText = FString::Printf(TEXT("/Script/Engine.Texture2D'/Game/PKH/Portaraits/Programmer/Programmer_Default%d.Programmer_Default%d'"), i, i);
-		static ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
+		ConstructorHelpers::FObjectFinder<UTexture2D> Portrait_DefaultRef(*RefText);
 		if (Portrait_DefaultRef.Object)
 		{
 			Portraits_Default.Add(Portrait_DefaultRef.Object);
@@ -136,9 +136,11 @@ void ANPC_Programmer::BeginPlay()
 
 void ANPC_Programmer::DoJob()
 {
-	Super::DoJob();
-
-	
+	SetActorRotation(WorkRotation);
+	if (AnimInstance->GetCurrentActiveMontage() != Montage_Work && AnimInstance->GetCurrentActiveMontage() != Montage_StandUp)
+	{
+		AnimInstance->PlayMontage_Custom(Montage_Work);
+	}
 }
 
 void ANPC_Programmer::StartSit()
@@ -182,9 +184,6 @@ void ANPC_Programmer::OnConversationEnd()
 	{
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
-
-		Laptop->SetActorEnableCollision(false);
-		Laptop->SetActorHiddenInGame(true);
 	}
 }
 
@@ -200,7 +199,6 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 	{
 		NPCController->MoveToTargetLoc(WorkLoc);
 		NPCController->SetIsWorking(true);
-		SetNPCWalk();
 		return;
 	}
 
@@ -213,14 +211,12 @@ void ANPC_Programmer::OnHourUpdated(int32 NewHour)
 
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		AnimInstance->PlayMontage_Custom(Montage_StandUp);
-		SetNPCWalk();
 		return;
 	}
 
 	if (NewHour == HOUR_BACK_HOME)
 	{
 		NPCController->MoveToHome();
-		SetNPCWalk();
 	}
 }
 

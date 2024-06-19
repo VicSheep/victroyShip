@@ -55,6 +55,12 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		return;
 	}
+	
+	AFarmLifeGameMode* MyGameMode = Cast<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+	if(MyGameMode->IsInConversation())
+	{
+		return;
+	}
 
 	if(BBComp->GetValueAsBool(KEY_IS_WORKING))
 	{
@@ -64,14 +70,19 @@ void ANPCController::OnSightUpdated(AActor* Actor, FAIStimulus Stimulus)
 	if(Stimulus.WasSuccessfullySensed())
 	{
 		NPC->SetNPCRun();
-		NPC->SetCurEmotion(EEmotion::noticed);
-		NPC->PlayEmotion(true);
+		if(false == BBComp->GetValueAsBool(KEY_PLAYER_IN_SIGHT))
+		{
+			NPC->SetCurEmotion(EEmotion::noticed);
+			NPC->PlayEmotion(true);
+		}
 
 		BBComp->SetValueAsObject(KEY_PLAYER, Actor);
 		BBComp->SetValueAsBool(KEY_PLAYER_IN_SIGHT, true);
-
 		
-		GetWorldTimerManager().ClearTimer(SightHandle);
+		if(GetWorldTimerManager().IsTimerActive(SightHandle))
+		{
+			GetWorldTimerManager().ClearTimer(SightHandle);
+		}
 	}
 	else
 	{
@@ -90,7 +101,15 @@ void ANPCController::OnLostPlayer()
 	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
 	if(NPC)
 	{
-		NPC->SetNPCWalk();
+		if(BBComp->GetValueAsBool(KEY_IS_MOVING))
+		{
+			NPC->SetNPCWalk();
+		}
+		else
+		{
+			NPC->SetNPCPatrol();
+		}
+		
 		NPC->SetEmotionUI(false);
 	}
 
@@ -149,6 +168,12 @@ void ANPCController::MoveToTargetLoc(const FVector& TargetLoc)
 {
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, TargetLoc);
+	
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if (NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 }
 
 void ANPCController::MoveToHome()
@@ -156,6 +181,12 @@ void ANPCController::MoveToHome()
 	BBComp->SetValueAsBool(KEY_IS_MOVING, true);
 	const FVector& HomeLoc = BBComp->GetValueAsVector(KEY_HOME_LOC);
 	BBComp->SetValueAsVector(KEY_TARGET_LOC, HomeLoc);
+
+	ANPCBase* NPC = Cast<ANPCBase>(GetPawn());
+	if (NPC)
+	{
+		NPC->SetNPCWalk();
+	}
 }
 
 bool ANPCController::IsInConversation()
@@ -193,4 +224,9 @@ void ANPCController::SetIsWorking(bool InIsWorking)
 	{
 		BBComp->SetValueAsBool(KEY_IS_WORKING, false);
 	}
+}
+
+bool ANPCController::IsWorkInNow()
+{
+	return BBComp->GetValueAsBool(KEY_IS_WORKING);
 }

@@ -11,15 +11,17 @@
 #include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
+#include "PKH/UI/EndingUI_Fail.h"
+#include "PKH/UI/EndingUI_Success.h"
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
+#include "Sound/AmbientSound.h"
 #include "YSH/skySystem.h"
 
 #define TEN_MINUTES 10
 #define SIXTY_MINUTES 60
 #define START_HOUR 8
 #define END_HOUR 18
-#define TIME_UPDATE_INTERVAL 2.0f
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
@@ -51,6 +53,29 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	if (BGM_BackToPortlandRef.Object)
 	{
 		BGM_BackToPortland = BGM_BackToPortlandRef.Object;
+	}
+
+	// For Ending
+	static ConstructorHelpers::FClassFinder<UEndingUI_Fail> EndingUI_FailClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Fail.WBP_EndingUI_Fail_C"));
+	if (EndingUI_FailClassRef.Class)
+	{
+		EndingUI_FailClass = EndingUI_FailClassRef.Class;
+	}
+	static ConstructorHelpers::FClassFinder<UEndingUI_Success> EndingUI_SuccessClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Success.WBP_EndingUI_Success_C"));
+	if (EndingUI_SuccessClassRef.Class)
+	{
+		EndingUI_SuccessClass = EndingUI_SuccessClassRef.Class;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingFailRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingFail.BGM_EndingFail'"));
+	if (BGM_EndingFailRef.Object)
+	{
+		BGM_EndingFail = BGM_EndingFailRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingSuccessRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingSuccessShort.BGM_EndingSuccessShort'"));
+	if (BGM_EndingSuccessRef.Object)
+	{
+		BGM_EndingSuccess = BGM_EndingSuccessRef.Object;
 	}
 }
 
@@ -85,7 +110,7 @@ void AFarmLifeGameMode::BeginPlay()
 		SunLight->SetActorRotation(SunBeginRot);
 	}
 
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TIME_UPDATE_INTERVAL, true, TIME_UPDATE_INTERVAL);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TimeUpdateInterval, true, TimeUpdateInterval);
 
 	// UI
 	TimerUI = CreateWidget<UTimerWidget>(GetWorld(), TimerUIClass);
@@ -119,6 +144,11 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	if(false == CanTalkOrPresent())
+	{
+		return;
+	}
+
 	bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
 	CurNPC->StartConversation(IsStart);
@@ -181,6 +211,11 @@ void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 // By Text
 void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPCBase>& NewNPC)
 {
+	if (false == CanTalkOrPresent())
+	{
+		return;
+	}
+
 	const bool IsStart = (CurNPC == nullptr);
 	CurNPC = NewNPC;
 	CurNPC->StartConversation(IsStart);
@@ -201,11 +236,17 @@ void AFarmLifeGameMode::PlayNPCEmotion()
 
 void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 {
-	if(CurNPC)
+	// NPC가 말하는 상황에서만 실행
+	if(ConversationUI->IsVisible() && nullptr != CurNPC)
 	{
 		ConversationUI->PlayNow();
 		CurNPC->PlayTTS(FilePath);
 	}
+}
+
+bool AFarmLifeGameMode::IsInConversation()
+{
+	return ConversationUI->IsVisible();
 }
 #pragma endregion
 
@@ -277,7 +318,10 @@ void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, bool IsPrefer)
 {
 	CurNPC = NewNPC;
 	HttpActor->RequestPresent(CurNPC->GetNPCName(), CurNPC->GetLikeability(), IsPrefer);
+
+	ConversationUI->UpdateConversationUI(TEXT(""), false, true);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
+	ChangeInputMode_Both();
 }
 
 void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCResponse)
@@ -288,8 +332,7 @@ void AFarmLifeGameMode::ResponseToPlayerForPresent(const FNPCResponse& NPCRespon
 	}
 
 	ConversationUI->UpdateConversationUI(NPCResponse.Answer, true, true);
-	CurNPC->SetCurEmotion(NPCResponse.Emotion);
-	CurNPC->PlayEmotion();
+	CurNPC->ResponseToPresent();
 }
 #pragma endregion
 
@@ -312,6 +355,12 @@ void AFarmLifeGameMode::OnNextDay()
 	Hours = START_HOUR;
 	Minutes = 0;
 	++Date;
+	if(Date == MaxDate)
+	{
+		EndGame();
+		return;
+	}
+
 	if (SunLight)
 	{
 		SunLight->SetActorRotation(SunBeginRot);
@@ -409,7 +458,85 @@ void AFarmLifeGameMode::ChangeInputMode_Both()
 }
 #pragma endregion
 
+#pragma region UI & Post Process
 void AFarmLifeGameMode::UpdatePortrait(UTexture2D* NewPortrait)
 {
 	ConversationUI->UpdatePortrait(NewPortrait);
 }
+
+void AFarmLifeGameMode::RecordOn()
+{
+	TimerUI->RecordOn();
+}
+
+void AFarmLifeGameMode::RecordOff()
+{
+	TimerUI->RecordOff();
+}
+
+bool AFarmLifeGameMode::CanTalkOrPresent()
+{
+	if(ConversationUI->CanMoveToNextTalk())
+	{
+		return true;
+	}
+
+	ConversationUI->NoticeForWaiting();
+	return false;
+}
+#pragma endregion
+
+#pragma region Ending
+void AFarmLifeGameMode::EndGame()
+{
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+	TimerUI->FadeOutFinished.Clear();
+	TimerUI->FadeInFinished.Clear();
+
+	// Ambient Sound Off
+	TArray<AActor*> AmbientArray;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAmbientSound::StaticClass(), AmbientArray);
+	for(AActor* AmbActor : AmbientArray)
+	{
+		AAmbientSound* Amb = Cast<AAmbientSound>(AmbActor);
+		Amb->GetAudioComponent()->Deactivate();
+	}
+
+	// NPC Count
+	TArray<AActor*> NPCArray;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), NPCArray);
+
+	int32 Count = 0;
+	for(int i = 0; i < NPCArray.Num(); ++i)
+	{
+		ANPCBase* NPC = Cast<ANPCBase>(NPCArray[i]);
+		if(NPC->GetLikeability() >= EndingSuccessLikeability)
+		{
+			++Count;
+		}
+		NPC->StopAI();
+	}
+	BGMComp->FadeOut(2.0f, 0);
+
+	if(Count >= EndingSuccessCount)
+	{
+		EndingUI_Success = CreateWidget<UEndingUI_Success>(GetWorld(), EndingUI_SuccessClass);
+		EndingUI_Success->AddToViewport(10);
+		if(BGM_EndingSuccess)
+		{
+			BGMComp->SetSound(BGM_EndingSuccess);
+			BGMComp->FadeIn(3.0f, 0.5f);
+		}
+	}
+	else
+	{
+		EndingUI_Fail = CreateWidget<UEndingUI_Fail>(GetWorld(), EndingUI_FailClass);
+		EndingUI_Fail->AddToViewport(10);
+		if(BGM_EndingFail)
+		{
+			BGMComp->SetSound(BGM_EndingFail);
+			BGMComp->FadeIn(3.0f, 0.5f);
+		}
+	}
+}
+#pragma endregion

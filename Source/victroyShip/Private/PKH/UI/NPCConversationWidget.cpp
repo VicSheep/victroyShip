@@ -87,6 +87,17 @@ void UNPCConversationWidget::UpdateConversationUI(const FString& NewConversation
 	else
 	{
 		Txt_Conversation->SetText(FText::FromString(NewConversation));
+		// Present
+		if(FromNPC)
+		{
+			const FString& NPCName = MyGameMode->GetCurNPC()->GetNPCName();
+			Txt_NPCName->SetText(FText::FromString(NPCName));
+			Txt_Conversation->SetText(FText::FromString(FString::Printf(TEXT("%s(이)가 답변을 고민중입니다."), *NPCName)));
+		}
+		else
+		{
+			Txt_NPCName->SetText(FText::FromString(TEXT("플레이어")));
+		}
 		CurConvState = EConvState::None;
 	}
 }
@@ -147,4 +158,23 @@ void UNPCConversationWidget::PlayNow()
 		CurWaitTime = 0;
 		CurLen = 1;
 	}
+}
+
+bool UNPCConversationWidget::CanMoveToNextTalk()
+{
+	return CurConvState == EConvState::None;
+}
+
+void UNPCConversationWidget::NoticeForWaiting()
+{
+	if(false == GetWorld()->GetTimerManager().IsTimerActive(NoticeHandle))
+	{
+		Txt_Notice->SetVisibility(ESlateVisibility::Visible);
+		GetWorld()->GetTimerManager().SetTimer(NoticeHandle, this, &UNPCConversationWidget::SetNoticeHidden, 3.0f, false);
+	}
+}
+
+void UNPCConversationWidget::SetNoticeHidden()
+{
+	Txt_Notice->SetVisibility(ESlateVisibility::Hidden);
 }

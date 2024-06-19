@@ -157,21 +157,29 @@ void ANPCBase::BeginPlay()
 #pragma region Start / End Conversation
 void ANPCBase::StartConversation(bool IsStart)
 {
-	if(ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if(nullptr == Player)
 	{
-		NPCController->StartConversation();
-		if (CanRotateInWorking() || false == NPCController->GetIsWorking())
-		{
-			AnimInstance->PlayMontage_Conv();
-		}
-		EmotionUI->SetVisibility(ESlateVisibility::Hidden);
-
-		if(IsStart && false == Portraits_Default.IsEmpty())
-		{
-			const int32 Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
-			MyGameMode->UpdatePortrait(Portraits_Default[Idx]);
-		}
+		return;
 	}
+
+	NPCController->StartConversation();
+	if (CanRotateInWorking() || false == NPCController->IsWorkInNow())
+	{
+		AnimInstance->PlayMontage_Conv();
+	}
+	EmotionUI->SetVisibility(ESlateVisibility::Hidden);
+
+	if(IsStart && false == Portraits_Default.IsEmpty())
+	{
+		const int32 Idx = FMath::RandRange(0, Portraits_Default.Num() - 1);
+		MyGameMode->UpdatePortrait(Portraits_Default[Idx]);
+	}
+	OnConversationBegin();
+}
+
+void ANPCBase::OnConversationBegin()
+{
 }
 
 void ANPCBase::EndConversation()
@@ -240,7 +248,7 @@ void ANPCBase::PlayEmotion(bool IsUIOnly)
 	}
 	else
 	{
-		if(CanRotateInWorking() || false ==  NPCController->GetIsWorking())
+		if(CanRotateInWorking() || false ==  NPCController->IsWorkInNow())
 		{
 			AnimInstance->PlayMontage_Emotion(CurEmotion);
 		}
@@ -378,7 +386,7 @@ void ANPCBase::UpdateLikeability(int32 InLikeability)
 
 	if(OnLikeabilityChanged.IsBound())
 	{
-		OnLikeabilityChanged.Broadcast();
+		OnLikeabilityChanged.Broadcast((int32)NPCType);
 	}
 }
 
@@ -392,18 +400,36 @@ bool ANPCBase::IsMaxLikeability()
 #pragma region Present
 void ANPCBase::GivePresent(const FString& ItemName)
 {
-	/*if (GetPresentToday)
+	IsPreferItem = PreferItemName.Contains(ItemName);
+
+	// Set Blackboard Key & Player State
+	AFarmLifeOjsPlayerCharacter* Player = Cast<AFarmLifeOjsPlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (nullptr == Player)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no player"));
 		return;
 	}
-
-	GetPresentToday = true;*/
-	bool bIsPrefer = PreferItemName.Contains(ItemName);
-	UpdateLikeability(bIsPrefer ? PreferItemValue : NormalItemValue);
+	UTalkComponent* TalkComp = Cast<UTalkComponent>(Player->GetComponentByClass(UTalkComponent::StaticClass()));
+	if (nullptr == TalkComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[GreetingPlayer] There is no TalkComponent"));
+		return;
+	}
+	TalkComp->StartConversation();
+	StartConversation(true);
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->RequestPresentData(this, bIsPrefer);
+	GameMode->RequestPresentData(this, IsPreferItem);
+}
+
+void ANPCBase::ResponseToPresent()
+{
+	UpdateLikeability(IsPreferItem ? PreferItemValue : NormalItemValue);
+	IsPreferItem = false;
+
+	SetCurEmotion(EEmotion::joy);
+	PlayEmotion();
 }
 #pragma endregion
 
@@ -445,7 +471,7 @@ void ANPCBase::SetCurPortrait()
 		{
 			return;
 		}
-		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1);
+		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1); UE_LOG(LogTemp, Warning, TEXT("[SetCurPortrait] Idx : %d"), Idx);
 		CurPortrait = Portraits_Joy[Idx];
 	}
 	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::surprise).Mid(10))
@@ -486,6 +512,14 @@ void ANPCBase::SetCurPortrait()
 	}
 }
 
+void ANPCBase::StopAI()
+{
+	if(NPCController)
+	{
+		NPCController->StopAI();
+	}
+}
+
 void ANPCBase::OnDateUpdated(int32 NewDate)
 {
 	if (CurLikeability >= FriendlyLikeability)
@@ -495,4 +529,5 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 
 	SetActorLocation(HomeLoc);
 	NPCController->ResetBBKeys();
+	AnimInstance->StopAllMontages(0);
 }

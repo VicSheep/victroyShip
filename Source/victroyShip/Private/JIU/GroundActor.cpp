@@ -26,7 +26,7 @@ AGroundActor::AGroundActor()
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	SetRootComponent(BoxComponent); // Set Component on Root Component
-	BoxComponent->SetBoxExtent(FVector(180.f, 180.f, 180.f));
+	BoxComponent->SetBoxExtent(FVector(160.f, 160.f, 160.f));
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
@@ -153,7 +153,7 @@ void AGroundActor::BeginPlay()
 		}
 		else
 		{
-			if (Cushion < 10)
+			if (Cushion < 30)
 			{
 				Cushion += 1;
 				return;
