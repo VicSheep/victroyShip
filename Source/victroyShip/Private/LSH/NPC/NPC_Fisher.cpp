@@ -108,3 +108,38 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 	}
 
 }
+
+void ANPC_Fisher::OnConversationBegin()
+{
+	Super::OnConversationBegin();
+	SetHendleObjectVisible(fishingTool, false);
+	SetHendleObjectVisible(beerBottle, false);
+}
+void ANPC_Fisher::OnConversationEnd()
+{
+	Super::OnConversationEnd();
+	SetHendleObjectVisible(fishingTool, true);
+	SetHendleObjectVisible(beerBottle, true);
+}
+
+//껏다 켯다
+//만약 비지블이 켜져있다면 비지블을 끄고 전역변수에 저장한다
+//만약 비지블이 꺼져있다면 매시가 전역변수에 저장된것과 같은지 확인하고 같으면 비지블을 켠다
+void ANPC_Fisher::SetHendleObjectVisible(UStaticMeshComponent* object, bool isVisible)
+{
+	
+	if (object == nullptr) return;
+	if (object->IsVisible())
+	{
+		object->SetVisibility(isVisible);
+		rememberedMesh = object;//변수를 매시에 저장, 꺼야하는게 하나일 때만 가능, 여러개면 어레이로 바꿔야함
+		UE_LOG(LogTemp, Warning, TEXT("setvisible"));
+
+	}
+	else if (!object->IsVisible()&&rememberedMesh == object)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("setvisible"));
+		object->SetVisibility(isVisible);
+		rememberedMesh = nullptr;
+	}
+}
