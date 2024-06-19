@@ -188,6 +188,9 @@ public:
 	void RecordOn();
 	void RecordOff();
 
+	UFUNCTION(BlueprintCallable)
+	bool CanTalkOrPresent();
+
 // Sound
 protected:
 	UPROPERTY(EditDefaultsOnly)

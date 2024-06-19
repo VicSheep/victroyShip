@@ -17,6 +17,7 @@ import torch
 from openvoice import se_extractor
 from openvoice.api import ToneColorConverter
 from melo.api import TTS
+import whisper
 
 import time
 
@@ -312,18 +313,15 @@ latest_comment = ""
 talk2plant_score = ""
 latest_npc_name = ""
 
+stt_model = whisper.load_model("small")
+
 # 음성 파일 경로 -> 텍스트 추출
 def stt(file: UploadFile = File(...)):
     with open(stt_path, "wb") as buffer:
         buffer.write(file.read())
 
-    terminal_command = f"whisper {stt_path} --language Korean --model tiny --output_format txt" 
-    os.system(terminal_command)
-
-    save_path = 'Stt.txt'
-    with open(save_path, 'r', encoding='UTF-8') as file:
-        text = file.read()
-        return text
+    stt_result = stt_model.transcribe(stt_path, language='ko')
+    return stt_result['text']
 
 latest_dict = {}
 
@@ -340,7 +338,7 @@ async def post_speech(file: UploadFile = File(...)):
 
 @app.get("/get-speech")
 async def get_speech():
-    return latest_speech[:-1]
+    return latest_speech
 
 
 @app.post("/post-conv")
