@@ -7,7 +7,7 @@
 #include "PKH/NPC/NPCController.h"
 
 #define HOUR_GO_WORK 10
-#define HOUR_BACK_HOME 17
+#define HOUR_BACK_HOME 16
 
 ANPC_Cafe::ANPC_Cafe()
 {
