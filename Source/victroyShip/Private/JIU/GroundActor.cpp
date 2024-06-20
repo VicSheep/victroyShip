@@ -266,7 +266,7 @@ void AGroundActor::ProwGround()
 				MeshComponent->SetMaterial(0, DryMaterialInterface);
 			}
 
-			PlaySound(HoeSoundWave);
+			// PlaySound(HoeSoundWave);
 		}
 	}
 }
