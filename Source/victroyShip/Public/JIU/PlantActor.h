@@ -125,12 +125,19 @@ public:
 	UFUNCTION()
 	void SpawnPaticleSystem(UParticleSystem* particle);
 
+	UFUNCTION()
+	void SpawnNiagaraSystem(UNiagaraSystem* niagara);
+
 	UPROPERTY()
 	class UNiagaraComponent* NiagaraComponent;
 
 	UPROPERTY()
 	UNiagaraSystem* GrowupNiagaraSystem;
 
+	///* SFX *///
 	UFUNCTION()
-	void SpawnNiagaraSystem(UNiagaraSystem* niagara);
+	void PlaySound(USoundWave* sound);
+
+	UPROPERTY()
+	USoundWave* GrowSoundWave;
 };

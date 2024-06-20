@@ -33,7 +33,13 @@ APlantActor::APlantActor()
 	}
 
 	// GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
-	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/Vfx_GrowUp.Vfx_GrowUp"));
+	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/HealPositive/NS/Vfx_GrowUp.Vfx_GrowUp"));
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> GrowSoundAsset(TEXT("/Game/HealPositive/SFX/sfx_DefUP.sfx_DefUP"));
+	if (GrowSoundAsset.Succeeded())
+	{
+		GrowSoundWave = GrowSoundAsset.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -132,6 +138,7 @@ void APlantActor::GrowPlant()
 	{
 		PlantState = EPlantState::Growing;
 		SpawnNiagaraSystem(GrowupNiagaraSystem);
+		PlaySound(GrowSoundWave);
 
 		ChangeTime = 0.0f;
 
@@ -141,6 +148,7 @@ void APlantActor::GrowPlant()
 	else if (PlantState == EPlantState::Growing)
 	{
 		SpawnNiagaraSystem(GrowupNiagaraSystem);
+		PlaySound(GrowSoundWave);
 
 		if (CurLevel > MaxGrowLevel)
 		{
@@ -164,6 +172,7 @@ void APlantActor::GrowPlant()
 		{
 			PlantState = EPlantState::Mature;
 			SpawnNiagaraSystem(GrowupNiagaraSystem);
+			PlaySound(GrowSoundWave);
 
 			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.MaturePath);
 			StartScaling();
@@ -267,5 +276,13 @@ void APlantActor::SpawnNiagaraSystem(UNiagaraSystem* niagara)
 	if (niagara)
 	{
 		NiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), niagara, GetActorLocation(), GetActorRotation());
+	}
+}
+
+void APlantActor::PlaySound(USoundWave* sound)
+{
+	if (sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation());
 	}
 }
