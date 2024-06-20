@@ -132,6 +132,7 @@ void UNPCConversationWidget::StreamText()
 	case EConvState::Wait:
 		CurConvState = EConvState::NPC;
 		MyGameMode->PlayNPCEmotion();
+		MyGameMode->PlayReservedTTS();
 		CurText = NextText;
 		NextText = TEXT("");
 		CurLen = 1;
@@ -172,6 +173,11 @@ void UNPCConversationWidget::NoticeForWaiting()
 		Txt_Notice->SetVisibility(ESlateVisibility::Visible);
 		GetWorld()->GetTimerManager().SetTimer(NoticeHandle, this, &UNPCConversationWidget::SetNoticeHidden, 3.0f, false);
 	}
+}
+
+bool UNPCConversationWidget::CanPlayTTS()
+{
+	return CurConvState == EConvState::NPC;
 }
 
 void UNPCConversationWidget::SetNoticeHidden()

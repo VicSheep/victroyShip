@@ -100,7 +100,7 @@ void AFarmLifeGameMode::BeginPlay()
 	}
 
 	// Time flow
-	SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass());
+	/*SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass());
 	if(nullptr == SunLight)
 	{
 		SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), AskySystem::StaticClass());
@@ -108,7 +108,7 @@ void AFarmLifeGameMode::BeginPlay()
 	if(SunLight)
 	{
 		SunLight->SetActorRotation(SunBeginRot);
-	}
+	}*/
 
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TimeUpdateInterval, true, TimeUpdateInterval);
 
@@ -135,10 +135,10 @@ void AFarmLifeGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (SunLight && false == Paused)
+	/*if (SunLight && false == Paused)
 	{
 		SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
-	}
+	}*/
 }
 
 #pragma region NPC conversation
@@ -240,8 +240,26 @@ void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 	if(ConversationUI->IsVisible() && nullptr != CurNPC)
 	{
 		ConversationUI->PlayNow();
-		CurNPC->PlayTTS(FilePath);
+		if(ConversationUI->CanPlayTTS())
+		{
+			CurNPC->PlayTTS(FilePath);
+		}
+		else
+		{
+			CurTTSFilePath = FilePath;
+		}
 	}
+}
+
+void AFarmLifeGameMode::PlayReservedTTS()
+{
+	if(CurTTSFilePath.IsEmpty())
+	{
+		return;
+	}
+
+	CurNPC->PlayTTS(CurTTSFilePath);
+	CurTTSFilePath = TEXT("");
 }
 
 bool AFarmLifeGameMode::IsInConversation()

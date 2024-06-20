@@ -93,4 +93,6 @@ public:
 	bool CanMoveToNextTalk();
 
 	void NoticeForWaiting();
+
+	bool CanPlayTTS();
 };

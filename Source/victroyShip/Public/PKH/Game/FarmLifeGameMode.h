@@ -59,6 +59,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<TObjectPtr<class APlantActor>> CurPlants;
 
+	UPROPERTY(VisibleAnywhere)
+	FString CurTTSFilePath = TEXT("");
+
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
@@ -84,6 +87,7 @@ public:
 
 	// TTS
 	void PlayTTS(const FString& FilePath);
+	void PlayReservedTTS();
 
 	// Talk to plant
 	void TalkToPlant(const FString& FileName, const FString& FilePath, const TArray<TObjectPtr<class APlantActor>>& NewPlants);
