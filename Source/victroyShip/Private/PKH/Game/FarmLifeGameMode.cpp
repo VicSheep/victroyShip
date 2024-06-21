@@ -142,6 +142,10 @@ void AFarmLifeGameMode::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGroundActor::StaticClass(), GroundActors);
 	for (AActor* GA : GroundActors)
 	{
+		if (GA->ActorHasTag(TEXT("Tutorial")))
+		{
+			continue;
+		}
 		GA->SetActorEnableCollision(false);
 		GA->SetActorHiddenInGame(true);
 	}
