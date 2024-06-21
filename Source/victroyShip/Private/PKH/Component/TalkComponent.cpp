@@ -42,9 +42,9 @@ void UTalkComponent::BeginPlay()
 		VfxComp = Cast<UNiagaraComponent>(NiagaraComp);
 		if(VfxComp)
 		{
-			VfxComp->SetAsset(Vfx_Talk);
 			VfxComp->SetAutoDestroy(false);
 			VfxComp->SetAutoActivate(false);
+			
 		}
 	}
 }
@@ -191,7 +191,7 @@ void UTalkComponent::RecordOn()
 	IsRecordValid = false;
 	GetWorld()->GetTimerManager().SetTimer(RecordTimeHandle, FTimerDelegate::CreateLambda([this]()
 	{
-		IsRecordValid = true;;
+		IsRecordValid = true;
 	}), ValidRecordTime, false);
 }
 
@@ -214,12 +214,21 @@ void UTalkComponent::TalkRangeOn()
 		return;
 	}
 
-	VfxComp->Activate();
+	if(nullptr == VfxComp->GetAsset())
+	{
+		VfxComp->SetAsset(Vfx_Talk);
+	}
+	VfxComp->ActivateSystem();
 }
 
 void UTalkComponent::TalkRangeOff()
 {
-	VfxComp->Deactivate();
+	if (nullptr == VfxComp)
+	{
+		return;
+	}
+
+	VfxComp->DeactivateImmediate();
 }
 
 bool UTalkComponent::IsValidRecordTime()

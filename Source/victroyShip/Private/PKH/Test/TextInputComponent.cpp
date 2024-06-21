@@ -55,7 +55,7 @@ void UTextInputComponent::Chat()
 	{
 		ChatUI->SetVisibility(ESlateVisibility::Hidden);
 		InChatting = false;
-		if(FarmerComp->PlantInfoWidget->IsVisible())
+		if(FarmerComp->PlantInfoWidget->IsVisible() || MyGameMode->IsInConversation())
 		{
 			MyGameMode->ChangeInputMode_Game();
 			MyGameMode->ChangeInputMode_Both();
