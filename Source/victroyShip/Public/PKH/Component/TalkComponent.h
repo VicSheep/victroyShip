@@ -76,5 +76,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RecordOff();
+
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	float RecordTimeInterval = 0.1f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float ValidRecordTime = 1.0f;
+
+	UPROPERTY(VisibleAnywhere)
+	float CurRecordTime = 0.0f;
+
+	FTimerHandle RecordTimeHandle;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	bool IsValidRecordTime();
 		
 };

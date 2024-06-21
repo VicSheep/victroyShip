@@ -127,7 +127,6 @@ void ANPCBase::BeginPlay()
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 
 	NPCController = CastChecked<ANPCController>(GetController());
-	NPCController->SetHomeLoc(HomeLoc);
 
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
@@ -144,7 +143,7 @@ void ANPCBase::BeginPlay()
 
 	SetNPCPatrol();
 
-	// Init Greeting & Present Data
+	// Init Greeting
 	if(CurLikeability >= FriendlyLikeability)
 	{
 		InitGreeting();
@@ -420,7 +419,7 @@ void ANPCBase::GivePresent(const FString& ItemName)
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->RequestPresentData(this, IsPreferItem);
+	GameMode->RequestPresentData(this, ItemName, IsPreferItem);
 }
 
 void ANPCBase::ResponseToPresent()
@@ -512,13 +511,24 @@ void ANPCBase::SetCurPortrait()
 	}
 }
 
+#pragma region BehaviorTree AI 
+void ANPCBase::RunAI()
+{
+	if (NPCController)
+	{
+		NPCController->RunAI();
+		NPCController->SetHomeLoc(HomeLoc);
+	}
+}
+
 void ANPCBase::StopAI()
 {
-	if(NPCController)
+	if (NPCController)
 	{
 		NPCController->StopAI();
 	}
 }
+#pragma endregion
 
 void ANPCBase::OnDateUpdated(int32 NewDate)
 {

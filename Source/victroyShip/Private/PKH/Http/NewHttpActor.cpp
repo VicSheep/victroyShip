@@ -456,7 +456,7 @@ void ANewHttpActor::GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpRespons
 #pragma endregion
 
 #pragma region Present
-void ANewHttpActor::RequestPresent(const FString& NPCName, int32 Likeability, bool IsPrefer)
+void ANewHttpActor::RequestPresent(const FString& NPCName, const FString& ItemName,int32 Likeability, bool IsPrefer)
 {
 	const FString& FullURL = BaseURL + EndPoint_PostPresent;
 
@@ -468,8 +468,8 @@ void ANewHttpActor::RequestPresent(const FString& NPCName, int32 Likeability, bo
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::RequestPresentComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\",\"prefer\": %s}"), *NPCName, Likeability, 
-																											  IsPrefer ? TEXT("true") : TEXT("false"));
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"item\": \"%s\",\"likeability\": \"%d\",\"prefer\": %s}"), 
+										*NPCName, *ItemName, Likeability, IsPrefer ? TEXT("true") : TEXT("false"));
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();

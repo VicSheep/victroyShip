@@ -17,6 +17,8 @@ struct FNPCResponse
 	int32 Likeability;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFarmLifeStart);
+
 class UNPCConversationWidget;
 /**
  * 
@@ -31,14 +33,23 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+// 튜토리얼 대응
 public:
-	virtual void Tick(float DeltaSeconds) override;
+	UFUNCTION(BlueprintCallable)
+	void StartFarmLife();
 
-// Player
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	FOnFarmLifeStart OnFarmLifeStart;
+
+// Player & NPC
 protected:
 	UPROPERTY(VisibleAnywhere)
 	FVector PlayerHomLoc;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<TObjectPtr<class ANPCBase>> NPCArray;
 
 // Http
 protected:
@@ -109,7 +120,7 @@ public:
 
 // Present
 public:
-	void RequestPresentData(class ANPCBase* NewNPC, bool IsPrefer);
+	void RequestPresentData(class ANPCBase* NewNPC, const FString& ItemName, bool IsPrefer);
 
 	void ResponseToPlayerForPresent(const FNPCResponse& NPCResponse);
 
@@ -121,7 +132,7 @@ protected:
 	int32 Minutes = 0;
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 Date = 1;
+	int32 Date = 0;
 
 	bool Paused = false;
 
@@ -166,10 +177,10 @@ protected:
 	FInputModeGameAndUI InputMode_Both;
 
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void ChangeInputMode_Game();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void ChangeInputMode_Both();
 
 // UI
@@ -212,27 +223,15 @@ protected:
 // Ending
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class UEndingUI_Fail> EndingUI_FailClass;
-
-	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UEndingUI_Success> EndingUI_SuccessClass;
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class UEndingUI_Fail> EndingUI_Fail;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UEndingUI_Success> EndingUI_Success;
 
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class USoundBase> BGM_EndingFail;
-
-	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> BGM_EndingSuccess;
 
 	// Threshold
-	UPROPERTY(EditDefaultsOnly)
-	int32 MaxDate = 8;
-
 	UPROPERTY(EditDefaultsOnly)
 	int32 EndingSuccessCount = 3;
 
@@ -240,5 +239,8 @@ protected:
 	int32 EndingSuccessLikeability = 80;
 
 	void EndGame();
+
+public:
+	void CheckEndingCondition();
 
 };
