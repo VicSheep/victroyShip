@@ -47,6 +47,7 @@ void UNPCConversationWidget::OnClicked_Exit()
 	SetVisibility(ESlateVisibility::Hidden);
 	MyGameMode->CheckDateUpdate();
 	MyGameMode->ChangeInputMode_Game();
+	MyGameMode->CheckEndingCondition();
 }
 
 void UNPCConversationWidget::OnHidden(ESlateVisibility InVisibility)
@@ -177,7 +178,7 @@ void UNPCConversationWidget::NoticeForWaiting()
 
 bool UNPCConversationWidget::CanPlayTTS()
 {
-	return CurConvState == EConvState::NPC;
+	return CurConvState == EConvState::NPC || CurConvState == EConvState::None;
 }
 
 void UNPCConversationWidget::SetNoticeHidden()

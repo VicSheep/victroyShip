@@ -9,14 +9,13 @@
 
 UTimerWidget::UTimerWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	DayMap.Add(1, TEXT("월요일"));
-	DayMap.Add(2, TEXT("화요일"));
-	DayMap.Add(3, TEXT("수요일"));
-	DayMap.Add(4, TEXT("목요일"));
-	DayMap.Add(5, TEXT("금요일"));
-	DayMap.Add(6, TEXT("토요일"));
-	DayMap.Add(7, TEXT("일요일"));
-	DayMap.Add(8, TEXT("월요일"));
+	DayMap.Add(0, TEXT("월요일"));
+	DayMap.Add(1, TEXT("화요일"));
+	DayMap.Add(2, TEXT("수요일"));
+	DayMap.Add(3, TEXT("목요일"));
+	DayMap.Add(4, TEXT("금요일"));
+	DayMap.Add(5, TEXT("토요일"));
+	DayMap.Add(6, TEXT("일요일"));
 }
 
 void UTimerWidget::NativeConstruct()
@@ -28,7 +27,7 @@ void UTimerWidget::NativeConstruct()
 
 void UTimerWidget::UpdateTimerUI(int32 Date, int32 Hours, int32 Minutes)
 {
-	const FString& DateText = FString::Printf(TEXT("%s %d"), *DayMap[Date], Date);
+	const FString& DateText = FString::Printf(TEXT("%s %d"), *DayMap[(Date % 7)], Date + 1);
 
 	const FString& HH = Hours < 10 ? FString::Printf(TEXT("0%d"), Hours) : FString::Printf(TEXT("%d"), Hours);
 	const FString& MM = Minutes == 0 ? TEXT("00") : FString::Printf(TEXT("%d"), Minutes);
