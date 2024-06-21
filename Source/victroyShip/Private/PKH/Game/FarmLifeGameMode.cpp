@@ -4,19 +4,16 @@
 #include "PKH/Game/FarmLifeGameMode.h"
 
 #include "Components/AudioComponent.h"
-#include "Engine/DirectionalLight.h"
 #include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Http/NewHttpActor.h"
 #include "PKH/Interface/DateUpdate.h"
 #include "PKH/Interface/HourUpdate.h"
 #include "PKH/NPC/NPCBase.h"
-#include "PKH/UI/EndingUI_Fail.h"
 #include "PKH/UI/EndingUI_Success.h"
 #include "PKH/UI/NPCConversationWidget.h"
 #include "PKH/UI/TimerWidget.h"
 #include "Sound/AmbientSound.h"
-#include "YSH/skySystem.h"
 
 #define TEN_MINUTES 10
 #define SIXTY_MINUTES 60
@@ -25,8 +22,7 @@
 
 AFarmLifeGameMode::AFarmLifeGameMode()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	// Default Pawn & Controller
+	PrimaryActorTick.bCanEverTick = false;
 
 
 	// Http Actor
@@ -56,21 +52,10 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	}
 
 	// For Ending
-	static ConstructorHelpers::FClassFinder<UEndingUI_Fail> EndingUI_FailClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Fail.WBP_EndingUI_Fail_C"));
-	if (EndingUI_FailClassRef.Class)
-	{
-		EndingUI_FailClass = EndingUI_FailClassRef.Class;
-	}
 	static ConstructorHelpers::FClassFinder<UEndingUI_Success> EndingUI_SuccessClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Success.WBP_EndingUI_Success_C"));
 	if (EndingUI_SuccessClassRef.Class)
 	{
 		EndingUI_SuccessClass = EndingUI_SuccessClassRef.Class;
-	}
-
-	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingFailRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingFail.BGM_EndingFail'"));
-	if (BGM_EndingFailRef.Object)
-	{
-		BGM_EndingFail = BGM_EndingFailRef.Object;
 	}
 	static ConstructorHelpers::FObjectFinder<USoundBase> BGM_EndingSuccessRef(TEXT("/Script/Engine.SoundWave'/Game/PKH/Sound/BGM_EndingSuccessShort.BGM_EndingSuccessShort'"));
 	if (BGM_EndingSuccessRef.Object)
@@ -90,8 +75,6 @@ void AFarmLifeGameMode::BeginPlay()
 
 	MyController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	ensure(MyController);
-	FTimerHandle TempHandle;
-	GetWorldTimerManager().SetTimer(TempHandle, this, &AFarmLifeGameMode::ChangeInputMode_Game, 0.1f, false);
 
 	// Player Home Loc
 	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
@@ -99,27 +82,24 @@ void AFarmLifeGameMode::BeginPlay()
 		PlayerHomLoc = Player->GetActorLocation();
 	}
 
-	// Time flow
-	/*SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), ADirectionalLight::StaticClass());
-	if(nullptr == SunLight)
+	// NPCs
+	TArray<AActor*> NPCActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), NPCActors);
+	for (AActor* NPCActor : NPCActors)
 	{
-		SunLight = UGameplayStatics::GetActorOfClass(GetWorld(), AskySystem::StaticClass());
+		ANPCBase* NPC = Cast<ANPCBase>(NPCActor);
+		NPCArray.Add(NPC);
 	}
-	if(SunLight)
-	{
-		SunLight->SetActorRotation(SunBeginRot);
-	}*/
-
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TimeUpdateInterval, true, TimeUpdateInterval);
 
 	// UI
 	TimerUI = CreateWidget<UTimerWidget>(GetWorld(), TimerUIClass);
 	ensure(TimerUI);
 	TimerUI->AddToViewport();
 	TimerUI->UpdateTimerUI(Date, Hours, Minutes);
-	TimerUI->FadeOutFinished.BindDynamic(this, &AFarmLifeGameMode::OnNextDay);
-	TimerUI->FadeInFinished.BindDynamic(this, &AFarmLifeGameMode::OnFadeOutFinished);
+	TimerUI->FadeOutFinished.BindDynamic(this, &AFarmLifeGameMode::OnFadeOutFinished);
 	TimerUI->BindOnFinished();
+
+	TimerUI->SetVisibility(ESlateVisibility::Hidden);
 
 	ConversationUI = CreateWidget<UNPCConversationWidget>(GetWorld(), ConversationUIClass);
 	ensure(ConversationUI);
@@ -129,16 +109,32 @@ void AFarmLifeGameMode::BeginPlay()
 	// Sound
 	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
 	BGMComp->FadeIn(3.0f, 0.6f);
+
+	FTimerHandle Handl;
+	GetWorldTimerManager().SetTimer(Handl, this, &AFarmLifeGameMode::StartFarmLife, 10.0f, false);
 }
 
-void AFarmLifeGameMode::Tick(float DeltaSeconds)
+void AFarmLifeGameMode::StartFarmLife()
 {
-	Super::Tick(DeltaSeconds);
+	// Change Input Mode
+	FTimerHandle TempHandle;
+	GetWorldTimerManager().SetTimer(TempHandle, this, &AFarmLifeGameMode::ChangeInputMode_Game, 0.1f, false);
 
-	/*if (SunLight && false == Paused)
+	// Start Time Flow
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AFarmLifeGameMode::UpdateMinutes, TimeUpdateInterval, true, TimeUpdateInterval);
+	TimerUI->SetVisibility(ESlateVisibility::Visible);
+
+	// NPC AI Start
+	for(ANPCBase* NPC : NPCArray)
 	{
-		SunLight->AddActorWorldRotation(SunDeltaRot * DeltaSeconds);
-	}*/
+		NPC->RunAI();
+	}
+
+	// Delegate
+	if(OnFarmLifeStart.IsBound())
+	{
+		OnFarmLifeStart.Broadcast();
+	}
 }
 
 #pragma region NPC conversation
@@ -278,18 +274,24 @@ void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& File
 
 void AFarmLifeGameMode::SetTalkScore(int32 Score)
 {
-	if(Score == 0)
-	{
-		return;
-	}
 	UE_LOG(LogTemp, Warning, TEXT("Cur Plants Size: %d"), CurPlants.Num());
-	const bool IsPositive = Score > 0;
+
 	for(APlantActor* P : CurPlants)
 	{
 		// 긍정적이라면 작물 성장
-		if(IsPositive)
+		if(Score > 0)
 		{
-			P->GrowPlant(); UE_LOG(LogTemp, Warning, TEXT("Grow Plant"));
+			P->GrowPlant();
+		}
+		// 부정적이라면
+		else if(Score < 10)
+		{
+			//P->GrowPlant();
+		}
+		// 못알아들은 경우
+		else
+		{
+			//P->GrowPlant();
 		}
 	}
 }
@@ -373,22 +375,6 @@ void AFarmLifeGameMode::OnNextDay()
 	Hours = START_HOUR;
 	Minutes = 0;
 	++Date;
-	if(Date == MaxDate)
-	{
-		EndGame();
-		return;
-	}
-
-	if (SunLight)
-	{
-		SunLight->SetActorRotation(SunBeginRot);
-	}
-
-	// 플레이어 위치 초기화
-	if(AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
-	{
-		Player->SetActorLocation(PlayerHomLoc);
-	}
 
 	// 날짜 업데이트 일괄처리
 	TArray<AActor*> OutActors;
@@ -398,16 +384,13 @@ void AFarmLifeGameMode::OnNextDay()
 		IDateUpdate* DU = Cast<IDateUpdate>(Actor);
 		DU->OnDateUpdated(Date);
 	}
-
-	TimerUI->UpdateTimerUI(Date, Hours, Minutes);
-	TimerUI->StartFadeInAnim();
+	if(Paused)
+	{
+		StartTime();
+	}
 }
+
 // For Binding
-void AFarmLifeGameMode::OnFadeOutFinished()
-{
-	StartTime();
-}
-
 void AFarmLifeGameMode::CheckDateUpdate()
 {
 	if(Paused && Hours == END_HOUR)
@@ -449,16 +432,14 @@ void AFarmLifeGameMode::UpdateHours()
 
 void AFarmLifeGameMode::UpdateDate()
 {
-	StopTime();
-
 	// 대화중이라면 업데이트 보류
 	if(ConversationUI->IsVisible())
 	{
+		StopTime();
 		return;
 	}
 
-	// 페이드아웃
-	TimerUI->StartFadeOutAnim();
+	OnNextDay();
 }
 #pragma endregion
 
@@ -505,11 +486,31 @@ bool AFarmLifeGameMode::CanTalkOrPresent()
 #pragma endregion
 
 #pragma region Ending
+void AFarmLifeGameMode::CheckEndingCondition()
+{
+	int Count = 0;
+	for(ANPCBase* NPC : NPCArray)
+	{
+		if(NPC->GetLikeability() >= EndingSuccessLikeability)
+		{
+			++Count;
+		}
+	}
+	if(Count >= EndingSuccessCount)
+	{
+		TimerUI->StartFadeOutAnim();
+	}
+}
+
+void AFarmLifeGameMode::OnFadeOutFinished()
+{
+	EndGame();
+}
+
 void AFarmLifeGameMode::EndGame()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle);
 	TimerUI->FadeOutFinished.Clear();
-	TimerUI->FadeInFinished.Clear();
 
 	// Ambient Sound Off
 	TArray<AActor*> AmbientArray;
@@ -521,40 +522,18 @@ void AFarmLifeGameMode::EndGame()
 	}
 
 	// NPC Count
-	TArray<AActor*> NPCArray;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANPCBase::StaticClass(), NPCArray);
-
-	int32 Count = 0;
-	for(int i = 0; i < NPCArray.Num(); ++i)
+	for(ANPCBase* NPC : NPCArray)
 	{
-		ANPCBase* NPC = Cast<ANPCBase>(NPCArray[i]);
-		if(NPC->GetLikeability() >= EndingSuccessLikeability)
-		{
-			++Count;
-		}
 		NPC->StopAI();
 	}
 	BGMComp->FadeOut(2.0f, 0);
 
-	if(Count >= EndingSuccessCount)
+	EndingUI_Success = CreateWidget<UEndingUI_Success>(GetWorld(), EndingUI_SuccessClass);
+	EndingUI_Success->AddToViewport(10);
+	if (BGM_EndingSuccess)
 	{
-		EndingUI_Success = CreateWidget<UEndingUI_Success>(GetWorld(), EndingUI_SuccessClass);
-		EndingUI_Success->AddToViewport(10);
-		if(BGM_EndingSuccess)
-		{
-			BGMComp->SetSound(BGM_EndingSuccess);
-			BGMComp->FadeIn(3.0f, 0.5f);
-		}
-	}
-	else
-	{
-		EndingUI_Fail = CreateWidget<UEndingUI_Fail>(GetWorld(), EndingUI_FailClass);
-		EndingUI_Fail->AddToViewport(10);
-		if(BGM_EndingFail)
-		{
-			BGMComp->SetSound(BGM_EndingFail);
-			BGMComp->FadeIn(3.0f, 0.5f);
-		}
+		BGMComp->SetSound(BGM_EndingSuccess);
+		BGMComp->FadeIn(3.0f, 0.5f);
 	}
 }
 #pragma endregion

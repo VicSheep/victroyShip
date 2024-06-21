@@ -437,7 +437,9 @@ async def get_greeting_tts():
 #################### NPC 선물 관련 ####################
 
 present_template = """
-You are a person with feelings. Understand your persona, {persona}, and response to the situation which you've got a present. Response in a conversational style of no more than 100 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
+You are a person with feelings. Understand your persona, {persona}, and response to the situation which you've got a present.
+The present which you've got is {item}.
+Response in a conversational style of no more than 100 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
 Whether the present is your favorite item or not is based on prefer is true of false. If true, response more intensely.
 
 prefer:
@@ -451,10 +453,11 @@ present_prompt = PromptTemplate.from_template(template=present_template)
 present_prompt = present_prompt.partial(format=parser.get_format_instructions())# 프롬프트 설정
 present_chain = present_prompt | llm | parser
 
-def present2player(npcName:str, preperence:int, is_prefer_item:bool):
+def present2player(npcName:str, item_name:str, preperence:int, is_prefer_item:bool):
     response = present_chain.invoke(
         {
             "persona": load_persona(npcName),
+            "item": item_name,
             "is_prefer_item": is_prefer_item,
             "dialogue_example": get_sentences_as_string(npcName,preperence),
         }
@@ -468,6 +471,7 @@ presented_npc_name = ""
 
 class Present_Data(fastapiBaseModel):
     npc_name : str
+    item : str
     likeability : int
     prefer : bool
     
@@ -475,7 +479,7 @@ class Present_Data(fastapiBaseModel):
 async def post_present(data:Present_Data):
     global presented_npc_name, present_data
     presented_npc_name = data.npc_name
-    present_data = present2player(data.npc_name, data.likeability, data.prefer)
+    present_data = present2player(data.npc_name, data.item, data.likeability, data.prefer)
     return present_data
 
 @app.get("/get-present-data")

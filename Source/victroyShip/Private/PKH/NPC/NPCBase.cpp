@@ -127,7 +127,6 @@ void ANPCBase::BeginPlay()
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
 
 	NPCController = CastChecked<ANPCController>(GetController());
-	NPCController->SetHomeLoc(HomeLoc);
 
 	AnimInstance = Cast<UNPCAnimInstance>(GetMesh()->GetAnimInstance());
 	ensure(AnimInstance);
@@ -512,13 +511,24 @@ void ANPCBase::SetCurPortrait()
 	}
 }
 
+#pragma region BehaviorTree AI 
+void ANPCBase::RunAI()
+{
+	if (NPCController)
+	{
+		NPCController->RunAI();
+		NPCController->SetHomeLoc(HomeLoc);
+	}
+}
+
 void ANPCBase::StopAI()
 {
-	if(NPCController)
+	if (NPCController)
 	{
 		NPCController->StopAI();
 	}
 }
+#pragma endregion
 
 void ANPCBase::OnDateUpdated(int32 NewDate)
 {
