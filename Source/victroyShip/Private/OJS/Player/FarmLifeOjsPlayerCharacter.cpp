@@ -93,6 +93,8 @@ void AFarmLifeOjsPlayerCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
+		if(moveBool==false)
+		{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -106,6 +108,7 @@ void AFarmLifeOjsPlayerCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+		}
 	}
 }
 
