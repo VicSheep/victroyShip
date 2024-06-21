@@ -54,7 +54,10 @@ void AWeedActor::Tick(float DeltaTime)
 
 void AWeedActor::SetVisible(bool isVisible)
 {
-	MeshComp1->SetVisibility(isVisible);
-	MeshComp2->SetVisibility(isVisible);
-	MeshComp3->SetVisibility(isVisible);
+	if (isVisible != MeshComp1->IsVisible())
+	{
+		MeshComp1->SetVisibility(isVisible);
+		MeshComp2->SetVisibility(isVisible);
+		MeshComp3->SetVisibility(isVisible);
+	}
 }

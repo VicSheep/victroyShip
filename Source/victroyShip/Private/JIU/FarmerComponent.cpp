@@ -138,7 +138,7 @@ void UFarmerComponent::FarmingInteraction()
 	case 0:
 		if (Ground->Plant)
 		{
-			// OpenInfoWidget();
+			Ground->Plant->NegativeReaction();
 		}
 		else
 		{

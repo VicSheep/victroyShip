@@ -72,7 +72,7 @@ void UPlantInfoWidget::UpdatePlantInfo()
 	if (ground)
 	{
 		bar_water->SetPercent(ground->WaterFigure / 100.f);
-		bar_fertilizer->SetPercent(ground->FertilizerFigure / 100.f);
+		// bar_fertilizer->SetPercent(ground->FertilizerFigure / 100.f);
 	}
 }
 
