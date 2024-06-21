@@ -46,8 +46,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UChildActorComponent* ActorComponent;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UChildActorComponent* ActorComponent;*/
 
 	///* Mesh or Material *///
 	UPROPERTY()
@@ -91,7 +91,7 @@ public:
 	UPROPERTY()
 	float FertilizerFigure;
 
-	float figureLimit = 20.f;
+	float figureLimit = 0.f;
 
 	///* Planting Seed *///
 	UFUNCTION(BlueprintCallable)
@@ -114,14 +114,14 @@ public:
 	void ProwGround();
 
 	///* Weed *///
-	UPROPERTY()
-	class AWeedActor* WeedActor;
+	/*UPROPERTY()
+	class AWeedActor* WeedActor;*/
 
 	int32 RandomNumber = 0;
 	int32 Cushion = 0;
 
-	UPROPERTY(BlueprintReadWrite)
-	bool isWeed = false;
+	/*UPROPERTY(BlueprintReadWrite)
+	bool isWeed = false;*/
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveWeed();

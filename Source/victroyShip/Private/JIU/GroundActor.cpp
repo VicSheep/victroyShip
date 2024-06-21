@@ -32,9 +32,9 @@ AGroundActor::AGroundActor()
 	MeshComponent->SetupAttachment(RootComponent); // Attach to Root Component
 	MeshComponent->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, *PlanterPath));
 
-	ActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("ActorComponent"));
+	/*ActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("ActorComponent"));
 	ActorComponent->SetupAttachment(RootComponent);
-	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());
+	ActorComponent->SetChildActorClass(AWeedActor::StaticClass());*/
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -127,11 +127,11 @@ void AGroundActor::BeginPlay()
 		SetGroundState(EGroundState::Default);
 	}
 
-	WeedActor = Cast<AWeedActor>(ActorComponent->GetChildActor());
-	if (!WeedActor)
+	// WeedActor = Cast<AWeedActor>(ActorComponent->GetChildActor());
+	/*if (!WeedActor)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No Weed"));
-	}
+	}*/
 
 	WaterFigure = 0.f;
 	FertilizerFigure = 0.f;
@@ -171,7 +171,7 @@ void AGroundActor::BeginPlay()
 					MeshComponent->SetMaterial(0, DefaultMaterialInterface);
 				}
 			}
-			else if (GroundState == EGroundState::Default && !isWeed)
+			/*else if (GroundState == EGroundState::Default && !isWeed)
 			{
 				if (RandomNumber <= 20)
 				{
@@ -182,7 +182,7 @@ void AGroundActor::BeginPlay()
 						WeedActor->SetVisible(true);
 					}
 				}
-			}
+			}*/
 		}
 	}, 1.f, true);
 }
@@ -254,7 +254,7 @@ void AGroundActor::RemovePlant()
 
 void AGroundActor::ProwGround()
 {
-	if (!isWeed)
+	// if (!isWeed)
 	{
 		if (GroundState == EGroundState::Default)
 		{
@@ -273,14 +273,14 @@ void AGroundActor::ProwGround()
 
 void AGroundActor::RemoveWeed()
 {
-	if (isWeed && WeedActor)
+	/*if (isWeed && WeedActor)
 	{
 		isWeed = false;
 		WeedActor->SetVisible(false);
 		Cushion = 0;
 
 		PlaySound(AxeSoundWave);
-	}
+	}*/
 }
 
 void AGroundActor::MoveCamera()
@@ -357,45 +357,38 @@ void AGroundActor::SetGroundMaterial()
 {
 	if (GroundState == EGroundState::DryPlanter)
 	{
-		if (WaterFigure > figureLimit || FertilizerFigure > figureLimit)
+		if (WaterFigure > figureLimit)
 		{
-			if (WaterFigure > figureLimit && FertilizerFigure > figureLimit)
+			if (WetMaterialInterface)
 			{
-				if (WetMaterialInterface)
-				{
-					MeshComponent->SetMaterial(0, WetMaterialInterface);
-					SetGroundState(EGroundState::WetPlanter);
-				}
+				MeshComponent->SetMaterial(0, WetMaterialInterface);
+				SetGroundState(EGroundState::WetPlanter);
 			}
-			else
+		}
+		else
+		{
+			if (DryMaterialInterface)
 			{
-				if (MiddleMaterialInterface)
-				{
-					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
-				}
+				MeshComponent->SetMaterial(0, DryMaterialInterface);
 			}
 		}
 	}
 
 	else if (GroundState == EGroundState::WetPlanter)
 	{
-		if (WaterFigure < figureLimit || FertilizerFigure < figureLimit)
+		if (WaterFigure < figureLimit)
 		{
-			if (WaterFigure < figureLimit && FertilizerFigure < figureLimit)
+			if (DryMaterialInterface)
 			{
-				if (DryMaterialInterface)
-				{
-					MeshComponent->SetMaterial(0, DryMaterialInterface);
-					SetGroundState(EGroundState::DryPlanter);
-				}
+				MeshComponent->SetMaterial(0, DryMaterialInterface);
+				SetGroundState(EGroundState::DryPlanter);
 			}
-			else
+		}
+		else
+		{
+			if (WetMaterialInterface)
 			{
-				if (MiddleMaterialInterface)
-				{
-					MeshComponent->SetMaterial(0, MiddleMaterialInterface);
-					SetGroundState(EGroundState::DryPlanter);
-				}
+				MeshComponent->SetMaterial(0, WetMaterialInterface);
 			}
 		}
 	}

@@ -34,7 +34,7 @@ void UFarmerComponent::BeginPlay()
 	PlantWidget->SetVisibility(ESlateVisibility::Hidden);
 
 	PlantInfoWidget = CreateWidget<UPlantInfoWidget>(GetWorld(), plantInfoFactory);
-	PlantInfoWidget->AddToViewport();
+	PlantInfoWidget->AddToViewport(-1);
 	PlantInfoWidget->SetVisibility(ESlateVisibility::Hidden);
 
 	ToolWidget = CreateWidget<UToolWidget>(GetWorld(), toolFactory);
