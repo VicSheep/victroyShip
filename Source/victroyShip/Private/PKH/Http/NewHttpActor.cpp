@@ -769,3 +769,16 @@ void ANewHttpActor::ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpRespo
 }
 #pragma endregion
 
+void ANewHttpActor::EndGame()
+{
+	const FString& FullURL = BaseURL + EndPoint_EndGame;
+
+	// HTTP Request
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(TEXT("GET"));
+	HttpRequest->SetURL(FullURL);
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+
+	HttpRequest->ProcessRequest();
+	UE_LOG(LogTemp, Warning, TEXT("Req reset history"));
+}

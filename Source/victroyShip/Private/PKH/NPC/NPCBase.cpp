@@ -537,7 +537,6 @@ void ANPCBase::OnDateUpdated(int32 NewDate)
 		InitGreeting();
 	}
 
-	SetActorLocation(HomeLoc);
 	NPCController->ResetBBKeys();
 	AnimInstance->StopAllMontages(0);
 }

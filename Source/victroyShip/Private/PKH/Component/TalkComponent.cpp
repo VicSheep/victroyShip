@@ -35,6 +35,18 @@ void UTalkComponent::BeginPlay()
 
 	Player = CastChecked<ACharacter>(GetOwner());
 	MyGameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
+
+	UActorComponent* NiagaraComp = Player->GetComponentByClass(UNiagaraComponent::StaticClass());
+	if(NiagaraComp)
+	{
+		VfxComp = Cast<UNiagaraComponent>(NiagaraComp);
+		if(VfxComp)
+		{
+			VfxComp->SetAutoDestroy(false);
+			VfxComp->SetAutoActivate(false);
+			
+		}
+	}
 }
 
 #pragma region Check Nearby
@@ -74,18 +86,6 @@ void UTalkComponent::SearchNearby(const FString& InputText)
 	Params.AddIgnoredActor(Player);
 	FVector Origin = Player->GetActorLocation();
 	bool NPCOverlapped = GetWorld()->OverlapMultiByProfile(NPCResults, Origin, FQuat::Identity, TEXT("Pawn"), FCollisionShape::MakeSphere(300.0f), Params);
-	if(nullptr == VfxComp)
-	{
-		VfxComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Vfx_Talk, FVector(Origin.X, Origin.Y, Origin.Z - 90.0f));
-		VfxComp->SetAutoDestroy(false);
-	}
-	else
-	{
-		FVector VfxLoc = Origin;
-		VfxLoc.Z -= 90.0f;
-		VfxComp->SetWorldLocation(VfxLoc);
-		VfxComp->Activate();
-	}
 
 	if (NPCOverlapped)
 	{
@@ -182,19 +182,23 @@ void UTalkComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& Ne
 }
 #pragma endregion
 
+#pragma region Record On/Off
 void UTalkComponent::RecordOn()
 {
 	MyGameMode->RecordOn();
+	TalkRangeOn();
 
+	IsRecordValid = false;
 	GetWorld()->GetTimerManager().SetTimer(RecordTimeHandle, FTimerDelegate::CreateLambda([this]()
 	{
-		CurRecordTime += RecordTimeInterval;
-	}), RecordTimeInterval, true);
+		IsRecordValid = true;
+	}), ValidRecordTime, false);
 }
 
 void UTalkComponent::RecordOff()
 {
 	MyGameMode->RecordOff();
+	TalkRangeOff();
 
 	FTimerManager& Manager = GetWorld()->GetTimerManager();
 	if(Manager.IsTimerActive(RecordTimeHandle))
@@ -203,7 +207,32 @@ void UTalkComponent::RecordOff()
 	}
 }
 
+void UTalkComponent::TalkRangeOn()
+{
+	if (nullptr == VfxComp)
+	{
+		return;
+	}
+
+	if(nullptr == VfxComp->GetAsset())
+	{
+		VfxComp->SetAsset(Vfx_Talk);
+	}
+	VfxComp->ActivateSystem();
+}
+
+void UTalkComponent::TalkRangeOff()
+{
+	if (nullptr == VfxComp)
+	{
+		return;
+	}
+
+	VfxComp->DeactivateImmediate();
+}
+
 bool UTalkComponent::IsValidRecordTime()
 {
-	return CurRecordTime >= ValidRecordTime;
+	return IsRecordValid;
 }
+#pragma endregion

@@ -143,7 +143,7 @@ public:
 	void EndChat(const FString& NPCName);
 	void EndChatComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
-	// Talk to plant
+// Talk to plant
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	FString EndPoint_TalkToPlant = TEXT("/post-talk2plant");
@@ -171,4 +171,12 @@ public:
 
 	void ReqScoreWithText();
 	void ReqScoreWithTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+
+// EndGame
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FString EndPoint_EndGame = TEXT("/get-clearHistory");
+
+public:
+	void EndGame();
 };

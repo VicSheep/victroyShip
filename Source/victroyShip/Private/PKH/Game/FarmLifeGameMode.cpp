@@ -275,7 +275,7 @@ void AFarmLifeGameMode::TalkToPlant(const FString& FileName, const FString& File
 
 void AFarmLifeGameMode::SetTalkScore(int32 Score)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Cur Plants Size: %d"), CurPlants.Num());
+	UE_LOG(LogTemp, Warning, TEXT("Tlak to Plant: %d"), Score);
 
 	for(APlantActor* P : CurPlants)
 	{
@@ -287,7 +287,7 @@ void AFarmLifeGameMode::SetTalkScore(int32 Score)
 		// 부정적이라면
 		else if(Score < 10)
 		{
-			//P->GrowPlant();
+			P->NegativeReaction();
 		}
 		// 못알아들은 경우
 		else
@@ -545,5 +545,5 @@ void AFarmLifeGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	// 대화기록 초기화 요청
-
+	HttpActor->EndGame();
 }
