@@ -3,7 +3,10 @@
 
 #include "PKH/Game/FarmLifeGameMode.h"
 
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 #include "Components/AudioComponent.h"
+#include "JIU/GroundActor.h"
 #include "JIU/PlantActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "PKH/Http/NewHttpActor.h"
@@ -27,7 +30,7 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 
 	// Http Actor
 	static ConstructorHelpers::FClassFinder<ANewHttpActor> HttpActorClassRef(TEXT("/Game/PKH/Blueprint/BP_NewHttpActor.BP_NewHttpActor_C"));
-	if(HttpActorClassRef.Class)
+	if (HttpActorClassRef.Class)
 	{
 		HttpActorClass = HttpActorClassRef.Class;
 	}
@@ -51,6 +54,30 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 		BGM_BackToPortland = BGM_BackToPortlandRef.Object;
 	}
 
+	// Start Screen
+	/*static ConstructorHelpers::FClassFinder<UUserWidget> StartUIClassRef(TEXT("/Game/JIU/StartScreen/Widgets/WBP_StartScreen.WBP_StartScreen_C"));
+	if (StartUIClassRef.Class)
+	{
+		StartUIClass = StartUIClassRef.Class;
+	}*/
+	static ConstructorHelpers::FObjectFinder<ULevelSequence> StartSequenceRef(TEXT("/Script/LevelSequence.LevelSequence'/Game/JIU/StartScreen/Sequencers/Master.Master'"));
+	if (StartSequenceRef.Object)
+	{
+		StartSequence = StartSequenceRef.Object;
+	}
+
+	// Tutorial
+	static ConstructorHelpers::FClassFinder<UUserWidget> TutorialUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Tutorial.WBP_Tutorial_C"));
+	if (TutorialUIClassRef.Class)
+	{
+		TutorialUIClass = TutorialUIClassRef.Class;
+	}
+	static ConstructorHelpers::FClassFinder<UUserWidget> GuideUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Guide.WBP_Guide_C"));
+	if (GuideUIClassRef.Class)
+	{
+		GuideUIClass = GuideUIClassRef.Class;
+	}
+
 	// For Ending
 	static ConstructorHelpers::FClassFinder<UEndingUI_Success> EndingUI_SuccessClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Success.WBP_EndingUI_Success_C"));
 	if (EndingUI_SuccessClassRef.Class)
@@ -68,7 +95,7 @@ void AFarmLifeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(HttpActorClass)
+	if (HttpActorClass)
 	{
 		HttpActor = GetWorld()->SpawnActor<ANewHttpActor>(HttpActorClass);
 	}
@@ -77,7 +104,7 @@ void AFarmLifeGameMode::BeginPlay()
 	ensure(MyController);
 
 	// Player Home Loc
-	if(const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	if (const AActor* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
 		PlayerHomLoc = Player->GetActorLocation();
 	}
@@ -110,13 +137,70 @@ void AFarmLifeGameMode::BeginPlay()
 	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
 	BGMComp->FadeIn(3.0f, 0.6f);
 
+	// Deactivate GroundActors
+	TArray<AActor*> GroundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGroundActor::StaticClass(), GroundActors);
+	for (AActor* GA : GroundActors)
+	{
+		GA->SetActorEnableCollision(false);
+		GA->SetActorHiddenInGame(true);
+	}
+
+	// Start Screen Settings
+	StartScreenOn();
+
 	// 추후 튜토리얼 종료 시점에 호출할 것
-	FTimerHandle StartHandle;
-	GetWorldTimerManager().SetTimer(StartHandle, this, &AFarmLifeGameMode::StartFarmLife, 1.0f, false);
+	/*FTimerHandle StartHandle;
+	GetWorldTimerManager().SetTimer(StartHandle, this, &AFarmLifeGameMode::StartFarmLife, 1.0f, false);*/
+}
+
+void AFarmLifeGameMode::StartScreenOn()
+{
+	StartUI = CreateWidget(GetWorld(), StartUIClass);
+	StartUI->AddToViewport(3);
+
+	FMovieSceneSequencePlaybackSettings Settings;
+	Settings.LoopCount.Value = -1;
+	StartSequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), StartSequence, Settings, StartSequenceActor);
+	StartSequencePlayer->Play();
+
+	ChangeInputMode_UI();
+}
+
+void AFarmLifeGameMode::StartScreenOff()
+{
+	StartUI->RemoveFromParent();
+	StartSequencePlayer->Stop();
+}
+
+void AFarmLifeGameMode::StartTutorial()
+{
+	StartScreenOff();
+
+	TutorialUI = CreateWidget(GetWorld(), TutorialUIClass);
+	TutorialUI->AddToViewport(0);
+
+	GuideUI = CreateWidget(GetWorld(), GuideUIClass);
+	GuideUI->AddToViewport(-1);
+
+	ChangeInputMode_UI();
 }
 
 void AFarmLifeGameMode::StartFarmLife()
 {
+	if(StartUI->IsInViewport())
+	{
+		StartScreenOff();
+	}
+	if(TutorialUI)
+	{
+		TutorialUI->RemoveFromParent();
+	}
+	if(GuideUI)
+	{
+		GuideUI->RemoveFromParent();
+	}
+
 	// Change Input Mode
 	FTimerHandle TempHandle;
 	GetWorldTimerManager().SetTimer(TempHandle, this, &AFarmLifeGameMode::ChangeInputMode_Game, 0.1f, false);
@@ -126,13 +210,30 @@ void AFarmLifeGameMode::StartFarmLife()
 	TimerUI->SetVisibility(ESlateVisibility::Visible);
 
 	// NPC AI Start
-	for(ANPCBase* NPC : NPCArray)
+	for (ANPCBase* NPC : NPCArray)
 	{
 		NPC->RunAI(); UE_LOG(LogTemp, Error, TEXT("RunAI"));
 	}
 
+	// Delete Tutorial Objects
+	TArray<AActor*> TutorialActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TEXT("Tutorial"), TutorialActors);
+	for (AActor* TA : TutorialActors)
+	{
+		TA->Destroy();
+	}
+
+	// Activate GroundActors
+	TArray<AActor*> GroundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGroundActor::StaticClass(), GroundActors);
+	for (AActor* GA : GroundActors)
+	{
+		GA->SetActorEnableCollision(true);
+		GA->SetActorHiddenInGame(false);
+	}
+
 	// Delegate
-	if(OnFarmLifeStart.IsBound())
+	if (OnFarmLifeStart.IsBound())
 	{
 		OnFarmLifeStart.Broadcast();
 	}
@@ -141,7 +242,7 @@ void AFarmLifeGameMode::StartFarmLife()
 #pragma region NPC conversation
 void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<ANPCBase>& NewNPC)
 {
-	if(false == CanTalkOrPresent())
+	if (false == CanTalkOrPresent())
 	{
 		return;
 	}
@@ -159,7 +260,7 @@ void AFarmLifeGameMode::SendSpeech(const FString& FileName, const FString& FileP
 
 void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 {
-	if(nullptr == CurNPC)
+	if (nullptr == CurNPC)
 	{
 		return;
 	}
@@ -167,7 +268,7 @@ void AFarmLifeGameMode::SetLatestSpeech(const FNPCResponse& Response)
 	LatestSpeech = Response.Answer;
 
 	// UI 갱신
-	if(ConversationUI->IsVisible())
+	if (ConversationUI->IsVisible())
 	{
 		ConversationUI->UpdateConversationUI(LatestSpeech, true);
 		CurNPC->SetCurEmotion(Response.Emotion);
@@ -186,7 +287,7 @@ FString& AFarmLifeGameMode::GetLatestSpeech()
 
 void AFarmLifeGameMode::EndConversation()
 {
-	if(nullptr == CurNPC)
+	if (nullptr == CurNPC)
 	{
 		return;
 	}
@@ -199,7 +300,7 @@ void AFarmLifeGameMode::EndConversation()
 
 void AFarmLifeGameMode::ShowPlayerText(const FString& PlayerInputText)
 {
-	if(CurNPC)
+	if (CurNPC)
 	{
 		ConversationUI->UpdateConversationUI(PlayerInputText, true);
 	}
@@ -225,7 +326,7 @@ void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPC
 
 void AFarmLifeGameMode::PlayNPCEmotion()
 {
-	if(CurNPC)
+	if (CurNPC)
 	{
 		CurNPC->PlayEmotion();
 	}
@@ -234,10 +335,10 @@ void AFarmLifeGameMode::PlayNPCEmotion()
 void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 {
 	// NPC가 말하는 상황에서만 실행
-	if(ConversationUI->IsVisible() && nullptr != CurNPC)
+	if (ConversationUI->IsVisible() && nullptr != CurNPC)
 	{
 		ConversationUI->PlayNow();
-		if(ConversationUI->CanPlayTTS())
+		if (ConversationUI->CanPlayTTS())
 		{
 			CurNPC->PlayTTS(FilePath);
 		}
@@ -250,7 +351,7 @@ void AFarmLifeGameMode::PlayTTS(const FString& FilePath)
 
 void AFarmLifeGameMode::PlayReservedTTS()
 {
-	if(CurTTSFilePath.IsEmpty())
+	if (CurTTSFilePath.IsEmpty())
 	{
 		return;
 	}
@@ -277,15 +378,15 @@ void AFarmLifeGameMode::SetTalkScore(int32 Score)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Tlak to Plant: %d"), Score);
 
-	for(APlantActor* P : CurPlants)
+	for (APlantActor* P : CurPlants)
 	{
 		// 긍정적이라면 작물 성장
-		if(Score > 0)
+		if (Score > 0)
 		{
 			P->GrowPlant();
 		}
 		// 부정적이라면
-		else if(Score < 10)
+		else if (Score < 10)
 		{
 			P->NegativeReaction();
 		}
@@ -324,7 +425,7 @@ void AFarmLifeGameMode::RequestGreetingData(class ANPCBase* NewNPC)
 
 void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 {
-	if(nullptr == CurNPC)
+	if (nullptr == CurNPC)
 	{
 		return;
 	}
@@ -385,7 +486,7 @@ void AFarmLifeGameMode::OnNextDay()
 		IDateUpdate* DU = Cast<IDateUpdate>(Actor);
 		DU->OnDateUpdated(Date);
 	}
-	if(Paused)
+	if (Paused)
 	{
 		StartTime();
 	}
@@ -394,7 +495,7 @@ void AFarmLifeGameMode::OnNextDay()
 // For Binding
 void AFarmLifeGameMode::CheckDateUpdate()
 {
-	if(Paused && Hours == END_HOUR)
+	if (Paused && Hours == END_HOUR)
 	{
 		UpdateDate();
 	}
@@ -403,8 +504,8 @@ void AFarmLifeGameMode::CheckDateUpdate()
 void AFarmLifeGameMode::UpdateMinutes()
 {
 	Minutes += TEN_MINUTES;
-	
-	if(Minutes == SIXTY_MINUTES)
+
+	if (Minutes == SIXTY_MINUTES)
 	{
 		UpdateHours();
 	}
@@ -419,13 +520,13 @@ void AFarmLifeGameMode::UpdateHours()
 	// 시간 업데이트 일괄처리
 	TArray<AActor*> OutActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UHourUpdate::StaticClass(), OutActors);
-	for(AActor* Actor : OutActors)
+	for (AActor* Actor : OutActors)
 	{
 		IHourUpdate* HU = Cast<IHourUpdate>(Actor);
 		HU->OnHourUpdated(Hours);
 	}
 
-	if(Hours == END_HOUR)
+	if (Hours == END_HOUR)
 	{
 		UpdateDate();
 	}
@@ -434,7 +535,7 @@ void AFarmLifeGameMode::UpdateHours()
 void AFarmLifeGameMode::UpdateDate()
 {
 	// 대화중이라면 업데이트 보류
-	if(ConversationUI->IsVisible())
+	if (ConversationUI->IsVisible())
 	{
 		StopTime();
 		return;
@@ -449,6 +550,12 @@ void AFarmLifeGameMode::ChangeInputMode_Game()
 {
 	MyController->SetInputMode(InputMode_Game);
 	MyController->SetShowMouseCursor(false);
+}
+
+void AFarmLifeGameMode::ChangeInputMode_UI()
+{
+	MyController->SetInputMode(InputMode_UI);
+	MyController->SetShowMouseCursor(true);
 }
 
 void AFarmLifeGameMode::ChangeInputMode_Both()
@@ -476,7 +583,7 @@ void AFarmLifeGameMode::RecordOff()
 
 bool AFarmLifeGameMode::CanTalkOrPresent()
 {
-	if(ConversationUI->CanMoveToNextTalk())
+	if (ConversationUI->CanMoveToNextTalk())
 	{
 		return true;
 	}
@@ -490,14 +597,14 @@ bool AFarmLifeGameMode::CanTalkOrPresent()
 void AFarmLifeGameMode::CheckEndingCondition()
 {
 	int Count = 0;
-	for(ANPCBase* NPC : NPCArray)
+	for (ANPCBase* NPC : NPCArray)
 	{
-		if(NPC->GetLikeability() >= EndingSuccessLikeability)
+		if (NPC->GetLikeability() >= EndingSuccessLikeability)
 		{
 			++Count;
 		}
 	}
-	if(Count >= EndingSuccessCount)
+	if (Count >= EndingSuccessCount)
 	{
 		TimerUI->StartFadeOutAnim();
 	}
@@ -516,14 +623,14 @@ void AFarmLifeGameMode::EndGame()
 	// Ambient Sound Off
 	TArray<AActor*> AmbientArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAmbientSound::StaticClass(), AmbientArray);
-	for(AActor* AmbActor : AmbientArray)
+	for (AActor* AmbActor : AmbientArray)
 	{
 		AAmbientSound* Amb = Cast<AAmbientSound>(AmbActor);
 		Amb->GetAudioComponent()->Deactivate();
 	}
 
 	// NPC Count
-	for(ANPCBase* NPC : NPCArray)
+	for (ANPCBase* NPC : NPCArray)
 	{
 		NPC->StopAI();
 	}

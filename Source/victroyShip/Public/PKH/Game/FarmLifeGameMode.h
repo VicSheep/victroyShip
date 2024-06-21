@@ -21,13 +21,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFarmLifeStart);
 
 class UNPCConversationWidget;
 /**
- * 
+ *
  */
 UCLASS()
 class VICTROYSHIP_API AFarmLifeGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	AFarmLifeGameMode();
 
@@ -35,7 +35,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-// 튜토리얼 대응
+	// 튜토리얼 대응
 public:
 	UFUNCTION(BlueprintCallable)
 	void StartFarmLife();
@@ -43,7 +43,7 @@ public:
 	UPROPERTY(BlueprintCallable, BlueprintAssignable)
 	FOnFarmLifeStart OnFarmLifeStart;
 
-// Player & NPC
+	// Player & NPC
 protected:
 	UPROPERTY(VisibleAnywhere)
 	FVector PlayerHomLoc;
@@ -51,7 +51,7 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TArray<TObjectPtr<class ANPCBase>> NPCArray;
 
-// Http
+	// Http
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ANewHttpActor> HttpActorClass;
@@ -59,7 +59,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class ANewHttpActor> HttpActor;
 
-// STT
+	// STT
 protected:
 	FString LatestSpeech;
 	int32 TalkScore;
@@ -77,7 +77,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class ANPCBase* GetCurNPC() const { return CurNPC; }
 
-// Conversation
+	// Conversation
 public:
 	// NPC conversation
 	void SendSpeech(const FString& FileName, const FString& FilePath, const TObjectPtr<class ANPCBase>& NewNPC);
@@ -110,7 +110,7 @@ public:
 
 	bool IsInConversation();
 
-// Greeting
+	// Greeting
 public:
 	void InitGreeting(const FString& NPCName, int32 Likeability);
 
@@ -118,13 +118,13 @@ public:
 
 	void GreetingToPlayer(const FNPCResponse& NPCResponse);
 
-// Present
+	// Present
 public:
 	void RequestPresentData(class ANPCBase* NewNPC, const FString& ItemName, bool IsPrefer);
 
 	void ResponseToPlayerForPresent(const FNPCResponse& NPCResponse);
 
-// Time flow
+	// Time flow
 protected:
 	FTimerHandle TimerHandle;
 
@@ -168,12 +168,13 @@ public:
 
 	FORCEINLINE int32 GetHour() const { return Hours; };
 
-// InputMode
+	// InputMode
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class APlayerController> MyController;
 
 	FInputModeGameOnly InputMode_Game;
+	FInputModeUIOnly InputMode_UI;
 	FInputModeGameAndUI InputMode_Both;
 
 public:
@@ -181,9 +182,12 @@ public:
 	void ChangeInputMode_Game();
 
 	UFUNCTION(BlueprintCallable)
+	void ChangeInputMode_UI();
+
+	UFUNCTION(BlueprintCallable)
 	void ChangeInputMode_Both();
 
-// UI
+	// UI
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UNPCConversationWidget> ConversationUIClass;
@@ -206,7 +210,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool CanTalkOrPresent();
 
-// Sound
+	// Sound
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> BGM_BackToPortland;
@@ -220,7 +224,45 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	float BgmMultiplier_Conv = 0.6f;
 
-// Ending
+// StartScreen
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> StartUIClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UUserWidget> StartUI;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class ULevelSequence> StartSequence;
+
+	UPROPERTY(VisibleAnywhere)
+	class ALevelSequenceActor* StartSequenceActor;
+
+	UPROPERTY(VisibleAnywhere)
+	class ULevelSequencePlayer* StartSequencePlayer;
+
+	void StartScreenOn();
+	void StartScreenOff();
+
+// Tutorial
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> TutorialUIClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UUserWidget> TutorialUI;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> GuideUIClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UUserWidget> GuideUI;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartTutorial();
+
+	// Ending
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UEndingUI_Success> EndingUI_SuccessClass;
