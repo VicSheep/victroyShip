@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UNiagaraComponent> VfxComp;
 
+	void TalkRangeOn();
+	void TalkRangeOff();
+
 // UI
 public:
 	UFUNCTION(BlueprintCallable)
@@ -80,13 +83,9 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
-	float RecordTimeInterval = 0.1f;
-
-	UPROPERTY(EditDefaultsOnly)
 	float ValidRecordTime = 1.0f;
 
-	UPROPERTY(VisibleAnywhere)
-	float CurRecordTime = 0.0f;
+	bool IsRecordValid = false;
 
 	FTimerHandle RecordTimeHandle;
 

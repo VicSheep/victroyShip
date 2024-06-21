@@ -545,5 +545,5 @@ void AFarmLifeGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	// 대화기록 초기화 요청
-
+	HttpActor->EndGame();
 }
