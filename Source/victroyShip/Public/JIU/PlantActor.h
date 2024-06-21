@@ -83,8 +83,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GrowPlant();
 
+	UFUNCTION(BlueprintCallable)
+	void NegativeReaction();
+
 	UFUNCTION()
 	void StartScaling();
+
+	UFUNCTION()
+	void ReverseScaling();
 
 	UFUNCTION()
 	void HandleProgress(float Value);
@@ -95,7 +101,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Timeline")
 	UCurveFloat* FloatCurve;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Timeline")
+	UCurveFloat* ReverseCurve;
+
 	FTimeline MyTimeline;
+	FTimeline ReverseTimeline;
 
 	FVector InitialScale = FVector(1.0f, 1.0f, 1.0f);
 	FVector MaxScale = FVector(1.0f, 1.0f, 1.0f);
@@ -107,6 +117,7 @@ public:
 	bool isChanged = true;
 
 	void SetupTimeline();
+	void SetupReverseTimeline();
 
 	///* Havest *///
 	UFUNCTION(BlueprintCallable)
@@ -133,6 +144,9 @@ public:
 
 	UPROPERTY()
 	UNiagaraSystem* GrowupNiagaraSystem;
+
+	UPROPERTY()
+	UNiagaraSystem* NegativeNiagaraSystem;
 
 	///* SFX *///
 	UFUNCTION()
