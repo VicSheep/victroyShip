@@ -43,6 +43,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	void RunAI();
+	void StopAI();
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UWidgetComponent> EmotionUIComp;
@@ -284,9 +288,6 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere)
 	float SitDistance = 0;
-
-public:
-	void StopAI();
 
 // Interface
 public:

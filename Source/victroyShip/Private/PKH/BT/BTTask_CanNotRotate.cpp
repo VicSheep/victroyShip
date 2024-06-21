@@ -36,6 +36,5 @@ EBTNodeResult::Type UBTTask_CanNotRotate::ExecuteTask(UBehaviorTreeComponent& Ow
 	}
 
 	const bool CanNotRotateToPlayer = (false == NPC->CanRotateInWorking()) && BBComp->GetValueAsBool(KEY_IS_WORKING);
-	UE_LOG(LogTemp, Error, TEXT("[CanNotRotateToPlayer] : %d"), CanNotRotateToPlayer);
 	return CanNotRotateToPlayer ? EBTNodeResult::Succeeded : EBTNodeResult::Failed;
 }

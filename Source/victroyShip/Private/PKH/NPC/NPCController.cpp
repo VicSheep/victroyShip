@@ -38,7 +38,7 @@ void ANPCController::OnPossess(APawn* InPawn)
 
 	SightComp->OnTargetPerceptionUpdated.AddDynamic(this, &ANPCController::OnSightUpdated);
 
-	RunAI();
+	//RunAI();
 }
 
 

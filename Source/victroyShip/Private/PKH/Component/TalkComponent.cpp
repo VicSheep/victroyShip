@@ -185,9 +185,25 @@ void UTalkComponent::TalkToPlantByText(const TArray<TObjectPtr<APlantActor>>& Ne
 void UTalkComponent::RecordOn()
 {
 	MyGameMode->RecordOn();
+
+	GetWorld()->GetTimerManager().SetTimer(RecordTimeHandle, FTimerDelegate::CreateLambda([this]()
+	{
+		CurRecordTime += RecordTimeInterval;
+	}), RecordTimeInterval, true);
 }
 
 void UTalkComponent::RecordOff()
 {
 	MyGameMode->RecordOff();
+
+	FTimerManager& Manager = GetWorld()->GetTimerManager();
+	if(Manager.IsTimerActive(RecordTimeHandle))
+	{
+		Manager.ClearTimer(RecordTimeHandle);
+	}
+}
+
+bool UTalkComponent::IsValidRecordTime()
+{
+	return CurRecordTime >= ValidRecordTime;
 }

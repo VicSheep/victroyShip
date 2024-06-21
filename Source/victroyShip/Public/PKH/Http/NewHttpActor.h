@@ -130,7 +130,7 @@ public:
 	void GetGreetingTTSComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Present
-	void RequestPresent(const FString& NPCName, int32 Likeability, bool IsPrefer);
+	void RequestPresent(const FString& NPCName, const FString& ItemName, int32 Likeability, bool IsPrefer);
 	void RequestPresentComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetPresentData();

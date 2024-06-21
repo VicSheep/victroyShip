@@ -34,6 +34,7 @@ APlantActor::APlantActor()
 
 	// GrowParticleSystem = LoadObject<UParticleSystem>(nullptr, TEXT("/Game/JIU/Effects/P_Sparks_E.P_Sparks_E"));
 	GrowupNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/HealPositive/NS/Vfx_GrowUp.Vfx_GrowUp"));
+	NegativeNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/JIU/Effects/Vfx_Down.Vfx_Down"));
 
 	static ConstructorHelpers::FObjectFinder<USoundWave> GrowSoundAsset(TEXT("/Game/HealPositive/SFX/sfx_DefUP.sfx_DefUP"));
 	if (GrowSoundAsset.Succeeded())
@@ -55,6 +56,7 @@ void APlantActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	MyTimeline.TickTimeline(DeltaTime);
+	ReverseTimeline.TickTimeline(DeltaTime);
 
 	// UE_LOG(LogTemp, Error, TEXT("Plant State : %d"), CurLevel);
 }
@@ -129,7 +131,7 @@ void APlantActor::SetPlant(int id, AGroundActor* _ground)
 
 void APlantActor::GrowPlant()
 {
-	if (Ground->WaterFigure < 20.f || Ground->FertilizerFigure < 20.f)	return;
+	if (Ground->WaterFigure <= 0.f)	return;
 
 	CurLevel += 1;
 	haveChange = true;
@@ -180,6 +182,74 @@ void APlantActor::GrowPlant()
 	}
 }
 
+void APlantActor::NegativeReaction()
+{
+	if (PlantState == EPlantState::Seed)
+	{
+		return;
+	}
+	if (PlantState == EPlantState::Havested)
+	{
+		if (CurLevel <= 1)
+		{
+			return;
+		}
+	}
+
+	CurLevel -= 1;
+	haveChange = true;
+
+	if (PlantState == EPlantState::Seed)
+	{
+	}
+	else if (PlantState == EPlantState::Growing)
+	{
+		SpawnNiagaraSystem(NegativeNiagaraSystem);
+
+		if (CurLevel <= 0)
+		{
+			PlantState = EPlantState::Seed;
+
+			if (PlantInfo.Bamboo)
+			{
+				NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.SeedPath);
+				ChangeTime = 0.5f;
+				ReverseScaling();
+			}
+			else
+			{
+				ChangeTime = 0.9f;
+				ReverseScaling();
+			}
+		}
+		else
+		{
+			NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+			ChangeTime = 0.5f;
+			ReverseScaling();
+		}
+	}
+	else if (PlantState == EPlantState::Mature)
+	{
+		SpawnNiagaraSystem(NegativeNiagaraSystem);
+
+		PlantState = EPlantState::Growing;
+		CurLevel = PlantInfo.GrowLevel;
+		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+
+		ChangeTime = 0.5f;
+		ReverseScaling();
+	}
+	else if (PlantState == EPlantState::Havested)
+	{
+		SpawnNiagaraSystem(NegativeNiagaraSystem);
+
+		NewMesh = LoadObject<UStaticMesh>(nullptr, *PlantInfo.GetPath(PlantState == EPlantState::Growing ? true : false, CurLevel));
+		ChangeTime = 0.5f;
+		ReverseScaling();
+	}
+}
+
 void APlantActor::StartScaling()
 {
 	MeshComponent->SetWorldScale3D(InitialScale);
@@ -188,6 +258,17 @@ void APlantActor::StartScaling()
 	{
 		SetupTimeline();
 		MyTimeline.PlayFromStart();
+	}
+}
+
+void APlantActor::ReverseScaling()
+{
+	MeshComponent->SetWorldScale3D(InitialScale);
+
+	if (ReverseCurve)
+	{
+		SetupReverseTimeline();
+		ReverseTimeline.PlayFromStart();
 	}
 }
 
@@ -200,15 +281,10 @@ void APlantActor::HandleProgress(float Value)
 
 	if (Value >= ChangeTime && isChanged)
 	{
-		if (NewMesh)
+		// if (NewMesh)
 		{
 			MeshComponent->SetStaticMesh(NewMesh);
 			isChanged = false;
-
-			if (PlantState == EPlantState::Mature)
-			{
-				// SpawnPaticleSystem(GrowParticleSystem);
-			}
 		}
 	}
 
@@ -236,6 +312,21 @@ void APlantActor::SetupTimeline()
 	MyTimeline.SetLooping(false);
 	MyTimeline.SetTimelineLengthMode(TL_TimelineLength);
 	MyTimeline.SetTimelineLength(0.5f);
+}
+
+void APlantActor::SetupReverseTimeline()
+{
+	FOnTimelineFloat ProgressFunction;
+	ProgressFunction.BindUFunction(this, FName("HandleProgress"));
+	ReverseTimeline.AddInterpFloat(ReverseCurve, ProgressFunction);
+
+	FOnTimelineEvent TimelineFinished;
+	TimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
+	ReverseTimeline.SetTimelineFinishedFunc(TimelineFinished);
+
+	ReverseTimeline.SetLooping(false);
+	ReverseTimeline.SetTimelineLengthMode(TL_TimelineLength);
+	ReverseTimeline.SetTimelineLength(0.5f);
 }
 
 void APlantActor::HavestPlant()
