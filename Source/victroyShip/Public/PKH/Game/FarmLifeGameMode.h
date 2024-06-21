@@ -33,6 +33,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 // 튜토리얼 대응
 public:
@@ -119,7 +120,7 @@ public:
 
 // Present
 public:
-	void RequestPresentData(class ANPCBase* NewNPC, bool IsPrefer);
+	void RequestPresentData(class ANPCBase* NewNPC, const FString& ItemName, bool IsPrefer);
 
 	void ResponseToPlayerForPresent(const FNPCResponse& NPCResponse);
 

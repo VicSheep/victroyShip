@@ -468,7 +468,7 @@ void ANewHttpActor::RequestPresent(const FString& NPCName, const FString& ItemNa
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::RequestPresentComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"npc_name\": \"%s\",\"likeability\": \"%d\",\"prefer\": %s}"), 
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"item\": \"%s\",\"likeability\": \"%d\",\"prefer\": %s}"), 
 										*NPCName, *ItemName, Likeability, IsPrefer ? TEXT("true") : TEXT("false"));
 	HttpRequest->SetContentAsString(JsonBody);
 

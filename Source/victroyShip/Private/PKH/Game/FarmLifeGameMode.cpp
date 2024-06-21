@@ -110,8 +110,9 @@ void AFarmLifeGameMode::BeginPlay()
 	BGMComp = UGameplayStatics::SpawnSound2D(GetWorld(), BGM_BackToPortland, 0.6f, 1, 0, nullptr, false, false);
 	BGMComp->FadeIn(3.0f, 0.6f);
 
-	FTimerHandle Handl;
-	GetWorldTimerManager().SetTimer(Handl, this, &AFarmLifeGameMode::StartFarmLife, 10.0f, false);
+	// 추후 튜토리얼 종료 시점에 호출할 것
+	FTimerHandle StartHandle;
+	GetWorldTimerManager().SetTimer(StartHandle, this, &AFarmLifeGameMode::StartFarmLife, 1.0f, false);
 }
 
 void AFarmLifeGameMode::StartFarmLife()
@@ -127,7 +128,7 @@ void AFarmLifeGameMode::StartFarmLife()
 	// NPC AI Start
 	for(ANPCBase* NPC : NPCArray)
 	{
-		NPC->RunAI();
+		NPC->RunAI(); UE_LOG(LogTemp, Error, TEXT("RunAI"));
 	}
 
 	// Delegate
@@ -334,10 +335,10 @@ void AFarmLifeGameMode::GreetingToPlayer(const FNPCResponse& NPCResponse)
 #pragma endregion
 
 #pragma region Present
-void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, bool IsPrefer)
+void AFarmLifeGameMode::RequestPresentData(ANPCBase* NewNPC, const FString& ItemName, bool IsPrefer)
 {
 	CurNPC = NewNPC;
-	HttpActor->RequestPresent(CurNPC->GetNPCName(), CurNPC->GetLikeability(), IsPrefer);
+	HttpActor->RequestPresent(CurNPC->GetNPCName(), ItemName, CurNPC->GetLikeability(), IsPrefer);
 
 	ConversationUI->UpdateConversationUI(TEXT(""), false, true);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
@@ -537,3 +538,12 @@ void AFarmLifeGameMode::EndGame()
 	}
 }
 #pragma endregion
+
+
+void AFarmLifeGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// 대화기록 초기화 요청
+
+}

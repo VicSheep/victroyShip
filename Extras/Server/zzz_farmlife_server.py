@@ -532,3 +532,12 @@ async def post_talk2plant(data:Text2Plant):
 async def get_talk2plant():
     global talk2plant_score
     return talk2plant_score
+
+
+
+#####################################
+
+@app.get("/get-clearHistory")
+async def clear_history():
+    global session_store
+    session_store = {}#대화 기록 초기화

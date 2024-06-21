@@ -143,7 +143,7 @@ void ANPCBase::BeginPlay()
 
 	SetNPCPatrol();
 
-	// Init Greeting & Present Data
+	// Init Greeting
 	if(CurLikeability >= FriendlyLikeability)
 	{
 		InitGreeting();
@@ -419,7 +419,7 @@ void ANPCBase::GivePresent(const FString& ItemName)
 
 	// 통신
 	AFarmLifeGameMode* GameMode = CastChecked<AFarmLifeGameMode>(GetWorld()->GetAuthGameMode());
-	GameMode->RequestPresentData(this, IsPreferItem);
+	GameMode->RequestPresentData(this, ItemName, IsPreferItem);
 }
 
 void ANPCBase::ResponseToPresent()
