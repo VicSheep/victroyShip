@@ -215,7 +215,7 @@ FVector ANPCController::GetHomeLoc() const
 }
 #pragma endregion
 
-
+#pragma region Working
 void ANPCController::SetIsWorking(bool InIsWorking)
 {
 	IsWorking = InIsWorking;
@@ -230,3 +230,23 @@ bool ANPCController::IsWorkInNow()
 {
 	return BBComp->GetValueAsBool(KEY_IS_WORKING);
 }
+#pragma endregion
+
+
+#pragma region Near Player
+void ANPCController::PlayerInRange(AActor* Player)
+{
+	BBComp->SetValueAsBool(KEY_NEAR_PLAYER, true);
+	BBComp->SetValueAsObject(KEY_PLAYER, Player);
+}
+
+void ANPCController::PlayerOutRange()
+{
+	BBComp->SetValueAsBool(KEY_NEAR_PLAYER, false);
+	if(BBComp->GetValueAsBool(KEY_IN_CONV) || BBComp->GetValueAsBool(KEY_PLAYER_IN_SIGHT))
+	{
+		return;
+	}
+	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
+}
+#pragma endregion

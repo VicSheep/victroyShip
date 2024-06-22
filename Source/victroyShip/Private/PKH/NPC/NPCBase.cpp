@@ -19,6 +19,7 @@
 #include "PKH/Game/FarmLifeGameMode.h"
 #include "PKH/UI/EmotionUIWidget.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/SphereComponent.h"
 
 ANPCBase::ANPCBase()
 {
@@ -47,6 +48,13 @@ ANPCBase::ANPCBase()
 	}
 
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+
+	// Sphere Component
+	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	SphereComp->SetupAttachment(RootComponent);
+	SphereComp->SetSphereRadius(150.0f);
+	SphereComp->SetCollisionProfileName(TEXT("SearchPlayer"));
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ANPCBase::OnBeginOverlap);
 
 	// Animation
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimRef(TEXT("/Game/PKH/Anim/ABP_NPC.ABP_NPC_C"));
@@ -470,7 +478,7 @@ void ANPCBase::SetCurPortrait()
 		{
 			return;
 		}
-		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1); UE_LOG(LogTemp, Warning, TEXT("[SetCurPortrait] Idx : %d"), Idx);
+		Idx = FMath::RandRange(0, Portraits_Joy.Num() - 1);
 		CurPortrait = Portraits_Joy[Idx];
 	}
 	else if (CurEmotion == UEnum::GetValueAsString(EEmotion::surprise).Mid(10))
@@ -527,6 +535,43 @@ void ANPCBase::StopAI()
 	{
 		NPCController->StopAI();
 	}
+}
+#pragma endregion
+
+#pragma region Stop Near Player
+void ANPCBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
+							  bool bFromSweep, const FHitResult& SweepResult)
+{
+	AFarmLifeOjsPlayerCharacter* Player = Cast<AFarmLifeOjsPlayerCharacter>(OtherActor);
+	if(nullptr == Player)
+	{
+		return;
+	}
+
+	if(IsNearPlayerCoolTime)
+	{
+		return;
+	}
+	IsNearPlayerCoolTime = true;
+
+	NPCController->PlayerInRange(Player);
+	if(false == NPCController->IsWorkInNow())
+	{
+		AnimInstance->PlayMontage_WaveHand();
+	}
+
+	GetWorldTimerManager().SetTimer(NearPlayerHandle, this, &ANPCBase::NearPlayerTimeOut, NearPlayerStopTime, false);
+	GetWorldTimerManager().SetTimer(CoolTimeHandle, this, &ANPCBase::NearPlayerCoolDown, NearPlayerCoolTime, false);
+}
+
+void ANPCBase::NearPlayerTimeOut()
+{
+	NPCController->PlayerOutRange();
+}
+
+void ANPCBase::NearPlayerCoolDown()
+{
+	IsNearPlayerCoolTime = false;
 }
 #pragma endregion
 
