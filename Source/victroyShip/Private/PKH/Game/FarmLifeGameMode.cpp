@@ -315,7 +315,7 @@ void AFarmLifeGameMode::SendText(const FString& InputText, const TObjectPtr<ANPC
 	CurNPC->SetEmotionUI(false);
 	ShowPlayerText(InputText);
 
-	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability());
+	HttpActor->SendText(CurNPC->GetNPCName(), InputText, CurNPC->GetLikeability(), Hours);
 	ConversationUI->SetVisibility(ESlateVisibility::Visible);
 }
 

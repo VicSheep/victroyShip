@@ -168,6 +168,11 @@ public:
 protected:
 	bool HasIntendToGreeting = false;
 
+	float InitGreetingDelay = 7.0f;
+
+	UFUNCTION()
+	void ChangeIntendToGreeting();
+
 public:
 	void InitGreeting();
 
