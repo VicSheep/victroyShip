@@ -68,6 +68,7 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 {
 	if (NewHour == HOUR_SIT)
 	{
+		NPCController->SetIsWorking(false);
 		Montage_Work = Montage_Sit;
 		NPCController->MoveToTargetLoc(NeetSittingLoc);
 		WorkRotation = NeetSittingRot;
@@ -77,6 +78,7 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_SLEEP)
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Sleep;
 		WorkRotation = NeetSleepingRot;
@@ -87,6 +89,7 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_Dance)
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Dance;
 		NPCController->MoveToTargetLoc(NeetDancingLoc);
@@ -97,6 +100,7 @@ void ANPC_Neet::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == 18)//하루끝나면초기화
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		return;
 	}
