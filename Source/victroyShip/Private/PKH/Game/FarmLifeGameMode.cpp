@@ -62,16 +62,16 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	}
 
 	// Tutorial
-	static ConstructorHelpers::FClassFinder<UUserWidget> TutorialUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Tutorial.WBP_Tutorial_C"));
+	/*static ConstructorHelpers::FClassFinder<UUserWidget> TutorialUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Tutorial.WBP_Tutorial_C"));
 	if (TutorialUIClassRef.Class)
 	{
 		TutorialUIClass = TutorialUIClassRef.Class;
-	}
-	static ConstructorHelpers::FClassFinder<UUserWidget> GuideUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Guide.WBP_Guide_C"));
+	}*/
+	/*static ConstructorHelpers::FClassFinder<UUserWidget> GuideUIClassRef(TEXT("/Game/JIU/Tutorial/Widgets/WBP_Guide.WBP_Guide_C"));
 	if (GuideUIClassRef.Class)
 	{
 		GuideUIClass = GuideUIClassRef.Class;
-	}
+	}*/
 
 	// For Ending
 	static ConstructorHelpers::FClassFinder<UEndingUI_Success> EndingUI_SuccessClassRef(TEXT("/Game/PKH/UI/WBP_EndingUI_Success.WBP_EndingUI_Success_C"));
