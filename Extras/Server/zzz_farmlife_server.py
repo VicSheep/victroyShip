@@ -65,14 +65,16 @@ class NPC_Greeting_Output(fastapiBaseModel):
 
 # 언어 모델 설정
 llm = ChatOpenAI(
-    temperature=0.5,  # 창의성 (0.0 ~ 2.0)
-    max_tokens=150,  # 최대 토큰수
+    temperature=0.3,  # 창의성 (0.0 ~ 2.0)
+    top_p=0.9,
+    max_tokens=350,  # 최대 토큰수
     model_name="gpt-4o",  # 모델명
 )
 
+#npc들에게 섬의 정보에 대해 알게하기
 #당신은 감정을 가진 인격체입니다. 당신의 페르소나인 {persona}를 이해하고, 해당 인물이 되어서 주어진 요청에 이전 대화 기록과 대사 예시를 바탕으로 해당 인물이 할 듯한 응답을 200자 이내의 한국어 대화체로 응답하세요.
 template = """
-You are a person with feelings. Understand your persona, {persona}, and respond to a given request in a conversational style of no more than 100 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
+You are a person with feelings. Understand your persona, {persona}\n\n**Current behavior:**\n{Current_behavior} \n\n**Village Information:**\nThere is a conversation partner's house on the highest hill. Next to the conversation partner's house is the house of Park Chae-won, a farmer. There is a park in the center of the island. Right next to the park is a cafe run by Sung Min-woo. On the hill behind the cafe is the house of artist Min A-young. On the beach are the houses of Lee Chun-sik, an old fisherman, and unemployed Lee Jun-ho., and respond to a given request in a conversational style of no more than 300 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
 
 request:
 {request_content}
@@ -133,6 +135,45 @@ def set_preference(intPref:int):
     else:
         return "호감도 낮은 경우 (낯선 사람 또는 처음 만난 사람)"
     
+def get_activity(name, hour):
+    # 생활 패턴 데이터화
+    neet_schedule = {
+        'Sitting and relaxing in the park.': list(range(9, 11)),
+        'Take a nap': list(range(11, 16)),
+        'Dancing': list(range(16, 18))
+    }
+    
+    fisher_schedule = {
+        'fishing': list(range(9, 16)),
+        'drink': list(range(16, 18))
+    }
+    
+    farmer_schedule = {
+        'farm work': list(range(9, 14)),
+        'Having a cup of coffee at a cafe after finishing farm work.': list(range(14, 17))
+    }
+    
+    # 시간대에 따라 활동을 결정
+    if name == '이준호':
+        for activity, hours in neet_schedule.items():
+            if hour in hours:
+                return activity
+            else:
+                return "walking around"
+    elif name == '이춘식':
+        for activity, hours in fisher_schedule.items():
+            if hour in hours:
+                return activity
+            else:
+                return "walking around"
+    elif name == '박채원':
+        for activity, hours in farmer_schedule.items():
+            if hour in hours:
+                return activity
+            else:
+                return "walking around"
+    else:
+        return "walking around"
 
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
@@ -152,6 +193,7 @@ def talk2npc(npcName:str,dialog:str,preperence:int):#이름, 대화문, 현재 �
             "persona": load_persona(npcName),
             "request_content": getChatLog(npcName).messages,
             "dialogue_example": get_sentences_as_string(npcName,preperence),
+            "Current_behavior": get_activity(npcName,9)
         }
     )
 
