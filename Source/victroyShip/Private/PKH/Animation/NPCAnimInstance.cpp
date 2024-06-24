@@ -50,6 +50,12 @@ UNPCAnimInstance::UNPCAnimInstance()
 	{
 		Montage_Indiff = Montage_IndiffRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WaveHandRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_WaveHand.AM_WaveHand'"));
+	if (Montage_WaveHandRef.Object)
+	{
+		Montage_WaveHand = Montage_WaveHandRef.Object;
+	}
 }
 
 void UNPCAnimInstance::NativeInitializeAnimation()
@@ -92,6 +98,18 @@ void UNPCAnimInstance::PlayMontage_Conv(float PlayRate)
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("[PlayMontage_Conv] Montage_Conv is null"));
+	}
+}
+
+void UNPCAnimInstance::PlayMontage_WaveHand(float PlayRate)
+{
+	if (Montage_Conv)
+	{
+		Montage_Play(Montage_WaveHand, PlayRate);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[PlayMontage_WaveHand] Montage_WaveHand is null"));
 	}
 }
 

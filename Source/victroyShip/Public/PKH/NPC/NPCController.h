@@ -66,6 +66,12 @@ public:
 	// For Reset Keys
 	void ResetBBKeys();
 
+	// Stop Near Player
+	void PlayerInRange(AActor* Player);
+	void PlayerOutRange();
+
+	bool CanWaveHand();
+
 // Do Job
 protected:
 	bool IsWorking = false;

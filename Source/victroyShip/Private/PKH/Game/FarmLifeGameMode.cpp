@@ -55,12 +55,7 @@ AFarmLifeGameMode::AFarmLifeGameMode()
 	}
 
 	// Start Screen
-	/*static ConstructorHelpers::FClassFinder<UUserWidget> StartUIClassRef(TEXT("/Game/JIU/StartScreen/Widgets/WBP_StartScreen.WBP_StartScreen_C"));
-	if (StartUIClassRef.Class)
-	{
-		StartUIClass = StartUIClassRef.Class;
-	}*/
-	static ConstructorHelpers::FObjectFinder<ULevelSequence> StartSequenceRef(TEXT("/Script/LevelSequence.LevelSequence'/Game/JIU/StartScreen/Sequencers/Master.Master'"));
+	static ConstructorHelpers::FObjectFinder<ULevelSequence> StartSequenceRef(TEXT("/Script/LevelSequence.LevelSequence'/Game/PKH/Sequneces/Master.Master'"));
 	if (StartSequenceRef.Object)
 	{
 		StartSequence = StartSequenceRef.Object;
@@ -152,16 +147,12 @@ void AFarmLifeGameMode::BeginPlay()
 
 	// Start Screen Settings
 	StartScreenOn();
-
-	// 추후 튜토리얼 종료 시점에 호출할 것
-	/*FTimerHandle StartHandle;
-	GetWorldTimerManager().SetTimer(StartHandle, this, &AFarmLifeGameMode::StartFarmLife, 1.0f, false);*/
 }
 
 void AFarmLifeGameMode::StartScreenOn()
 {
 	StartUI = CreateWidget(GetWorld(), StartUIClass);
-	StartUI->AddToViewport(3);
+	StartUI->AddToViewport();
 
 	FMovieSceneSequencePlaybackSettings Settings;
 	Settings.LoopCount.Value = -1;
@@ -216,7 +207,7 @@ void AFarmLifeGameMode::StartFarmLife()
 	// NPC AI Start
 	for (ANPCBase* NPC : NPCArray)
 	{
-		NPC->RunAI(); UE_LOG(LogTemp, Error, TEXT("RunAI"));
+		NPC->RunAI();
 	}
 
 	// Delete Tutorial Objects

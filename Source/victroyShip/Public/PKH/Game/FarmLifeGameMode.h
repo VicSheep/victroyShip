@@ -262,7 +262,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartTutorial();
 
-	// Ending
+// Ending
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UEndingUI_Success> EndingUI_SuccessClass;

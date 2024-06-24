@@ -9,6 +9,7 @@
 #define KEY_IS_MOVING TEXT("IsMoving")
 #define KEY_IS_WORKING TEXT("IsWorking")
 #define KEY_PLAYER_IN_SIGHT TEXT("IsPlayerInSight")
+#define KEY_NEAR_PLAYER TEXT("IsNearPlayer")
 // Object
 #define KEY_PLAYER TEXT("Player")
 // Float

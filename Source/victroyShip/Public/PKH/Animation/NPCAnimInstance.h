@@ -58,10 +58,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UAnimMontage> Montage_Indiff;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UAnimMontage> Montage_WaveHand;
+
 public:
 	void SetMontage_Conv(class UAnimMontage* NewConvMontage);
 
 	void PlayMontage_Conv(float PlayRate = 1.0f);
+
+	void PlayMontage_WaveHand(float PlayRate = 1.0f);
 
 	void PlayMontage_Emotion(const FString& Emotion, float PlayRate = 1.0f);
 

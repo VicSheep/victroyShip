@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UWidgetComponent> EmotionUIComp;
 
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USphereComponent> SphereComp;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class ANPCController> NPCController;
 
@@ -62,6 +65,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Locations")
 	FVector HomeLoc = FVector();
+
+protected: 
+	UPROPERTY(EditDefaultsOnly)
+	float NearPlayerStopTime = 3.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float NearPlayerCoolTime = 8.0f;
+
+	bool IsNearPlayerCoolTime = false;
+
+	FTimerHandle NearPlayerHandle;
+	FTimerHandle CoolTimeHandle;
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void NearPlayerTimeOut();
+
+	UFUNCTION()
+	void NearPlayerCoolDown();
 
 // For Mapping
 protected:
