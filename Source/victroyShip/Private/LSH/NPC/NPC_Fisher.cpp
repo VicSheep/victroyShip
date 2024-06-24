@@ -90,6 +90,7 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_BACK_HOME)
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Drink;
 		NPCController->MoveToTargetLoc(FisherHomeLoc);
@@ -102,6 +103,7 @@ void ANPC_Fisher::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == 18)//하루끝나면초기화
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		beerBottle->SetVisibility(false);
 		return;

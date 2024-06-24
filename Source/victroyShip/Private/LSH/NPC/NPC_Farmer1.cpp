@@ -75,6 +75,7 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_GO_CAFE)
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_Sit;
 		WorkRotation = CafeRot;
@@ -85,6 +86,7 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_WORK2)
 	{
+		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
 		Montage_Work = Montage_FarmWork;
 		WorkRotation = FarmRot;
@@ -94,6 +96,7 @@ void ANPC_Farmer1::OnHourUpdated(int32 NewHour)
 
 	if (NewHour == HOUR_HOME)
 	{
+		NPCController->SetIsWorking(false);
 		NPCController->MoveToTargetLoc(FarmLoc);
 		NPCController->SetIsWorking(false);
 		AnimInstance->StopSpecificMontage(Montage_Work);
