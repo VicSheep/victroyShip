@@ -52,7 +52,7 @@ ANPCBase::ANPCBase()
 	// Sphere Component
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SphereComp->SetupAttachment(RootComponent);
-	SphereComp->SetSphereRadius(150.0f);
+	SphereComp->SetSphereRadius(180.0f);
 	SphereComp->SetCollisionProfileName(TEXT("SearchPlayer"));
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ANPCBase::OnBeginOverlap);
 
@@ -337,6 +337,14 @@ void ANPCBase::SetNPCRun()
 void ANPCBase::InitGreeting()
 {
 	MyGameMode->InitGreeting(NPCName, CurLikeability);
+
+	// Delay
+	FTimerHandle GreetingHandle;
+	GetWorldTimerManager().SetTimer(GreetingHandle, this, &ANPCBase::ChangeIntendToGreeting, InitGreetingDelay, false);
+}
+
+void ANPCBase::ChangeIntendToGreeting()
+{
 	HasIntendToGreeting = true;
 }
 

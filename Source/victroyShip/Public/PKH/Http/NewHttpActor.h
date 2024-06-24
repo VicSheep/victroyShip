@@ -109,14 +109,14 @@ public:
 	void ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// ChatBot response
-	void SendConv(const FString& NPCName, int32 Preference);
+	void SendConv(const FString& NPCName, int32 Preference, int32 Hour);
 	void SendConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetConv();
 	void GetConvComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	// Text
-	void SendText(const FString& NPCName, const FString& InputText, int32 Preference);
+	void SendText(const FString& NPCName, const FString& InputText, int32 Preference, int32 Hour);
 	void SendTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 
 	void GetText();

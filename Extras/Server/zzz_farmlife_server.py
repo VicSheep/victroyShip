@@ -134,46 +134,58 @@ def set_preference(intPref:int):
         return "호감도 중간 (친해지고 있는 이웃 또는 지인)"
     else:
         return "호감도 낮은 경우 (낯선 사람 또는 처음 만난 사람)"
-    
+
+# 생활 패턴 데이터화
+neet_schedule = {
+    'Sitting and relaxing in the park.': list(range(9, 11)),
+    'Take a nap': list(range(11, 16)),
+    'Dancing': list(range(16, 18))
+}
+
+fisher_schedule = {
+    'fishing': list(range(9, 16)),
+    'end the day by drinking beer while looking at the sea': list(range(16, 18))
+}
+
+farmer_schedule = {
+    'farm work': list(range(9, 14)),
+    'Having a cup of coffee at a cafe after finishing farm work.': list(range(14, 17))
+}
+
+artist_schedule = {
+    'sitting and drawing a picture in the park.': list(range(13, 17)),
+    'walk towards her home': list(range(17, 18))
+}
+
+cafe_schedule = {
+    'draw customers by talking to passers-by': list(range(10, 16))
+}
+
+programmer_schedule = {
+    'do game programming': list(range(10, 15)),
+    'walking around park to get new inspiration': list(range(15, 17)),
+    'walk towards her home': list(range(17, 18))
+}
+
+schedules = {}
+schedules["이준호"] = neet_schedule
+schedules["이춘식"] = fisher_schedule
+schedules["박채원"] = farmer_schedule
+schedules["민아영"] = artist_schedule
+schedules["성민우"] = cafe_schedule
+schedules["김지민"] = programmer_schedule
+
 def get_activity(name, hour):
-    # 생활 패턴 데이터화
-    neet_schedule = {
-        'Sitting and relaxing in the park.': list(range(9, 11)),
-        'Take a nap': list(range(11, 16)),
-        'Dancing': list(range(16, 18))
-    }
-    
-    fisher_schedule = {
-        'fishing': list(range(9, 16)),
-        'drink': list(range(16, 18))
-    }
-    
-    farmer_schedule = {
-        'farm work': list(range(9, 14)),
-        'Having a cup of coffee at a cafe after finishing farm work.': list(range(14, 17))
-    }
-    
-    # 시간대에 따라 활동을 결정
-    if name == '이준호':
-        for activity, hours in neet_schedule.items():
-            if hour in hours:
-                return activity
-            else:
-                return "walking around"
-    elif name == '이춘식':
-        for activity, hours in fisher_schedule.items():
-            if hour in hours:
-                return activity
-            else:
-                return "walking around"
-    elif name == '박채원':
-        for activity, hours in farmer_schedule.items():
-            if hour in hours:
-                return activity
-            else:
-                return "walking around"
-    else:
+    if False == schedules.__contains__(name):
         return "walking around"
+
+    target_schedule = schedules[name]
+    for activity, hours in target_schedule.items():
+        if hour in hours:
+            return activity
+    return "walking around"
+
+
 
 session_store = {} # 메시지 기록(세션)을 저장할 딕셔너리
 
@@ -186,14 +198,14 @@ def getChatLog(session_ids : str):#npc 개별로 채팅 기록 생성, 각각 �
     return session_store[session_ids] # 대화한 적이 있을 경우 저장된 세션 ID 기록 반환하기
 
 
-def talk2npc(npcName:str,dialog:str,preperence:int):#이름, 대화문, 현재 호감도
+def talk2npc(npcName:str,dialog:str,preperence:int, hour:int):#이름, 대화문, 현재 호감도
     getChatLog(npcName).add_user_message(dialog) #유저의 입력을 로그에 입력
     response = chain.invoke(
         {
             "persona": load_persona(npcName),
             "request_content": getChatLog(npcName).messages,
             "dialogue_example": get_sentences_as_string(npcName,preperence),
-            "Current_behavior": get_activity(npcName,9)
+            "Current_behavior": get_activity(npcName,hour)
         }
     )
 
@@ -337,10 +349,12 @@ class TextData(fastapiBaseModel):
     npc_name : str
     chat_text : str
     likeability : int
+    hour : int
 
 class NPCData(fastapiBaseModel):
     npc_name : str
     likeability : int
+    hour : int
 
 ## 식물 성장
 class STT2Plant(fastapiBaseModel):
@@ -388,7 +402,7 @@ async def post_conv(data:NPCData):
     try:
         global latest_dict, latest_npc_name
         latest_npc_name = data.npc_name
-        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability)
+        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability, data.hour)
         return latest_dict
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
@@ -406,7 +420,7 @@ async def post_text(data:TextData):
         global latest_speech, latest_dict, latest_npc_name
         latest_speech = data.chat_text
         latest_npc_name = data.npc_name
-        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability)
+        latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability, data.hour)
         return latest_dict
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")

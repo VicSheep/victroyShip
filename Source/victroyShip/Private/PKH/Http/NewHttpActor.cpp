@@ -121,7 +121,7 @@ void ANewHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResp
 		MyGameMode->ShowPlayerText(ResultText.Mid(1, ResultText.Len() - 2));
 		if (MyGameMode->GetCurNPC())
 		{
-			SendConv(MyGameMode->GetCurNPC()->GetNPCName(), MyGameMode->GetCurNPC()->GetLikeability());
+			SendConv(MyGameMode->GetCurNPC()->GetNPCName(), MyGameMode->GetCurNPC()->GetLikeability(), MyGameMode->GetHour());
 		}
 	}
 	else
@@ -135,7 +135,7 @@ void ANewHttpActor::ReqTextFromSpeechComplete(FHttpRequestPtr Request, FHttpResp
 #pragma endregion
 
 #pragma region NPC Conversation by Text
-void ANewHttpActor::SendText(const FString& NPCName, const FString& InputText, int32 Preference)
+void ANewHttpActor::SendText(const FString& NPCName, const FString& InputText, int32 Preference, int32 Hour)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendText;
 
@@ -147,7 +147,8 @@ void ANewHttpActor::SendText(const FString& NPCName, const FString& InputText, i
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::SendTextComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"likeability\" : \"%d\"}"), *NPCName, *InputText, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"chat_text\" : \"%s\",\"likeability\" : \"%d\",\"hour\": \"%d\"}"), 
+										*NPCName, *InputText, Preference, Hour);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
@@ -208,7 +209,7 @@ void ANewHttpActor::GetTextComplete(FHttpRequestPtr Request, FHttpResponsePtr Re
 #pragma endregion
 
 #pragma region ChatBot Response
-void ANewHttpActor::SendConv(const FString& NPCName, int32 Preference)
+void ANewHttpActor::SendConv(const FString& NPCName, int32 Preference, int32 Hour)
 {
 	const FString& FullURL = BaseURL + EndPoint_SendConv;
 
@@ -220,7 +221,7 @@ void ANewHttpActor::SendConv(const FString& NPCName, int32 Preference)
 	HttpRequest->OnProcessRequestComplete().BindUObject(this, &ANewHttpActor::SendConvComplete);
 
 	// 양식 주의할 것(웹 서버쪽의 양식과 정확하게 일치해야 함)
-	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\"}"), *NPCName, Preference);
+	FString JsonBody = FString::Printf(TEXT("{\"npc_name\": \"%s\",\"likeability\": \"%d\",\"hour\": \"%d\"}"), *NPCName, Preference, Hour);
 	HttpRequest->SetContentAsString(JsonBody);
 
 	HttpRequest->ProcessRequest();
