@@ -114,12 +114,15 @@ void ANPC_Fisher::OnConversationBegin()
 	Super::OnConversationBegin();
 	SetHendleObjectVisible(fishingTool, false);
 	SetHendleObjectVisible(beerBottle, false);
+	UE_LOG(LogTemp, Warning, TEXT("con big"));
 }
 void ANPC_Fisher::OnConversationEnd()
 {
 	Super::OnConversationEnd();
 	SetHendleObjectVisible(fishingTool, true);
 	SetHendleObjectVisible(beerBottle, true);
+	UE_LOG(LogTemp, Warning, TEXT("con end"));
+
 }
 
 //껏다 켯다
@@ -129,17 +132,17 @@ void ANPC_Fisher::SetHendleObjectVisible(UStaticMeshComponent* object, bool isVi
 {
 	
 	if (object == nullptr) return;
-	if (object->IsVisible())
+	if (!isVisible && object->IsVisible())
 	{
-		object->SetVisibility(isVisible);
+		object->SetVisibility(false);
 		rememberedMesh = object;//변수를 매시에 저장, 꺼야하는게 하나일 때만 가능, 여러개면 어레이로 바꿔야함
-		UE_LOG(LogTemp, Warning, TEXT("setvisible"));
+		UE_LOG(LogTemp, Warning, TEXT("setvisible false"));
 
 	}
-	else if (!object->IsVisible()&&rememberedMesh == object)
+	else if (isVisible&&rememberedMesh == object)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("setvisible"));
-		object->SetVisibility(isVisible);
+		UE_LOG(LogTemp, Warning, TEXT("setvisible true"));
+		object->SetVisibility(true);
 		rememberedMesh = nullptr;
 	}
 }
