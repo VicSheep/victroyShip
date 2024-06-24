@@ -67,14 +67,14 @@ class NPC_Greeting_Output(fastapiBaseModel):
 llm = ChatOpenAI(
     temperature=0.3,  # 창의성 (0.0 ~ 2.0)
     top_p=0.9,
-    max_tokens=350,  # 최대 토큰수
+    max_tokens=250,  # 최대 토큰수
     model_name="gpt-4o",  # 모델명
 )
 
 #npc들에게 섬의 정보에 대해 알게하기
 #당신은 감정을 가진 인격체입니다. 당신의 페르소나인 {persona}를 이해하고, 해당 인물이 되어서 주어진 요청에 이전 대화 기록과 대사 예시를 바탕으로 해당 인물이 할 듯한 응답을 200자 이내의 한국어 대화체로 응답하세요.
 template = """
-You are a person with feelings. Understand your persona, {persona}\n\n**Current behavior:**\n{Current_behavior} \n\n**Village Information:**\nThere is a conversation partner's house on the highest hill. Next to the conversation partner's house is the house of Park Chae-won, a farmer. There is a park in the center of the island. Right next to the park is a cafe run by Sung Min-woo. On the hill behind the cafe is the house of artist Min A-young. On the beach are the houses of Lee Chun-sik, an old fisherman, and unemployed Lee Jun-ho., and respond to a given request in a conversational style of no more than 300 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
+You are a person with feelings. Understand your persona, {persona}\n\n**Current behavior:**\n{Current_behavior} \n\n**Village Information:**\nThere is a conversation partner's house on the highest hill. Next to the conversation partner's house is the house of Park Chae-won, a farmer. There is a park in the center of the island. Right next to the park is a cafe run by Sung Min-woo. On the hill behind the cafe is the house of artist Min A-young. On the beach are the houses of Lee Chun-sik, an old fisherman, and unemployed Lee Jun-ho., and respond to a given request in a conversational style of no more than 200 characters in Korean, based on previous dialogue history and example dialogue. {dialogue_example}
 
 request:
 {request_content}
