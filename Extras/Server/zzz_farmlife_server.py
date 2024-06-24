@@ -421,6 +421,8 @@ async def post_text(data:TextData):
         latest_speech = data.chat_text
         latest_npc_name = data.npc_name
         latest_dict = talk2npc(data.npc_name, latest_speech, data.likeability, data.hour)
+        print(f"유저 입력: {latest_speech}")
+        print(f"챗봇 답변: {latest_dict}")
         return latest_dict
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"{str(e)}")
