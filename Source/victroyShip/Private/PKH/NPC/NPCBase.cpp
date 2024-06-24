@@ -555,7 +555,7 @@ void ANPCBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	IsNearPlayerCoolTime = true;
 
 	NPCController->PlayerInRange(Player);
-	if(false == NPCController->IsWorkInNow())
+	if(NPCController->CanWaveHand())
 	{
 		AnimInstance->PlayMontage_WaveHand();
 	}

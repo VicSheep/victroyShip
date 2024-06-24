@@ -249,4 +249,9 @@ void ANPCController::PlayerOutRange()
 	}
 	BBComp->SetValueAsObject(KEY_PLAYER, nullptr);
 }
+
+bool ANPCController::CanWaveHand()
+{
+	return false == BBComp->GetValueAsBool(KEY_IS_WORKING) && false == BBComp->GetValueAsBool(KEY_PLAYER_IN_SIGHT);
+}
 #pragma endregion

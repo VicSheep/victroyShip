@@ -70,6 +70,8 @@ public:
 	void PlayerInRange(AActor* Player);
 	void PlayerOutRange();
 
+	bool CanWaveHand();
+
 // Do Job
 protected:
 	bool IsWorking = false;

@@ -147,10 +147,6 @@ void AFarmLifeGameMode::BeginPlay()
 
 	// Start Screen Settings
 	StartScreenOn();
-
-	// 추후 튜토리얼 종료 시점에 호출할 것
-	/*FTimerHandle StartHandle;
-	GetWorldTimerManager().SetTimer(StartHandle, this, &AFarmLifeGameMode::StartFarmLife, 1.0f, false);*/
 }
 
 void AFarmLifeGameMode::StartScreenOn()

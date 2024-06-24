@@ -18,9 +18,20 @@ void ANewHttpActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (bRunAsLocal)
+	if (BaseURL.IsEmpty())
 	{
-		BaseURL = LocalURL;
+		if(ChooseServer == EServerType::Pkh)
+		{
+			BaseURL = PkhURL;
+		}
+		else if(ChooseServer == EServerType::Lsh)
+		{
+			BaseURL = LshURL;
+		}
+		else
+		{
+			BaseURL = LocalURL;
+		}
 	}
 
 	ExtraPath = UKismetSystemLibrary::GetProjectDirectory() + ExtraFolder;

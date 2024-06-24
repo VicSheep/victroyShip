@@ -7,6 +7,14 @@
 #include "Interfaces/IHttpRequest.h"
 #include "NewHttpActor.generated.h"
 
+UENUM()
+enum class EServerType : uint8
+{
+	Pkh = 0,
+	Lsh,
+	Local
+};
+
 UCLASS()
 class VICTROYSHIP_API ANewHttpActor : public AActor
 {
@@ -24,12 +32,14 @@ protected:
 	TObjectPtr<class AFarmLifeGameMode> MyGameMode;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString BaseURL = TEXT("http://192.168.240.91:3172"); 
-	//FString BaseURL = TEXT("http://192.168.240.81:3172");
-	FString LocalURL = TEXT("http://127.0.0.1:8000");
+	FString BaseURL = TEXT("");
 
-	UPROPERTY(EditDefaultsOnly)
-	bool bRunAsLocal = false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	EServerType ChooseServer = EServerType::Pkh;
+
+	FString PkhURL = TEXT("http://192.168.240.91:3172");
+	FString LshURL = TEXT("http://192.168.240.81:3172");
+	FString LocalURL = TEXT("http://127.0.0.1:8000");
 
 	// STT
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

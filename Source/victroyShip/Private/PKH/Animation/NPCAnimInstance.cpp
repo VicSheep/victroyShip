@@ -51,7 +51,7 @@ UNPCAnimInstance::UNPCAnimInstance()
 		Montage_Indiff = Montage_IndiffRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WaveHandRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/Retargetted/Re_AM_WaveHand.Re_AM_WaveHand'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> Montage_WaveHandRef(TEXT("/Script/Engine.AnimMontage'/Game/PKH/Anim/AM_WaveHand.AM_WaveHand'"));
 	if (Montage_WaveHandRef.Object)
 	{
 		Montage_WaveHand = Montage_WaveHandRef.Object;
